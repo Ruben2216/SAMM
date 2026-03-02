@@ -25,3 +25,40 @@ samm-project/
 Ver instrucciones de instalación en:
 - `frontend/SETUP.md`
 - `backend/SETUP.md`
+
+## Frontend
+### Instalar dependencias
+
+Antes de ejecutar la aplicacion, entrar a la carpeta del frontend e instalar las dependencias:
+
+```bash
+cd frontend
+npm install
+```
+
+### Ejecutar la aplicacion
+Iniciar el servidor de desarrollo con:
+
+```bash
+npx expo start
+```
+
+Opciones disponibles una vez iniciado:
+
+- `a` → abrir Android  
+- `w` → abrir Web  
+
+### Si aparece error al usar Web
+
+Si al presionar `w` aparece un error, ejecutar esto:
+
+```bash
+npx expo install react-native-web react-dom @expo/webpack-config
+```
+
+Luego reinicia el servidor:
+
+```bash
+Ctrl + C
+npx expo start
+```
