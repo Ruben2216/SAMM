@@ -1,0 +1,25 @@
+import { MD3LightTheme } from 'react-native-paper';
+
+/**
+ * Tema principal de SAMM
+ * Configuración centralizada de colores siguiendo Material Design 3
+ */
+export const theme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: '#14EC5C', // Verde Neón SAMM
+    secondary: '#10e968', // Variante del verde
+    background: '#F8FAFC', // Fondo general
+    surface: '#FFFFFF', // Superficies (tarjetas, modales)
+    text: '#1E293B', // Texto principal
+    textSecondary: '#8a94a6', // Texto secundario
+    error: '#EF4444', // Errores
+    border: '#f0f2f5', // Bordes sutiles
+    disabled: '#CBD5E1', // Elementos deshabilitados
+    placeholder: '#94A3B8', // Placeholders
+  },
+  roundness: 24, // Radio de bordes global
+};
+
+export type AppTheme = typeof theme;

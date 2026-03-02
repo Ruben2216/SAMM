@@ -20,11 +20,7 @@ samm-project/
 - **Backend:** Python, FastAPI, PostgreSQL, Redis, RabbitMQ
 - **Arquitectura:** Hexagonal (Ports & Adapters) + Microservicios
 
-## Instalación
 
-Ver instrucciones de instalación en:
-- `frontend/SETUP.md`
-- `backend/SETUP.md`
 
 ## Frontend
 ### Instalar dependencias
