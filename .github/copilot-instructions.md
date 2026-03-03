@@ -154,7 +154,14 @@ export const LoginScreen = () => {
 * Usa `console.error` para errores críticos controlados.
 * En las peticiones Axios, siempre implementa bloques `try/catch`.
 
-## 7. No crees nunca archivos .md, powershell o bash en el proyecto, a menos que se indique explícitamente en las instrucciones. Cualquier documentación o guía debe integrarse dentro de los archivos existentes
+## 7. No crees nunca archivos .md, powershell o bash en el proyecto.
+*  Al menos que se indique explícitamente en las instrucciones. 
+* Cualquier documentación o guía debe integrarse dentro de los archivos existentes
+* Nunca crees archivos de instrucciones .md, en muy pocas situaciones se te solicitara añadirla, en caso de que se te solicite, crealo de lo contrario no.
+
+
+# 8. No hagas comentarios innecesarios en el código
+* Solo comenta lo minimo para explicar la lógica compleja o decisiones de diseño, evitando comentarios obvios o redundantes, por ejemplo ` Botón primario de SAMM` en lugar de ` Botón que se usa para acciones principales en la app`.
 
 Fin de las instrucciones.
 

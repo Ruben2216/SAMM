@@ -32,9 +32,8 @@ export const styles = StyleSheet.create({
   },
 
   iconImage: {
-    width: 36,
-    height: 36,
-    tintColor: '#FFFFFF',
+    width: 50,
+    height: 50,
   },
 
   cardContent: {

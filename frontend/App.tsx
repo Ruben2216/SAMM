@@ -5,6 +5,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from './src/theme';
+import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 
 const Stack = createStackNavigator();
@@ -25,6 +26,7 @@ export default function App() {
               cardStyle: { backgroundColor: theme.colors.background },
             }}
           >
+            <Stack.Screen name="Initial" component={InitialScreen} />
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
           </Stack.Navigator>
         </NavigationContainer>

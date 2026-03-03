@@ -48,7 +48,7 @@ export const WelcomeScreen: React.FC = () => {
         <SelectionCard
           title="Soy Familiar"
           description="Administro cuenta y medicamento"
-          iconName="account-supervisor"
+          iconSource={require('../../../../../assets/icons/gente.png')}
           onPress={() => setSelectedRole('familiar')}
           isSelected={selectedRole === 'familiar'}
         />

@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
+    "sdkVersion": "54.0.0",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#14EC5C"
@@ -19,7 +22,24 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#14EC5C"
+      }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "La aplicación necesita acceder a tu ubicación para funciones de seguimiento."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#14EC5C"
+        }
       ]
-    }
+    ]
   }
 }

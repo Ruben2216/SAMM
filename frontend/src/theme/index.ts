@@ -2,7 +2,6 @@ import { MD3LightTheme } from 'react-native-paper';
 
 /**
  * Tema principal de SAMM
- * Configuración centralizada de colores siguiendo Material Design 3
  */
 export const theme = {
   ...MD3LightTheme,

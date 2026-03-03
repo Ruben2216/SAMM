@@ -6,7 +6,6 @@ import { PrimaryButtonProps } from './types';
 
 /**
  * Botón primario de SAMM con estilo verde neón
- * Área táctil accesible (56px altura)
  */
 export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   title,
