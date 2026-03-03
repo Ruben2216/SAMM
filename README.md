@@ -36,25 +36,21 @@ npm install
 Iniciar el servidor de desarrollo con:
 
 ```bash
-npx expo start
+npx expo start --tunnel
 ```
-
-Opciones disponibles una vez iniciado:
-
-- `a` → abrir Android  
-- `w` → abrir Web  
 
 ### Si aparece error al usar Web
 
 Si al presionar `w` aparece un error, ejecutar esto:
 
 ```bash
-npx expo install react-native-web react-dom @expo/webpack-config
+ npm install @expo/ngrok --save-dev
 ```
 
 Luego reinicia el servidor:
 
 ```bash
 Ctrl + C
-npx expo start
+npx expo start --tunnel
+Escanear el QR en Expo Go
 ```
