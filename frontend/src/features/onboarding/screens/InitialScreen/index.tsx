@@ -6,9 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
 
-/**
- * HTML embebido con Mapbox GL JS - Edificios 3D y rotación automática
- */
+const MAPBOX_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
+
 const MAPBOX_HTML = `
 <!DOCTYPE html>
 <html>
@@ -97,7 +96,7 @@ const MAPBOX_HTML = `
 <body>
   <div id="map"></div>
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1Ijoiam9zZTIyMSIsImEiOiJjbW1hMWJiOHAwOXNkMndvb2RlNTB6ZjZhIn0.tLiiTYUFfb_FFgEyfE52Nw';
+    mapboxgl.accessToken = '${MAPBOX_TOKEN}';
     
     const map = new mapboxgl.Map({
       container: 'map',
