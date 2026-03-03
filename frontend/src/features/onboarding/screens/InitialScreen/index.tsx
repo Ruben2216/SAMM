@@ -18,9 +18,9 @@ const MAPBOX_HTML = `
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
   <style>
     * { margin: 0; padding: 0; }
-    body, html, #map { width: 100%; height: 100%; overflow: hidden; }
+    body, html, #mapa { width: 100%; height: 100%; overflow: hidden; }
     
-    .marker-container {
+    .contenedor-marcador {
       position: relative;
       width: 60px;
       height: 60px;
@@ -29,14 +29,14 @@ const MAPBOX_HTML = `
       justify-content: flex-start;
     }
     
-    .marker-halo {
+    .halo-marcador {
       position: absolute;
       top: -15px;
       left: 50%;
       transform: translateX(-50%);
       border-radius: 50%;
       background: rgba(20, 236, 92, 0.4);
-      animation: haloPulse 3s ease-out infinite;
+      animation: pulsarHalo 3s ease-out infinite;
       border: 1px dashed rgba(128, 128, 128, 0.49);
     }
     
@@ -45,13 +45,13 @@ const MAPBOX_HTML = `
     .halo-3 { width: 220px; height: 220px; animation-delay: 1.5s; opacity: 0.1; position: absolute;  top: -45px; }
  
     
-    @keyframes haloPulse {
+    @keyframes pulsarHalo {
       0% { transform: translateX(-50%) scale(0.8); opacity: 1; }
       100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
 
     }
     
-    .pin-shape {
+    .forma-pin {
       position: relative;
       width:60px;
       height: 60px;
@@ -65,7 +65,7 @@ const MAPBOX_HTML = `
       z-index: 2;
     }
     
-    .pin-inner {
+    .pin-interno {
       width: 50px;
       height: 50px;
       border-radius: 50%;
@@ -75,13 +75,13 @@ const MAPBOX_HTML = `
       border: 3px solid #14EC5C;
     }
     
-    .pin-image {
+    .imagen-pin {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
     
-    .pin-dot {
+    .punto-pin {
       width: 15px;
       height: 15px;
       background: #ffffff90;
@@ -94,12 +94,12 @@ const MAPBOX_HTML = `
   </style>
 </head>
 <body>
-  <div id="map"></div>
+  <div id="mapa"></div>
   <script>
     mapboxgl.accessToken = '${MAPBOX_TOKEN}';
     
-    const map = new mapboxgl.Map({
-      container: 'map',
+    const mapa = new mapboxgl.Map({
+      container: 'mapa',
       style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [2.2945, 48.8584], 
       zoom: 15.68,
@@ -109,10 +109,10 @@ const MAPBOX_HTML = `
       attributionControl: false
     });
     
-    map.on('load', () => {
-      map.addLayer({
+    mapa.on('load', () => {
+      mapa.addLayer({
 
-        'id': '3d-buildings',
+        'id': 'edificios-3d',
         'source': 'composite',
         'source-layer': 'building',
         'filter': ['==', 'extrude', 'true'],
@@ -137,80 +137,74 @@ const MAPBOX_HTML = `
 
 
       
-      // Agregar marcadores con pines personalizados
-      const marker1El = document.createElement('div');
-      marker1El.className = 'marker-container';
-      marker1El.innerHTML = \`
-        <div class="marker-halo halo-1"></div>
-        <div class="marker-halo halo-2"></div>
-        <div class="marker-halo halo-3"></div>
-        <div class="pin-shape">
-          <div class="pin-inner">
-            <img src="https://cdn-p.smehost.net/sites/a8928da38df6414aae98564041b07ae0/wp-content/uploads/2022/08/JoseJose-Imagen.png" class="pin-image" alt="Usuario 1">
+      const elementoMarcador1 = document.createElement('div');
+      elementoMarcador1.className = 'contenedor-marcador';
+      elementoMarcador1.innerHTML = \`
+        <div class="halo-marcador halo-1"></div>
+        <div class="halo-marcador halo-2"></div>
+        <div class="halo-marcador halo-3"></div>
+        <div class="forma-pin">
+          <div class="pin-interno">
+            <img src="https://cdn-p.smehost.net/sites/a8928da38df6414aae98564041b07ae0/wp-content/uploads/2022/08/JoseJose-Imagen.png" class="imagen-pin" alt="Usuario 1">
           </div>
         </div>
-        <div class="pin-dot"></div>
+        <div class="punto-pin"></div>
       \`;
-      new mapboxgl.Marker({ element: marker1El, anchor: 'bottom' })
-        .setLngLat([2.2935, 48.8594]) // Usuario 1 - Norte de la Torre Eiffel
-        .addTo(map);
+      new mapboxgl.Marker({ element: elementoMarcador1, anchor: 'bottom' })
+        .setLngLat([2.2935, 48.8594])
+        .addTo(mapa);
       
-      const marker2El = document.createElement('div');
-      marker2El.className = 'marker-container';
-      marker2El.innerHTML = \`
-        <div class="marker-halo halo-1"></div>
-        <div class="marker-halo halo-2"></div>
-        <div class="marker-halo halo-3"></div>
-        <div class="pin-shape">
-          <div class="pin-inner">
-            <img src="https://blob.tusbuenasnoticias.com/images/2025/12/19/cuantos-anos-tendria-chalino-sanchez-en-2025-ff235f36-focus-0-0-418-336.webp" class="pin-image" alt="Usuario 2">
+      const elementoMarcador2 = document.createElement('div');
+      elementoMarcador2.className = 'contenedor-marcador';
+      elementoMarcador2.innerHTML = \`
+        <div class="halo-marcador halo-1"></div>
+        <div class="halo-marcador halo-2"></div>
+        <div class="halo-marcador halo-3"></div>
+        <div class="forma-pin">
+          <div class="pin-interno">
+            <img src="https://blob.tusbuenasnoticias.com/images/2025/12/19/cuantos-anos-tendria-chalino-sanchez-en-2025-ff235f36-focus-0-0-418-336.webp" class="imagen-pin" alt="Usuario 2">
           </div>
         </div>
-        <div class="pin-dot"></div>
+        <div class="punto-pin"></div>
       \`;
-      new mapboxgl.Marker({ element: marker2El, anchor: 'bottom' })
-        .setLngLat([2.2955, 48.8574]) // Usuario 2 - Sur de la Torre Eiffel
-        .addTo(map);
+      new mapboxgl.Marker({ element: elementoMarcador2, anchor: 'bottom' })
+        .setLngLat([2.2955, 48.8574])
+        .addTo(mapa);
       
-      // Sistema de rotación con pausa por interacción
-      let rotationActive = true;
-      let rotationAnimationId = null;
-      let inactivityTimeout = null;
+      let rotacionActiva = true;
+      let idAnimacionRotacion = null;
+      let tiempoInactividad = null;
       
-      function rotateCamera(timestamp) {
-        if (rotationActive) {
-          map.rotateTo((timestamp / 200) % 360, { duration: 600 });
-          rotationAnimationId = requestAnimationFrame(rotateCamera);
+      function rotarCamara(marcaTiempo) {
+        if (rotacionActiva) {
+          mapa.rotateTo((marcaTiempo / 200) % 360, { duration: 600 });
+          idAnimacionRotacion = requestAnimationFrame(rotarCamara);
         }
       }
       
-      function pauseRotation() {
-        rotationActive = false;
-        if (rotationAnimationId) {
-          cancelAnimationFrame(rotationAnimationId);
-          rotationAnimationId = null;
+      function pausarRotacion() {
+        rotacionActiva = false;
+        if (idAnimacionRotacion) {
+          cancelAnimationFrame(idAnimacionRotacion);
+          idAnimacionRotacion = null;
         }
         
-        // Limpiar timeout anterior
-        if (inactivityTimeout) {
-          clearTimeout(inactivityTimeout);
+        if (tiempoInactividad) {
+          clearTimeout(tiempoInactividad);
         }
         
-        // Programar reanudación después de 4 segundos de inactividad
-        inactivityTimeout = setTimeout(() => {
-          rotationActive = true;
-          rotateCamera(performance.now());
+        tiempoInactividad = setTimeout(() => {
+          rotacionActiva = true;
+          rotarCamara(performance.now());
         }, 4000);
       }
       
-      // Detectar interacción del usuario
-      map.on('mousedown', pauseRotation);
-      map.on('touchstart', pauseRotation);
-      map.on('wheel', pauseRotation);
-      map.on('drag', pauseRotation);
+      mapa.on('mousedown', pausarRotacion);
+      mapa.on('touchstart', pausarRotacion);
+      mapa.on('wheel', pausarRotacion);
+      mapa.on('drag', pausarRotacion);
       
-      // Iniciar rotación automática
-      rotateCamera(0);
+      rotarCamara(0);
     });
   </script>
 </body>
@@ -222,24 +216,22 @@ const MAPBOX_HTML = `
  * Introduce al usuario a SAMM antes del onboarding
  */
 export const InitialScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navegacion = useNavigation();
 
-  const handleStartNow = () => {
-    navigation.navigate('Welcome' as never);
+  const manejarInicioAhora = () => {
+    navegacion.navigate('Welcome' as never);
   };
 
-  const handleLoginLink = () => {
-    // TODO: Navegar a pantalla de login
+  const manejarEnlaceLogin = () => {
     console.log('Navegar a login');
   };
 
   return (
-    <View style={styles.container}>
-      {/* Mapa Hero Section con Edificios 3D (HTML Mapbox) */}
-      <View style={styles.heroSection}>
+    <View style={styles.contenedor}>
+      <View style={styles.seccionHero}>
         <WebView
           source={{ html: MAPBOX_HTML }}
-          style={styles.map}
+          style={styles.mapa}
           scrollEnabled={false}
           bounces={false}
           showsHorizontalScrollIndicator={false}
@@ -248,47 +240,42 @@ export const InitialScreen: React.FC = () => {
         />
       </View>
 
-      {/* Bottom Sheet */}
-      <View style={styles.bottomSheet}>
-        {/* Indicadores de progreso (dots) */}
-        <View style={styles.dotsContainer}>
-          <View style={[styles.dot, styles.dotActive]} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+      <View style={styles.hojaInferior}>
+        <View style={styles.contenedorPuntos}>
+          <View style={[styles.punto, styles.puntoActivo]} />
+          <View style={styles.punto} />
+          <View style={styles.punto} />
+          <View style={styles.punto} />
         </View>
 
-        {/* Título y Subtítulo */}
-        <Text style={styles.title}>Bienvenido a{'\n'}SAMM</Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.titulo}>Bienvenido a{'\n'}SAMM</Text>
+        <Text style={styles.subtitulo}>
           Seguridad para tus seres queridos, tranquilidad para ti.
           {'\n'}Monitoreo inteligente en tiempo real.
         </Text>
 
-        {/* Botón Comenzar Ahora */}
         <TouchableOpacity
-          style={styles.startButton}
-          onPress={handleStartNow}
+          style={styles.botonInicio}
+          onPress={manejarInicioAhora}
           activeOpacity={0.8}
           accessibilityLabel="Comenzar ahora con SAMM"
           accessibilityRole="button"
         >
-          <Text style={styles.startButtonText}>Comenzar ahora</Text>
+          <Text style={styles.textoBotonInicio}>Comenzar ahora</Text>
           <Image
             source={require('../../../../../assets/icons/flecha-derecha.png')}
-            style={styles.arrowIcon}
+            style={styles.iconoFlecha}
             resizeMode="contain"
           />
         </TouchableOpacity>
 
-        {/* Footer Link */}
         <TouchableOpacity
-          onPress={handleLoginLink}
-          style={styles.footerLinkContainer}
+          onPress={manejarEnlaceLogin}
+          style={styles.contenedorEnlacePie}
           accessibilityLabel="Ir a iniciar sesión"
           accessibilityRole="button"
         >
-          <Text style={styles.footerLink}>
+          <Text style={styles.enlacePie}>
             ¿Ya tienes cuenta? Iniciar Sesión
           </Text>
         </TouchableOpacity>

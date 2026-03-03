@@ -9,26 +9,25 @@ import { ProgressBarProps } from './types';
  * Muestra el paso actual del onboarding/proceso
  */
 export const ProgressBar: React.FC<ProgressBarProps> = ({
-  currentStep,
-  totalSteps,
-  customLabel,
+  pasoActual,
+  pasosTotales,
+  etiquetaPersonalizada,
 }) => {
-  // Calcular porcentaje de progreso
-  const progressPercentage = (currentStep / totalSteps) * 100;
-  const label = customLabel || `Paso ${currentStep} de ${totalSteps}`;
+  const porcentajeProgreso = (pasoActual / pasosTotales) * 100;
+  const etiqueta = etiquetaPersonalizada || `Paso ${pasoActual} de ${pasosTotales}`;
 
   return (
     <View
-      style={styles.container}
-      accessibilityLabel={`Progreso: ${label}`}
+      style={styles.contenedor}
+      accessibilityLabel={`Progreso: ${etiqueta}`}
       accessibilityRole="progressbar"
     >
-      <Text style={styles.stepLabel}>{label}</Text>
-      <View style={styles.progressTrack}>
+      <Text style={styles.etiquetaPaso}>{etiqueta}</Text>
+      <View style={styles.pistaProgreso}>
         <View
           style={[
-            styles.progressFill,
-            { width: `${progressPercentage}%` },
+            styles.rellenoProgreso,
+            { width: `${porcentajeProgreso}%` },
           ]}
         />
       </View>

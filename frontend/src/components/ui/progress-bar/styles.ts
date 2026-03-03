@@ -2,11 +2,11 @@ import { StyleSheet } from 'react-native';
 import { theme } from '../../../theme';
 
 export const styles = StyleSheet.create({
-  container: {
+  contenedor: {
     marginBottom: 30,
   },
 
-  stepLabel: {
+  etiquetaPaso: {
     textAlign: 'right',
     fontSize: 13,
     color: '#666',
@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  progressTrack: {
+  pistaProgreso: {
     height: 6,
     backgroundColor: '#f0f0f0',
     borderRadius: 3,
@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  progressFill: {
+  rellenoProgreso: {
     position: 'absolute',
     left: 0,
     top: 0,

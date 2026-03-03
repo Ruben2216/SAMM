@@ -8,33 +8,33 @@ import { PrimaryButtonProps } from './types';
  * Botón primario de SAMM con estilo verde neón
  */
 export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
-  title,
-  onPress,
-  disabled = false,
-  loading = false,
-  fullWidth = true,
+  titulo,
+  alPresionar,
+  deshabilitado = false,
+  cargando = false,
+  anchoCompleto = true,
 }) => {
-  const isDisabled = disabled || loading;
+  const estaDeshabilitado = deshabilitado || cargando;
 
   return (
     <TouchableOpacity
       style={[
-        styles.button,
-        fullWidth && styles.buttonFullWidth,
-        isDisabled && styles.buttonDisabled,
+        styles.boton,
+        anchoCompleto && styles.botonAnchoCompleto,
+        estaDeshabilitado && styles.botonDeshabilitado,
       ]}
-      onPress={onPress}
-      disabled={isDisabled}
+      onPress={alPresionar}
+      disabled={estaDeshabilitado}
       activeOpacity={0.8}
-      accessibilityLabel={title}
+      accessibilityLabel={titulo}
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
+      accessibilityState={{ disabled: estaDeshabilitado }}
     >
-      {loading ? (
+      {cargando ? (
         <ActivityIndicator color="#000" size="small" />
       ) : (
-        <Text style={[styles.buttonText, isDisabled && styles.buttonTextDisabled]}>
-          {title}
+        <Text style={[styles.textoBoton, estaDeshabilitado && styles.textoBotonDeshabilitado]}>
+          {titulo}
         </Text>
       )}
     </TouchableOpacity>

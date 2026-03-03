@@ -3,8 +3,8 @@ import { theme } from '../../../theme';
 import { globalStyles } from '../../../theme/globalStyles';
 
 export const styles = StyleSheet.create({
-  card: {
-    ...globalStyles.cardShadow,
+  tarjeta: {
+    ...globalStyles.sombraTarjeta,
     backgroundColor: '#FFFFFF',
     borderWidth: 0,
     borderRadius: 24,
@@ -17,12 +17,12 @@ export const styles = StyleSheet.create({
     overflow: 'visible',
   },
 
-  cardSelected: {
+  tarjetaSeleccionada: {
     borderColor: theme.colors.primary,
     borderWidth: 2,
   },
 
-  iconCircle: {
+  circuloIcono: {
     width: 64,
     height: 64,
     borderRadius: 32,
@@ -31,24 +31,24 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  iconImage: {
+  imagenIcono: {
     width: 50,
     height: 50,
   },
 
-  cardContent: {
+  contenidoTarjeta: {
     flex: 1,
     flexDirection: 'column',
     gap: 4,
   },
 
-  cardTitle: {
+  tituloTarjeta: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text,
   },
 
-  cardDescription: {
+  descripcionTarjeta: {
     fontSize: 13,
     color: theme.colors.textSecondary,
     lineHeight: 18,

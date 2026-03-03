@@ -6,21 +6,20 @@ import { theme } from './index';
  * Evita duplicación de estilos estructurales comunes
  */
 export const globalStyles = StyleSheet.create({
-  // Contenedores principales
-  screenContainer: {
+  contenedorPantalla: {
     flex: 1,
     backgroundColor: theme.colors.background,
     paddingHorizontal: 24,
   },
 
-  centeredContainer: {
+  contenedorCentrado: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
   },
 
-  cardShadow: {
+  sombraTarjeta: {
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -29,7 +28,7 @@ export const globalStyles = StyleSheet.create({
     elevation: 8,
   },
 
-  softShadow: {
+  sombraSuave: {
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -40,33 +39,31 @@ export const globalStyles = StyleSheet.create({
     elevation: 8, 
   },
 
-  // Textos comunes
-  title: {
+  titulo: {
     fontSize: 26,
     fontWeight: '800',
     color: theme.colors.text,
     letterSpacing: -0.5,
   },
 
-  subtitle: {
+  subtitulo: {
     fontSize: 22,
     fontWeight: '700',
     color: theme.colors.text,
   },
 
-  body: {
+  cuerpo: {
     fontSize: 15,
     lineHeight: 21,
     color: '#555',
   },
 
-  caption: {
+  leyenda: {
     fontSize: 13,
     color: theme.colors.textSecondary,
     lineHeight: 18,
   },
 
-  // Espaciados
   mb16: {
     marginBottom: 16,
   },

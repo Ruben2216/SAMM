@@ -12,62 +12,57 @@ import { UserRole } from './types';
  * Permite al usuario seleccionar su rol (Familiar o Adulto Mayor)
  */
 export const WelcomeScreen: React.FC = () => {
-  const [selectedRole, setSelectedRole] = useState<UserRole>(null);
+  const [rolSeleccionado, setRolSeleccionado] = useState<UserRole>(null);
 
-  const handleContinue = () => {
-    if (!selectedRole) return;
+  const manejarContinuar = () => {
+    if (!rolSeleccionado) return;
     
-    // TODO: Navegar a la siguiente pantalla según el rol
-    console.log('Rol seleccionado:', selectedRole);
+    console.log('Rol seleccionado:', rolSeleccionado);
   };
 
   return (
     <ScrollView 
-      style={styles.scrollView}
-      contentContainerStyle={styles.container}
+      style={styles.vistaDesplazable}
+      contentContainerStyle={styles.contenedor}
       showsVerticalScrollIndicator={false}
     >
-      {/* Barra de Progreso */}
-      <ProgressBar currentStep={1} totalSteps={3} />
+      <ProgressBar pasoActual={1} pasosTotales={3} />
 
-      {/* Encabezados */}
-      <View style={styles.headerSection}>
-        <Text style={styles.title}>
+      <View style={styles.seccionEncabezado}>
+        <Text style={styles.titulo}>
           Bienvenido a SAMM
         </Text>
-        <Text style={styles.subtitle}>
+        <Text style={styles.subtitulo}>
           ¿Quién eres?
         </Text>
-        <Text style={styles.description}>
+        <Text style={styles.descripcion}>
           Selecciona tu perfil para configurar la aplicación correctamente
         </Text>
       </View>
 
-      {/* Tarjetas de Selección */}
-      <View style={styles.cardsContainer}>
+      <View style={styles.contenedorTarjetas}>
         <SelectionCard
-          title="Soy Familiar"
-          description="Administro cuenta y medicamento"
-          iconSource={require('../../../../../assets/icons/gente.png')}
-          onPress={() => setSelectedRole('familiar')}
-          isSelected={selectedRole === 'familiar'}
+          titulo="Soy Familiar"
+          descripcion="Administro cuenta y medicamento"
+          fuenteIcono={require('../../../../../assets/icons/gente.png')}
+          alPresionar={() => setRolSeleccionado('familiar')}
+          estaSeleccionado={rolSeleccionado === 'familiar'}
         />
 
         <SelectionCard
-          title="Soy Adulto Mayor"
-          description="Quiero ver mis recordatorio, agendas, etc."
-          iconSource={require('../../../../../assets/icons/senior.png')}
-          onPress={() => setSelectedRole('senior')}
-          isSelected={selectedRole === 'senior'}
+          titulo="Soy Adulto Mayor"
+          descripcion="Quiero ver mis recordatorio, agendas, etc."
+          fuenteIcono={require('../../../../../assets/icons/senior.png')}
+          alPresionar={() => setRolSeleccionado('senior')}
+          estaSeleccionado={rolSeleccionado === 'senior'}
         />
       </View>
 
-      {/* Botón de Continuar */}
-      <View style={styles.buttonContainer}>
+      <View style={styles.contenedorBoton}>
         <PrimaryButton
-          title="Continuar"
-          onPress={handleContinue}
-          disabled={!selectedRole}
+          titulo="Continuar"
+          alPresionar={manejarContinuar}
+          deshabilitado={!rolSeleccionado}
         />
       </View>
     </ScrollView>

@@ -4,27 +4,24 @@ import { theme } from '../../../../theme';
 const { height } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
-  container: {
+  contenedor: {
     flex: 1,
     backgroundColor: theme.colors.surface,
   },
 
-  // Sección del mapa
-  heroSection: {
+  seccionHero: {
     flex: 1.2,
     position: 'relative',
     overflow: 'hidden',
   },
 
-  map: {
+  mapa: {
     flex: 1,
   },
 
-  // Bottom Sheet con glassmorphism
-  bottomSheet: {
+  hojaInferior: {
     paddingHorizontal: 32,
     paddingTop: 32,
-    paddingBottom: 50,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -41,27 +38,26 @@ export const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.5)',
   },
 
-  // Indicadores de progreso
-  dotsContainer: {
+  contenedorPuntos: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
+    margin:0,
+    padding:0,
+    gap: 10,
   },
 
-  dot: {
+  punto: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: '#E2E8F0',
   },
 
-  dotActive: {
+  puntoActivo: {
     width: 40,
     backgroundColor: theme.colors.primary,
   },
 
-  // Textos
-  title: {
+  titulo: {
     fontSize: 34,
     fontWeight: '800',
     color: theme.colors.text,
@@ -70,7 +66,7 @@ export const styles = StyleSheet.create({
     lineHeight: 40,
   },
 
-  subtitle: {
+  subtitulo: {
     fontSize: 15,
     color: '#64748B',
     fontWeight: '500',
@@ -78,10 +74,9 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 36,
     maxWidth: 280,
-  },
+  }, 
 
-  // Botón de inicio
-  startButton: {
+  botonInicio: {
     width: '100%',
     height: 68,
     backgroundColor: theme.colors.primary,
@@ -100,26 +95,25 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  startButtonText: {
+  textoBotonInicio: {
     fontSize: 20,
     fontWeight: '700',
     color: theme.colors.text,
   },
 
-  arrowIcon: {
+  iconoFlecha: {
     width: 26,
     height: 26,
     tintColor: theme.colors.text,
   },
 
-  // Footer
-  footerLinkContainer: {
+  contenedorEnlacePie: {
     marginTop: 22,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
 
-  footerLink: {
+  enlacePie: {
     fontSize: 13,
     fontWeight: '600',
     color: '#94A3B8',

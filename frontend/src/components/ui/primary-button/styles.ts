@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { theme } from '../../../theme';
 
 export const styles = StyleSheet.create({
-  button: {
+  boton: {
     backgroundColor: theme.colors.primary,
     borderRadius: 30,
     paddingVertical: 18,
@@ -20,24 +20,24 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  buttonFullWidth: {
+  botonAnchoCompleto: {
     width: '100%',
   },
 
-  buttonDisabled: {
+  botonDeshabilitado: {
     backgroundColor: theme.colors.disabled,
     shadowOpacity: 0,
     elevation: 0,
   },
 
-  buttonText: {
+  textoBoton: {
     fontSize: 18,
     fontWeight: '700',
     color: '#000',
     letterSpacing: 0.3,
   },
 
-  buttonTextDisabled: {
+  textoBotonDeshabilitado: {
     color: '#666',
   },
 });

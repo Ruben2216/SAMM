@@ -30,6 +30,21 @@ El proyecto sigue una estructura modular basada en características (Features).
 - **Carpetas:** `kebab-case` (Inglés) para mantener estandarización (ej: `user-profile`, `auth-service`).
 - **Archivos (Componentes/Pantallas):** `PascalCase` (ej: `HomeScreen.tsx`).
 - **Archivos (Utilidades/Hooks/Stores/Estilos):** `camelCase` (ej: `useAuthStore.ts`, `HomeScreen.styles.ts`).
+- **contenido** y **comentarios** dentro del código: Español (ej: `// Componente para mostrar el perfil del usuario`).
+- **Variables y Props:** Español (ej: `const nombreUsuario = 'Juan';`).
+- **clases css** y **estilos**: Español (ej: `contenedorPrincipal`, `botonSecundario`).
+- **Metodologia de nombrado de clases**: debes usar BEM (Block Element Modifier) para nombrar tus clases de estilos, por ejemplo ``` 
+    <div class="card">
+    
+    <img src="foto.jpg" class="card__image">
+    
+    <h2 class="card__title">Nombre de Usuario</h2>
+    
+    <button class="card__button card__button--success">Aceptar</button>
+    
+    <button class="card__button card__button--danger">Eliminar</button>
+    
+</div> ```
 
 ### Estructura de Carpetas Modular
 

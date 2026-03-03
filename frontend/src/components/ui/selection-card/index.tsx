@@ -11,33 +11,33 @@ import { SelectionCardProps } from './types';
  * Soporta tanto iconos de MaterialCommunityIcons como imágenes locales
  */
 export const SelectionCard: React.FC<SelectionCardProps> = ({
-  title,
-  description,
-  iconName,
-  iconSource,
-  onPress,
-  isSelected = false,
+  titulo,
+  descripcion,
+  nombreIcono,
+  fuenteIcono,
+  alPresionar,
+  estaSeleccionado = false,
 }) => {
   return (
     <TouchableOpacity
-      style={[styles.card, isSelected && styles.cardSelected]}
-      onPress={onPress}
+      style={[styles.tarjeta, estaSeleccionado && styles.tarjetaSeleccionada]}
+      onPress={alPresionar}
       activeOpacity={0.7}
-      accessibilityLabel={`${title}. ${description}`}
+      accessibilityLabel={`${titulo}. ${descripcion}`}
       accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
+      accessibilityState={{ selected: estaSeleccionado }}
     >
-      <View style={styles.iconCircle}>
-        {iconSource ? (
-          <Image source={iconSource} style={styles.iconImage} resizeMode="contain" />
+      <View style={styles.circuloIcono}>
+        {fuenteIcono ? (
+          <Image source={fuenteIcono} style={styles.imagenIcono} resizeMode="contain" />
         ) : (
-          <Icon name={iconName || 'help'} size={32} color="#FFFFFF" />
+          <Icon name={nombreIcono || 'help'} size={32} color="#FFFFFF" />
         )}
       </View>
       
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardDescription}>{description}</Text>
+      <View style={styles.contenidoTarjeta}>
+        <Text style={styles.tituloTarjeta}>{titulo}</Text>
+        <Text style={styles.descripcionTarjeta}>{descripcion}</Text>
       </View>
     </TouchableOpacity>
   );
