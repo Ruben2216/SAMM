@@ -62,10 +62,11 @@ export const IniciarSesion: React.FC = () => {
                 />
 
                 {/* contraseña */}
+                <Text style={styles.label}>Contraseña</Text>
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.inputPassword}
-                        placeholder="Tu contraseña segura"
+                        placeholder="Tu contraseña"
                         placeholderTextColor="#94A3B8"
                         secureTextEntry={!verContrasena}
                     />
