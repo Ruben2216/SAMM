@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 13,
     color: '#666',
+    marginTop: 34,
     marginBottom: 8,
     fontWeight: '500',
   },

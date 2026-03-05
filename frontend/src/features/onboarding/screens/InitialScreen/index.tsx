@@ -223,7 +223,7 @@ export const InitialScreen: React.FC = () => {
   };
 
   const manejarEnlaceLogin = () => {
-    console.log('Navegar a login');
+    navegacion.navigate('IniciarSesion' as never);
   };
 
   return (
@@ -276,7 +276,8 @@ export const InitialScreen: React.FC = () => {
           accessibilityRole="button"
         >
           <Text style={styles.enlacePie}>
-            ¿Ya tienes cuenta? Iniciar Sesión
+            ¿Ya tienes cuenta? 
+            <Text style={styles.subrayado}> Inicia Sesión</Text>
           </Text>
         </TouchableOpacity>
       </View>

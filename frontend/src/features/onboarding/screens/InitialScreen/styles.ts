@@ -114,9 +114,15 @@ export const styles = StyleSheet.create({
   },
 
   enlacePie: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#94A3B8',
     textAlign: 'center',
+    marginBottom: 24
+  },
+
+  subrayado: {
+    textDecorationLine: 'underline',
+    color: '#007AFF',
   },
 });
