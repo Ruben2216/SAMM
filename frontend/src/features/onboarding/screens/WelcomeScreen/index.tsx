@@ -6,27 +6,47 @@ import { SelectionCard } from '../../../../components/ui/selection-card';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
 import { styles } from './styles';
 import { UserRole } from './types';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../../../navigation/appNavigator';
 
 /**
  * Pantalla de Bienvenida - Primer paso del onboarding
  * Permite al usuario seleccionar su rol (Familiar o Adulto Mayor)
  */
+
+type WelcomeScreenNavigationProp = NativeStackNavigationProp<
+  AuthStackParamList,
+  'Welcome'
+>;
+
 export const WelcomeScreen: React.FC = () => {
   const [rolSeleccionado, setRolSeleccionado] = useState<UserRole>(null);
+  const navigation = useNavigation<WelcomeScreenNavigationProp>();
 
   const manejarContinuar = () => {
     if (!rolSeleccionado) return;
-    
-    console.log('Rol seleccionado:', rolSeleccionado);
+
+    if (rolSeleccionado === 'familiar') {
+      console.log('Rol seleccionado: Familiar');
+    }
+
+    if (rolSeleccionado === 'adulto_mayor') {
+      console.log('Rol seleccionado: Adulto Mayor');
+    }
+
+    navigation.navigate("CrearCuenta", {
+      rol: rolSeleccionado
+    });
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.vistaDesplazable}
       contentContainerStyle={styles.contenedor}
       showsVerticalScrollIndicator={false}
     >
-      <ProgressBar pasoActual={1} pasosTotales={3} />
+      <ProgressBar pasoActual={1} pasosTotales={4} />
 
       <View style={styles.seccionEncabezado}>
         <Text style={styles.titulo}>
@@ -53,8 +73,8 @@ export const WelcomeScreen: React.FC = () => {
           titulo="Soy Adulto Mayor"
           descripcion="Quiero ver mis recordatorio, agendas, etc."
           fuenteIcono={require('../../../../../assets/icons/senior.png')}
-          alPresionar={() => setRolSeleccionado('senior')}
-          estaSeleccionado={rolSeleccionado === 'senior'}
+          alPresionar={() => setRolSeleccionado('adulto_mayor')}
+          estaSeleccionado={rolSeleccionado === 'adulto_mayor'}
         />
       </View>
 

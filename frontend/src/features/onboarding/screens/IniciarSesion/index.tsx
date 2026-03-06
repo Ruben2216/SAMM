@@ -45,7 +45,7 @@ export const IniciarSesion: React.FC = () => {
 
             {/* Contenido */}
             <View style={styles.contenido}>
-                <Text style={styles.titulo}>Ingresa tus datos</Text>
+                <Text style={styles.titulo}>Inicia Sesión</Text>
 
                 <Text style={styles.subtitulo}>
                     Si ya tienes una cuenta iniciarás sesión.

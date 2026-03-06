@@ -8,6 +8,7 @@ import { theme } from './src/theme';
 import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
+import { CrearCuenta } from './src/features/onboarding/screens/CrearCuenta';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,7 @@ export default function App() {
             <Stack.Screen name="Initial" component={InitialScreen} />
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
             <Stack.Screen name="IniciarSesion" component={IniciarSesion} />
+            <Stack.Screen name="CrearCuenta" component={CrearCuenta} />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

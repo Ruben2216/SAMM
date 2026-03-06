@@ -1,4 +1,4 @@
-export type UserRole = 'familiar' | 'senior' | null;
+export type UserRole = 'familiar' | 'adulto_mayor' | null;
 
 export interface WelcomeScreenState {
   selectedRole: UserRole;
