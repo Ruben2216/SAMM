@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
-import { theme } from '../../../../theme';
-
 
 export const IniciarSesion: React.FC = () => {
     const navigation = useNavigation();
 
+    const [correo, setCorreo] = useState('');
+    const [contrasena, setContrasena] = useState('');
+    const [verContrasena, setVerContrasena] = useState(false);
+
+    // Logica de validacion con usuarios quemados (Hardcoded)
     const manejarContinuar = () => {
-        console.log('Continuar login');
+        // Convertir a mayusculaConvertimos el correo a minúsculas por si el celular pone mayúscula inicial
+        const email = correo.trim().toLowerCase();
+
+        if (email === 'adulto@gmail.com' && contrasena === '123456') {
+            console.log('login exitoso (adulto mayor)');
+            // Navegamos a las pestañas del adulto mayor
+            (navigation as any).navigate('SeniorTabs');
+            
+        } else if (email === 'familiar@gmail.com' && contrasena === '123456') {
+            console.log('login exitoso (familiar)');
+            // Aquí en el futuro se colocara la navegacion a la vista del cuidador
+            // (navigation as any).navigate('FamilyTabs');
+            Alert.alert('Acceso Familiar', 'Las pantallas del familiar aún están en construcción.');
+            
+        } else {
+            console.log('Intento fallido de login');
+            Alert.alert('Error', 'Correo o contraseña incorrectos. Usa adulto@gmail.com y 123456');
+        }
     };
 
     const manejarVolver = () => {
@@ -24,8 +44,6 @@ export const IniciarSesion: React.FC = () => {
     const manejarRegistro = () => {
         console.log('Ir a crear cuenta');
     };
-
-    const [verContrasena, setVerContrasena] = useState(false);
 
     return (
         <View style={styles.contenedor}>
@@ -59,6 +77,11 @@ export const IniciarSesion: React.FC = () => {
                     style={styles.input}
                     placeholder="Ej: correo@gmail.com"
                     placeholderTextColor="#94A3B8"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    // Enlazamos el estado con el TextInput
+                    value={correo}
+                    onChangeText={setCorreo}
                 />
 
                 {/* contraseña */}
@@ -69,6 +92,9 @@ export const IniciarSesion: React.FC = () => {
                         placeholder="Tu contraseña"
                         placeholderTextColor="#94A3B8"
                         secureTextEntry={!verContrasena}
+                        // Enlazamos el estado con el TextInput
+                        value={contrasena}
+                        onChangeText={setContrasena}
                     />
 
                     <TouchableOpacity

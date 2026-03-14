@@ -37,20 +37,20 @@ Iniciar el servidor de desarrollo con:
 
 ```bash
 npx expo start --tunnel
-```
-
-### Si aparece error al usar Web
-
-Si al presionar `w` aparece un error, ejecutar esto:
-
-```bash
- npm install @expo/ngrok --save-dev
-```
-
-Luego reinicia el servidor:
-
-```bash
-Ctrl + C
-npx expo start --tunnel
 Escanear el QR en Expo Go
 ```
+
+### Entrar como familiar
+```bash
+familiar@gmail.com
+123456
+```
+
+### Entrar como adulto mayor
+```bash
+adulto@gmail.com
+123456
+```
+
+### Iconos de la barra de navegacion
+npm install @react-navigation/bottom-tabs@^6
