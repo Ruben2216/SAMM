@@ -9,6 +9,8 @@ import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
 import { CrearCuenta } from './src/features/onboarding/screens/CrearCuenta';
+import { VinculacionFamiliar } from './src/features/onboarding/screens/VinculacionFamiliar';
+import { VinculacionSenior } from './src/features/onboarding/screens/VinculacionSenior';
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 
@@ -34,6 +36,8 @@ export default function App() {
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
             <Stack.Screen name="IniciarSesion" component={IniciarSesion} />
             <Stack.Screen name="CrearCuenta" component={CrearCuenta} />
+            <Stack.Screen name="VinculacionFamiliar" component={VinculacionFamiliar} />
+            <Stack.Screen name="VinculacionSenior" component={VinculacionSenior} />
 
             {/* Ruta Principal del Adulto Mayor */}
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />

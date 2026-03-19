@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, TextInput, Image } from 'react-native';
 import { Text } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
+import { UserRole } from '../WelcomeScreen/types';
 
 export const CrearCuenta: React.FC = () => {
 
     const navigation = useNavigation();
+    const route = useRoute();
+    const rol = (route.params as { rol: UserRole })?.rol;
 
     const [nombre, setNombre] = useState('');
     const [correo, setCorreo] = useState('');
@@ -72,6 +75,12 @@ export const CrearCuenta: React.FC = () => {
 
         if (!hayErrores) {
             console.log("Registro correcto");
+            
+            if (rol === 'familiar') {
+                navigation.navigate('VinculacionFamiliar' as never);
+            } else if (rol === 'adulto_mayor') {
+                navigation.navigate('VinculacionSenior' as never);
+            }
         }
     };
 
