@@ -13,6 +13,8 @@ import { VinculacionFamiliar } from './src/features/onboarding/screens/Vinculaci
 import { VinculacionSenior } from './src/features/onboarding/screens/VinculacionSenior';
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
+import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
+import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
 
 const Stack = createStackNavigator();
 
@@ -41,6 +43,8 @@ export default function App() {
 
             {/* Ruta Principal del Adulto Mayor */}
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />
+            <Stack.Screen name="AgregarMedicamento" component={AgregarMedicamento} />
+            <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
 
           </Stack.Navigator>
         </NavigationContainer>
