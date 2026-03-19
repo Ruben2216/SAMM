@@ -11,6 +11,8 @@ import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
 import { CrearCuenta } from './src/features/onboarding/screens/CrearCuenta';
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
+import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
+import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
 
 const Stack = createStackNavigator();
 
@@ -37,6 +39,8 @@ export default function App() {
 
             {/* Ruta Principal del Adulto Mayor */}
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />
+            <Stack.Screen name="AgregarMedicamento" component={AgregarMedicamento} />
+            <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
 
           </Stack.Navigator>
         </NavigationContainer>
