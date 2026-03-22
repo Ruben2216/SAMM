@@ -16,6 +16,8 @@ import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
 import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
 
+import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
+
 const Stack = createStackNavigator();
 
 /**
@@ -45,6 +47,9 @@ export default function App() {
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />
             <Stack.Screen name="AgregarMedicamento" component={AgregarMedicamento} />
             <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
+
+            {/* Ruta Principal del Familiar */}
+            <Stack.Screen name="FamilyTabs" component={FamilyTabs} />
 
           </Stack.Navigator>
         </NavigationContainer>

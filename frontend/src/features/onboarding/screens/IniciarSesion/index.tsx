@@ -11,9 +11,9 @@ export const IniciarSesion: React.FC = () => {
     const [contrasena, setContrasena] = useState('');
     const [verContrasena, setVerContrasena] = useState(false);
 
-    // Logica de validacion con usuarios quemados (Hardcoded)
+    // Logica de validacion con usuarios ficticios para demostrar la navegación
     const manejarContinuar = () => {
-        // Convertir a mayusculaConvertimos el correo a minúsculas por si el celular pone mayúscula inicial
+        // Convertimos el correo a minúsculas por si el celular pone mayúscula inicial
         const email = correo.trim().toLowerCase();
 
         if (email === 'adulto@gmail.com' && contrasena === '123456') {
@@ -23,13 +23,12 @@ export const IniciarSesion: React.FC = () => {
             
         } else if (email === 'familiar@gmail.com' && contrasena === '123456') {
             console.log('login exitoso (familiar)');
-            // Aquí en el futuro se colocara la navegacion a la vista del cuidador
-            // (navigation as any).navigate('FamilyTabs');
-            Alert.alert('Acceso Familiar', 'Las pantallas del familiar aún están en construcción.');
+            // Navegamos a las pestañas del familiar
+            (navigation as any).navigate('FamilyTabs');
             
         } else {
             console.log('Intento fallido de login');
-            Alert.alert('Error', 'Correo o contraseña incorrectos. Usa adulto@gmail.com y 123456');
+            Alert.alert('Error', 'Correo o contraseña incorrectos. Usa adulto@gmail.com o familiar@gmail.com y 123456');
         }
     };
 
