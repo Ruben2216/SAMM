@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 
-export const Inicio = () => {
+export const Inicio = ({ navigation }: {navigation: any}) => {
     return (
         <View style={styles.contenedor}>
             <ScrollView 
@@ -86,7 +86,7 @@ export const Inicio = () => {
                     </TouchableOpacity>
 
                     {/* Tarjeta Citas Médicas */}
-                    <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}>
+                    <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8} onPress={() => navigation.navigate('Citas')} accessible={true} accessibilityRole='button' accessibilityLabel='Entrar a la sección de citas médicas'>
                         <View style={styles.iconoFondoRosa}>
                             <Ionicons name="calendar-outline" size={24} color="#10B981" />
                         </View>
