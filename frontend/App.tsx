@@ -15,7 +15,7 @@ import { VinculacionSenior } from './src/features/onboarding/screens/Vinculacion
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
 import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
-import ProximasCitasScreen from './src/features/senior/screens/Citas';
+import { Citas as ProximasCitasScreen } from './src/features/senior/screens/Citas';
 
 import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
 

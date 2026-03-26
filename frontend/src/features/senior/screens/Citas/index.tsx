@@ -30,7 +30,7 @@ const mockAppointments: Appointment[] = [
   },
 ];
 
-export const ProximasCitasScreen = ({ navigation }: any) => {
+export const Citas = ({ navigation }: any) => {
   return (
     <SafeAreaView style={citasStyles.container}>
       <FlatList
@@ -53,4 +53,4 @@ export const ProximasCitasScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-export default ProximasCitasScreen;
+export default Citas;
