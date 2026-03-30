@@ -16,6 +16,7 @@ import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
 import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
 import { Citas as ProximasCitasScreen } from './src/features/senior/screens/Citas';
+import { Perfil } from './src/features/senior/screens/Perfil';
 
 import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
 
@@ -49,6 +50,7 @@ export default function App() {
             <Stack.Screen name="AgregarMedicamento" component={AgregarMedicamento} />
             <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
             <Stack.Screen name="Citas" component={ProximasCitasScreen} />
+            <Stack.Screen name="Perfil" component={Perfil} />
 
             {/* Ruta Principal del Familiar */}
             <Stack.Screen name="FamilyTabs" component={FamilyTabs} />
