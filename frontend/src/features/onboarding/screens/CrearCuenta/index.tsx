@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
@@ -7,6 +7,7 @@ import { theme } from '../../../../theme';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
 import { UserRole } from '../WelcomeScreen/types';
+import { useAuthStore } from '../../../auth/authStore';
 
 export const CrearCuenta: React.FC = () => {
 
@@ -30,8 +31,12 @@ export const CrearCuenta: React.FC = () => {
         confirmar: ''
     });
 
+    // Auth store
+    const { registrar, cargando } = useAuthStore();
+
     const validarEmail = (email: string) => {
-        const regex = /\S+@\S+\.\S+/;
+        // Solo Gmail permitido
+        const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
         return regex.test(email);
     };
 
@@ -40,7 +45,8 @@ export const CrearCuenta: React.FC = () => {
         return regex.test(pass);
     };
 
-    const manejarRegistro = () => {
+    const manejarRegistro = async () => {
+        console.log('[CrearCuenta] Iniciando validación de formulario...');
 
         let nuevosErrores = {
             nombre: '',
@@ -56,7 +62,7 @@ export const CrearCuenta: React.FC = () => {
         if (!correo.trim()) {
             nuevosErrores.correo = 'Ingresa un correo';
         } else if (!validarEmail(correo)) {
-            nuevosErrores.correo = 'Correo inválido';
+            nuevosErrores.correo = 'Solo se permiten correos de Gmail (@gmail.com)';
         }
 
         if (!contrasena) {
@@ -74,13 +80,28 @@ export const CrearCuenta: React.FC = () => {
         const hayErrores = Object.values(nuevosErrores).some(e => e !== '');
 
         if (!hayErrores) {
-            console.log("Registro correcto");
+            console.log(`[CrearCuenta] Validación exitosa — enviando al backend (Rol: ${rol})`);
             
-            if (rol === 'familiar') {
-                navigation.navigate('VinculacionFamiliar' as never);
-            } else if (rol === 'adulto_mayor') {
-                navigation.navigate('VinculacionSenior' as never);
+            const resultado = await registrar({
+                nombre: nombre.trim(),
+                correo: correo.trim().toLowerCase(),
+                contrasena,
+                rol,
+            });
+
+            if (resultado.exito) {
+                console.log('[CrearCuenta] Registro exitoso — navegando a vinculación');
+                if (rol === 'familiar') {
+                    navigation.navigate('VinculacionFamiliar' as never);
+                } else if (rol === 'adulto_mayor') {
+                    navigation.navigate('VinculacionSenior' as never);
+                }
+            } else {
+                console.error('[CrearCuenta] Error en registro:', resultado.mensaje);
+                Alert.alert('Error', resultado.mensaje || 'No se pudo crear la cuenta');
             }
+        } else {
+            console.warn('[CrearCuenta] Errores de validación:', nuevosErrores);
         }
     };
 

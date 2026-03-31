@@ -5,8 +5,8 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: samm_db
-      POSTGRES_USER: samm_user
-      POSTGRES_PASSWORD: samm_password
+      POSTGRES_USER: SAMM
+      POSTGRES_PASSWORD: samm
     ports:
       - "5432:5432"
     volumes:
@@ -29,6 +29,18 @@ services:
       - "15672:15672"  
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
+  identity-service:
+    build: ./backend/identity-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://SAMM:samm@postgres:5432/samm_db
+      - GOOGLE_WEB_CLIENT_ID=238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl.apps.googleusercontent.com
+      - JWT_SECRET_KEY=samm-secret-key-cambiar-en-produccion
+      - JWT_EXPIRATION_HOURS=24
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:

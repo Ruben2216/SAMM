@@ -1,0 +1,26 @@
+{
+  "cli": {
+    "version": ">= 18.4.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_MAPBOX_TOKEN": "pk.eyJ1Ijoiam9zZTIyMSIsImEiOiJjbW1hMWJiOHAwOXNkMndvb2RlNTB6ZjZhIn0.tLiiTYUFfb_FFgEyfE52Nw",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl.apps.googleusercontent.com",
+        "EXPO_PUBLIC_API_URL": "http://192.168.100.7:8000"
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

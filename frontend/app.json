@@ -2,6 +2,7 @@
   "expo": {
     "name": "SAMM",
     "slug": "samm-app",
+    "scheme": "samm-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -21,13 +22,25 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "NOTIFICATIONS"
+        "NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#14EC5C"
       }
     },
     "plugins": [
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "scopes": [
+            "profile",
+            "email"
+          ],
+          "iosUrlScheme": "com.googleusercontent.apps.238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl"
+        }
+      ],
       [
         "expo-location",
         {
@@ -40,6 +53,11 @@
           "color": "#14EC5C"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "da300fd0-81f2-476b-91d5-75baccced994"
+      }
+    }
   }
 }
