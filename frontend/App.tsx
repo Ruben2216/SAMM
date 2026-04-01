@@ -17,6 +17,10 @@ import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicam
 import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
 import { Citas as ProximasCitasScreen } from './src/features/senior/screens/Citas';
 import { Perfil } from './src/features/senior/screens/Perfil';
+import { Emergencia } from './src/features/senior/screens/Emergencia';
+import { AgregarContactos } from './src/features/senior/screens/Emergencia/AgregarContactos';
+import { Asistencia } from './src/features/senior/screens/Emergencia/Asistencia';
+import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NesesitaAyuda';
 
 import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
 
@@ -33,6 +37,8 @@ export default function App() {
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
         <NavigationContainer>
           <Stack.Navigator
+            // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
+            initialRouteName="Initial"
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },
@@ -51,6 +57,10 @@ export default function App() {
             <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
             <Stack.Screen name="Citas" component={ProximasCitasScreen} />
             <Stack.Screen name="Perfil" component={Perfil} />
+            <Stack.Screen name="Emergencia" component={Emergencia} />
+            <Stack.Screen name="AgregarContactos" component={AgregarContactos} />
+            <Stack.Screen name="Asistencia" component={Asistencia} />
+            <Stack.Screen name="NecesitaAyuda" component={NecesitaAyuda} />
 
             {/* Ruta Principal del Familiar */}
             <Stack.Screen name="FamilyTabs" component={FamilyTabs} />

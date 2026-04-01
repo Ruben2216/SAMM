@@ -140,7 +140,7 @@ export const Inicio = () => {
                 {/* Boton SOS */}
                 <TouchableOpacity 
                     style={styles.botonSOS}
-                    onPress={() => console.log('¡Emergencia SOS!')}
+                    onPress={() => navigation.navigate('Emergencia')}
                     activeOpacity={0.8}
                 >
                     <Text style={styles.textoSOS}>SOS</Text>
