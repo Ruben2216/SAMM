@@ -48,6 +48,11 @@ export const CrearCuenta: React.FC = () => {
     const manejarRegistro = async () => {
         console.log('[CrearCuenta] Iniciando validación de formulario...');
 
+        if (!rol) {
+            Alert.alert('Error', 'No se pudo determinar tu perfil. Vuelve a intentarlo.');
+            return;
+        }
+
         let nuevosErrores = {
             nombre: '',
             correo: '',
@@ -123,14 +128,15 @@ export const CrearCuenta: React.FC = () => {
 
             <View style={styles.contenido}>
 
-                <Text style={styles.titulo}>Crea tu cuenta</Text>
+                <Text style={styles.titulo} children="Crea tu cuenta" />
 
-                <Text style={styles.subtitulo}>
-                    Completa tus datos para empezar a cuidar de los tuyos.
-                </Text>
+                <Text
+                    style={styles.subtitulo}
+                    children="Completa tus datos para empezar a cuidar de los tuyos."
+                />
 
                 {/* Nombre */}
-                <Text style={styles.label}>Nombre completo</Text>
+                <Text style={styles.label} children="Nombre completo" />
                 <TextInput
                     style={styles.input}
                     placeholder="Ej. Martin Perez"
@@ -138,10 +144,10 @@ export const CrearCuenta: React.FC = () => {
                     value={nombre}
                     onChangeText={setNombre}
                 />
-                {errores.nombre ? <Text style={styles.error}>{errores.nombre}</Text> : null}
+                {errores.nombre ? <Text style={styles.error} children={errores.nombre} /> : null}
 
                 {/* Correo */}
-                <Text style={styles.label}>Correo Electrónico</Text>
+                <Text style={styles.label} children="Correo Electrónico" />
                 <TextInput
                     style={styles.input}
                     placeholder="nombre@gmail.com"
@@ -149,10 +155,10 @@ export const CrearCuenta: React.FC = () => {
                     value={correo}
                     onChangeText={setCorreo}
                 />
-                {errores.correo ? <Text style={styles.error}>{errores.correo}</Text> : null}
+                {errores.correo ? <Text style={styles.error} children={errores.correo} /> : null}
 
                 {/* Contraseña */}
-                <Text style={styles.label}>Contraseña</Text>
+                <Text style={styles.label} children="Contraseña" />
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.inputPassword}
@@ -174,10 +180,10 @@ export const CrearCuenta: React.FC = () => {
                         />
                     </TouchableOpacity>
                 </View>
-                {errores.contrasena ? <Text style={styles.error}>{errores.contrasena}</Text> : null}
+                {errores.contrasena ? <Text style={styles.error} children={errores.contrasena} /> : null}
 
                 {/* Confirmar */}
-                <Text style={styles.label}>Confirmar Contraseña</Text>
+                <Text style={styles.label} children="Confirmar Contraseña" />
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.inputPassword}
@@ -199,7 +205,7 @@ export const CrearCuenta: React.FC = () => {
                         />
                     </TouchableOpacity>
                 </View>
-                {errores.confirmar ? <Text style={styles.error}>{errores.confirmar}</Text> : null}
+                {errores.confirmar ? <Text style={styles.error} children={errores.confirmar} /> : null}
 
                 {/* Terminos */}
                 <TouchableOpacity
@@ -211,12 +217,17 @@ export const CrearCuenta: React.FC = () => {
                         acepto && styles.checkboxActivo
                     ]} />
 
-                    <Text style={styles.textoTerminos}>
-                        He leído y acepto los
-                        <Text style={styles.linkTerminos}> Términos y Condiciones </Text>
-                        y la
-                        <Text style={styles.linkTerminos}> Política de Privacidad.</Text>
-                    </Text>
+                    <Text
+                        style={styles.textoTerminos}
+                        children={
+                            <>
+                                He leído y acepto los
+                                <Text style={styles.linkTerminos} children=" Términos y Condiciones " />
+                                y la
+                                <Text style={styles.linkTerminos} children=" Política de Privacidad." />
+                            </>
+                        }
+                    />
                 </TouchableOpacity>
 
                 {/* Botón */}
@@ -228,10 +239,15 @@ export const CrearCuenta: React.FC = () => {
 
                 {/* Login */}
                 <TouchableOpacity onPress={manejarLogin}>
-                    <Text style={styles.linkLogin}>
-                        ¿Ya tienes cuenta?
-                        <Text style={styles.link}> Inicia Sesión</Text>
-                    </Text>
+                    <Text
+                        style={styles.linkLogin}
+                        children={
+                            <>
+                                ¿Ya tienes cuenta?
+                                <Text style={styles.link} children=" Inicia Sesión" />
+                            </>
+                        }
+                    />
                 </TouchableOpacity>
 
             </View>

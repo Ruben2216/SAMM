@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { SelectionCard } from '../../../../components/ui/selection-card';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
@@ -49,15 +50,12 @@ export const WelcomeScreen: React.FC = () => {
       <ProgressBar pasoActual={1} pasosTotales={4} />
 
       <View style={styles.seccionEncabezado}>
-        <Text style={styles.titulo}>
-          Bienvenido a SAMM
-        </Text>
-        <Text style={styles.subtitulo}>
-          ¿Quién eres?
-        </Text>
-        <Text style={styles.descripcion}>
-          Selecciona tu perfil para configurar la aplicación correctamente
-        </Text>
+        <Text style={styles.titulo} children="Bienvenido a SAMM" />
+        <Text style={styles.subtitulo} children="¿Quién eres?" />
+        <Text
+          style={styles.descripcion}
+          children="Selecciona tu perfil para configurar la aplicación correctamente"
+        />
       </View>
 
       <View style={styles.contenedorTarjetas}>
@@ -78,13 +76,15 @@ export const WelcomeScreen: React.FC = () => {
         />
       </View>
 
-      <View style={styles.contenedorBoton}>
-        <PrimaryButton
-          titulo="Continuar"
-          alPresionar={manejarContinuar}
-          deshabilitado={!rolSeleccionado}
-        />
-      </View>
+      <SafeAreaView style={styles.contenedorBotonSafeArea} edges={['bottom']}>
+        <View style={styles.contenedorBoton}>
+          <PrimaryButton
+            titulo="Continuar"
+            alPresionar={manejarContinuar}
+            deshabilitado={!rolSeleccionado}
+          />
+        </View>
+      </SafeAreaView>
     </ScrollView>
   );
 };

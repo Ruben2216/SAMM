@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { IconoCompartir } from '../../../../assets/iconos/iconos-vinculacion';
 import { styles } from './VinculacionFamiliar.styles';
+import { theme } from '../../../../theme';
 
 export const VinculacionFamiliar: React.FC = () => {
   const navegacion = useNavigation();
@@ -33,7 +34,12 @@ export const VinculacionFamiliar: React.FC = () => {
           accessibilityLabel="Retroceder a pantalla anterior"
           accessibilityRole="button"
         >
-          <Icon name="arrow-left" size={24} color="#14EC5C" />
+          <Icon
+            name="arrow-left"
+            size={24}
+            color={theme.colors.primary}
+            style={styles.iconoRetroceder}
+          />
         </TouchableOpacity>
 
         <View style={styles.contenedorProgreso}>

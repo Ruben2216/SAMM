@@ -63,6 +63,15 @@ class RegisterUserUseCase:
             logger.warning(f"[Registro] Correo ya registrado — {correo}")
             raise ValueError("Ya existe una cuenta con este correo")
 
+        # Validación de seguridad: limitar tamaño de contraseña en bytes.
+        # Esto evita errores de bcrypt y reduce riesgo de que el cliente envíe tokens u otros payloads por accidente.
+        contrasena_bytes = contrasena.encode("utf-8")
+        if len(contrasena_bytes) > 256:
+            logger.warning(f"[Registro] Contraseña demasiado larga (bytes={len(contrasena_bytes)}) — Correo: {correo}")
+            raise ValueError(
+                "La contraseña recibida es demasiado larga. Verifica que no estés enviando un token (por ejemplo, el id_token de Google) en el campo contraseña."
+            )
+
         # Hashear contraseña
         contrasena_hash = self._hasher.hashear(contrasena)
         logger.info("[Registro] Contraseña hasheada exitosamente")

@@ -1,6 +1,10 @@
 """
-Implementación: Hasher de Contraseñas con Bcrypt
-Usa passlib con bcrypt para hashear y verificar contraseñas de forma segura.
+Implementación: Hasher de Contraseñas
+Usa passlib para hashear y verificar contraseñas de forma segura.
+
+Nota:
+- Se usa bcrypt_sha256 como esquema preferido para evitar el límite práctico de 72 bytes de bcrypt.
+- Se mantiene compatibilidad de verificación con hashes bcrypt ya existentes.
 """
 import logging
 
@@ -10,8 +14,10 @@ from src.domain.ports.password_hasher_port import PasswordHasherPort
 
 logger = logging.getLogger(__name__)
 
-# Contexto de hashing con bcrypt
-contexto_crypt = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Contexto de hashing
+# bcrypt_sha256: acepta contraseñas largas (pre-hash SHA-256) y luego bcrypt.
+# bcrypt: compatibilidad para verificar hashes antiguos almacenados.
+contexto_crypt = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 class BcryptHasher(PasswordHasherPort):

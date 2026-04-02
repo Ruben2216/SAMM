@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 10,
+    paddingBottom: 12,
   },
 
   seccionEncabezado: {
@@ -43,8 +44,12 @@ export const styles = StyleSheet.create({
     overflow: 'visible',
   },
 
-  contenedorBoton: {
+  contenedorBotonSafeArea: {
     marginTop: 'auto',
-    marginBottom: 40,
+    paddingBottom: 12,
+  },
+
+  contenedorBoton: {
+    marginBottom: 16,
   },
 });

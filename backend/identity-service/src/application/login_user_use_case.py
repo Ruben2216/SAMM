@@ -56,6 +56,17 @@ class LoginUserUseCase:
             logger.warning(f"[Login] Intento de login manual en cuenta de Google — Id_Usuario: {usuario.Id_Usuario}")
             raise ValueError("Esta cuenta usa Google para iniciar sesión. Usa el botón de Google.")
 
+        # Validación de seguridad: limitar tamaño de contraseña en bytes.
+        # Si por error el cliente envía un token (p.ej. id_token) como contraseña, evitamos que explote el hasher.
+        contrasena_bytes = contrasena.encode("utf-8")
+        if len(contrasena_bytes) > 256:
+            logger.warning(
+                f"[Login] Contraseña demasiado larga (bytes={len(contrasena_bytes)}) — Correo: {correo}, Id_Usuario: {usuario.Id_Usuario}"
+            )
+            raise ValueError(
+                "La contraseña recibida es demasiado larga. Verifica que no estés enviando un token (por ejemplo, el id_token de Google) en el campo contraseña."
+            )
+
         if not self._hasher.verificar(contrasena, usuario.Contrasena_Hash):
             logger.warning(f"[Login] Contraseña incorrecta — Id_Usuario: {usuario.Id_Usuario}")
             raise ValueError("Correo o contraseña incorrectos")
