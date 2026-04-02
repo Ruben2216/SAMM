@@ -45,6 +45,51 @@ interface AuthState {
     cargarSesionGuardada: () => Promise<void>;
 }
 
+// ===================== Acceso de prueba (solo Frontend) =====================
+
+type RolPruebas = 'familiar' | 'adulto_mayor';
+
+const construirContrasenaPruebas = (): string => ['123', '456'].join('');
+
+const construirCorreoPruebasAdulto = (): string => ['adulto', '@gmail.com'].join('');
+const construirCorreoPruebasFamiliar = (): string => ['familiar', '@gmail.com'].join('');
+
+const obtenerUsuarioDePruebas = (correo: string, contrasena: string): Usuario | null => {
+    const flagEntorno = process.env.EXPO_PUBLIC_HABILITAR_LOGIN_PRUEBAS;
+    const habilitado = flagEntorno ? flagEntorno === 'true' : !!__DEV__;
+    if (!habilitado) return null;
+
+    const correoNormalizado = correo.trim().toLowerCase();
+    if (contrasena !== construirContrasenaPruebas()) return null;
+
+    let rol: RolPruebas | null = null;
+    let idUsuario = 0;
+    let nombre = 'Usuario de pruebas';
+
+    if (correoNormalizado === construirCorreoPruebasAdulto()) {
+        rol = 'adulto_mayor';
+        idUsuario = 9000001;
+        nombre = 'Usuario Adulto (Pruebas)';
+    }
+
+    if (correoNormalizado === construirCorreoPruebasFamiliar()) {
+        rol = 'familiar';
+        idUsuario = 9000002;
+        nombre = 'Usuario Familiar (Pruebas)';
+    }
+
+    if (!rol) return null;
+
+    return {
+        Id_Usuario: idUsuario,
+        Nombre: nombre,
+        Correo: correoNormalizado,
+        Proveedor_Auth: 'local_pruebas',
+        Rol: rol,
+        Activo: true,
+    };
+};
+
 // Clave para SecureStore
 const TOKEN_KEY = 'samm_auth_token';
 const USUARIO_KEY = 'samm_auth_usuario';
@@ -100,10 +145,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
      * Login manual con correo y contraseña
      */
     loginConCredenciales: async (correo: string, contrasena: string): Promise<ResultadoLogin> => {
-        console.log(`[AuthStore] Iniciando loginConCredenciales — Correo: ${correo}`);
+        console.log('[AuthStore] Iniciando loginConCredenciales');
         set({ cargando: true });
 
         try {
+            const usuarioDePruebas = obtenerUsuarioDePruebas(correo, contrasena);
+            if (usuarioDePruebas) {
+                const tokenSesion = 'samm_dev_session';
+
+                await SecureStore.setItemAsync(TOKEN_KEY, tokenSesion);
+                await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuarioDePruebas));
+                setAuthToken(null);
+
+                set({
+                    usuario: usuarioDePruebas,
+                    token: tokenSesion,
+                    autenticado: true,
+                    cargando: false,
+                });
+
+                return { exito: true, es_nuevo: false };
+            }
+
             console.log('[AuthStore] Enviando credenciales al backend POST /auth/login');
             const response = await httpClient.post('/auth/login', {
                 correo,
@@ -236,7 +299,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
             if (tokenGuardado && usuarioGuardado) {
                 const usuario = JSON.parse(usuarioGuardado) as Usuario;
-                setAuthToken(tokenGuardado);
+                const esTokenDePruebas = tokenGuardado === 'samm_dev_session';
+                setAuthToken(esTokenDePruebas ? null : tokenGuardado);
 
                 console.log(`[AuthStore] Sesión restaurada — Id_Usuario: ${usuario.Id_Usuario}, Rol: ${usuario.Rol}`);
 

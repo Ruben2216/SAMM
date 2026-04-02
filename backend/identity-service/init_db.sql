@@ -4,17 +4,12 @@
 -- ============================================================
 
 -- 1. Crear el usuario SAMM
-CREATE USER "SAMM" WITH PASSWORD 'samm';
 
 -- 2. Crear la base de datos
-CREATE DATABASE samm_db OWNER "SAMM";
+CREATE DATABASE samm_db ;
 
 -- 3. Conectarse a la base de datos
 \c samm_db
-
--- 4. Otorgar privilegios
-GRANT ALL PRIVILEGES ON DATABASE samm_db TO "SAMM";
-GRANT ALL PRIVILEGES ON SCHEMA public TO "SAMM";
 
 -- 5. Crear la tabla Usuarios
 CREATE TABLE IF NOT EXISTS "Usuarios" (
