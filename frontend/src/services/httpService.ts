@@ -4,7 +4,7 @@
  */
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ;
 
 console.log('[httpService] Base URL configurada:', BASE_URL);
 

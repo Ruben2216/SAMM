@@ -106,7 +106,7 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     nombreMedicamento: {
         fontSize: 18,
@@ -119,28 +119,48 @@ export const styles = StyleSheet.create({
         color: '#64748B',
         fontWeight: '500',
     },
-    puntoEstado: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-    },
-    // Estados (Tomado, Pendiente, Olvidado)
-    estadoTomadoRow: {
+    // Contenedor de acciones (Editar, Eliminar, Punto)
+    accionesContenedor: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 5,
     },
-    textoTomado: {
-        color: '#94A3B8',
+    botonAccionMini: {
+        backgroundColor: '#DBEAFE',
+        padding: 6,
+        borderRadius: 8,
+        marginRight: 8,
+    },
+    puntoEstado: {
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+    },
+    // Sección de Notas Adicionales
+    notasContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#F8FAFC',
+        padding: 10,
+        borderRadius: 10,
+        marginTop: 4,
+        marginBottom: 12,
+        borderLeftWidth: 3,
+        borderLeftColor: '#CBD5E1',
+    },
+    notasTexto: {
         fontSize: 13,
-        marginLeft: 6,
-        fontWeight: '500',
+        color: '#475569',
+        marginLeft: 8,
+        flex: 1,
+        fontStyle: 'italic',
+        lineHeight: 18,
     },
+    // Estados y Botones
     estadoPendienteRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 10,
+        marginTop: 4,
     },
     botonTomarAhora: {
         backgroundColor: '#00E676',
@@ -167,18 +187,6 @@ export const styles = StyleSheet.create({
         borderColor: '#E2E8F0',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    estadoOlvidadoRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginTop: 5,
-        paddingRight: 20,
-    },
-    textoOlvidado: {
-        color: '#EF4444',
-        fontSize: 13,
-        marginLeft: 6,
-        lineHeight: 18,
     },
     // Botones Flotantes
     fabContainer: {

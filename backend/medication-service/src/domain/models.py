@@ -12,6 +12,7 @@ class Medicamento(Base):
     Nombre = Column(String(150), nullable=False)
     Dosis = Column(String(100), nullable=False)
     Frecuencia = Column(String(100), nullable=False)
+    Notas = Column(String(500), nullable=True)
     Activo = Column(Boolean, default=True)
     Fecha_Creacion = Column(DateTime, default=datetime.utcnow)
 

@@ -19,10 +19,18 @@ export const styles = StyleSheet.create({
   },
 
   botonRetroceder: {
-    width: 40,
-    height: 40,
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    margin:0,
+    position: 'relative',
+    top: 13,
+    right: 10,
+  },
+
+  iconoRetroceder: {
+    transform: [{ translateX: 1 }],
   },
 
   contenedorProgreso: {
@@ -130,12 +138,9 @@ export const styles = StyleSheet.create({
     color: '#0f172a',
   },
 
-  contenedorFlecha: {
-    marginBottom: 8,
-  },
 
   iconoFlecha: {
-    width: 23,
+    width: 1,
     height: 23,
   },
 });

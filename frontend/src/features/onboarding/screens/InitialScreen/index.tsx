@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import { Text } from 'react-native-paper';
 import { WebView } from 'react-native-webview';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
@@ -240,7 +241,7 @@ export const InitialScreen: React.FC = () => {
         />
       </View>
 
-      <View style={styles.hojaInferior}>
+      <SafeAreaView style={styles.hojaInferior} edges={['bottom']}>
         <View style={styles.contenedorPuntos}>
           <View style={[styles.punto, styles.puntoActivo]} />
           <View style={styles.punto} />
@@ -248,11 +249,14 @@ export const InitialScreen: React.FC = () => {
           <View style={styles.punto} />
         </View>
 
-        <Text style={styles.titulo}>Bienvenido a{'\n'}SAMM</Text>
-        <Text style={styles.subtitulo}>
-          Seguridad para tus seres queridos, tranquilidad para ti.
-          {'\n'}Monitoreo inteligente en tiempo real.
-        </Text>
+        <Text style={styles.titulo} children={'Bienvenido a\nSAMM'} />
+        <Text
+          style={styles.subtitulo}
+          children={
+            'Seguridad para tus seres queridos, tranquilidad para ti.\n' +
+            'Monitoreo inteligente en tiempo real.'
+          }
+        />
 
         <TouchableOpacity
           style={styles.botonInicio}
@@ -261,7 +265,7 @@ export const InitialScreen: React.FC = () => {
           accessibilityLabel="Comenzar ahora con SAMM"
           accessibilityRole="button"
         >
-          <Text style={styles.textoBotonInicio}>Comenzar ahora</Text>
+          <Text style={styles.textoBotonInicio} children="Comenzar ahora" />
           <Image
             source={require('../../../../../assets/icons/flecha-derecha.png')}
             style={styles.iconoFlecha}
@@ -275,12 +279,17 @@ export const InitialScreen: React.FC = () => {
           accessibilityLabel="Ir a iniciar sesión"
           accessibilityRole="button"
         >
-          <Text style={styles.enlacePie}>
-            ¿Ya tienes cuenta? 
-            <Text style={styles.subrayado}> Inicia Sesión</Text>
-          </Text>
+          <Text
+            style={styles.enlacePie}
+            children={
+              <>
+                ¿Ya tienes cuenta?
+                <Text style={styles.subrayado} children=" Inicia Sesión" />
+              </>
+            }
+          />
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     </View>
   );
 };

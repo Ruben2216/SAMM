@@ -22,6 +22,7 @@ export const styles = StyleSheet.create({
   hojaInferior: {
     paddingHorizontal: 32,
     paddingTop: 32,
+    paddingBottom: 24,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
@@ -118,7 +119,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#94A3B8',
     textAlign: 'center',
-    marginBottom: 24
+    marginBottom: 0,
   },
 
   subrayado: {

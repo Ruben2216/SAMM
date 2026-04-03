@@ -52,7 +52,7 @@ export const IniciarSesion: React.FC = () => {
      */
     const manejarContinuar = async () => {
         const email = correo.trim().toLowerCase();
-        console.log(`[IniciarSesion] Intentando login manual — Correo: ${email}`);
+        console.log('[IniciarSesion] Intentando login manual');
 
         // Validar que sea Gmail
         if (!email.endsWith('@gmail.com')) {
@@ -162,16 +162,15 @@ export const IniciarSesion: React.FC = () => {
 
             {/* Contenido */}
             <View style={styles.contenido}>
-                <Text style={styles.titulo}>Inicia Sesión</Text>
+                <Text style={styles.titulo} children="Inicia Sesión" />
 
-                <Text style={styles.subtitulo}>
-                    Si ya tienes una cuenta iniciarás sesión.
-                    {'\n'}
-                    Si no, te ayudaremos a crearla
-                </Text>
+                <Text
+                    style={styles.subtitulo}
+                    children={'Si ya tienes una cuenta iniciarás sesión.\nSi no, te ayudaremos a crearla'}
+                />
 
                 {/* correo */}
-                <Text style={styles.label}>Correo electrónico</Text>
+                <Text style={styles.label} children="Correo electrónico" />
                 <TextInput
                     style={styles.input}
                     placeholder="Ej: correo@gmail.com"
@@ -184,7 +183,7 @@ export const IniciarSesion: React.FC = () => {
                 />
 
                 {/* contraseña */}
-                <Text style={styles.label}>Contraseña</Text>
+                <Text style={styles.label} children="Contraseña" />
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.inputPassword}
@@ -220,23 +219,23 @@ export const IniciarSesion: React.FC = () => {
                     {cargando ? (
                         <ActivityIndicator color="#FFFFFF" />
                     ) : (
-                        <Text style={styles.textoBoton}>Continuar</Text>
+                        <Text style={styles.textoBoton} children="Continuar" />
                     )}
                 </TouchableOpacity>
 
                 {/* Links */}
                 <TouchableOpacity onPress={manejarOlvidoContrasena}>
-                    <Text style={styles.link}>¿Olvidaste tu contraseña?</Text>
+                    <Text style={styles.link} children="¿Olvidaste tu contraseña?" />
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={manejarRegistro}>
-                    <Text style={styles.link}>¿No tienes cuenta?</Text>
+                    <Text style={styles.link} children="¿No tienes cuenta?" />
                 </TouchableOpacity>
 
                 {/* Divisor */}
                 <View style={styles.dividerContainer}>
                     <View style={styles.linea} />
-                    <Text style={styles.dividerText}>o accede con</Text>
+                    <Text style={styles.dividerText} children="o accede con" />
                     <View style={styles.linea} />
                 </View>
 
@@ -250,7 +249,7 @@ export const IniciarSesion: React.FC = () => {
                         source={require('../../../../../assets/icons/google.png')}
                         style={styles.iconoGoogle}
                     />
-                    <Text style={styles.textoGoogle}>Google</Text>
+                    <Text style={styles.textoGoogle} children="Google" />
                 </TouchableOpacity>
 
             </View>
