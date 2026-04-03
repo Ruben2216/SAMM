@@ -1,56 +1,67 @@
-// Ruta: src/features/senior/screens/Citas/index.tsx
 import React from 'react';
-import { FlatList} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FAB } from 'react-native-paper';
-import { AppointmentCard } from './components/AppointmentCard';
-import { Appointment } from './types';
-import { citasStyles, themeColors } from './styles';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
-const mockAppointments: Appointment[] = [
-  {
-    id: '1',
-    doctorName: 'Dr. Pérez',
-    specialty: 'Cardiólogo',
-    date: '20 Oct',
-    time: '10:00 AM',
-    location: 'Clinica Santa Maria',
-    iconName: 'heart-pulse',
-    type: 'upcoming',
+import { Appointment } from '../../../family/screens/Citas/types';
+import { AppointmentCard } from '../../../family/screens/Citas/components/AppointmentCard';
+import { citasStyles, themeColors } from '../../../family/screens/Citas/styles';
+
+type RootStackParamList = {
+  HistorialCitas: undefined;
+};
+
+const seniorMockAppointments: Appointment[] = [
+  { 
+    id: '1', 
+    doctorName: 'Dr. Pérez', 
+    specialty: 'Cardiólogo', 
+    date: '20 Oct', 
+    time: '10:00 AM', 
+    location: 'Clinica Santa Maria', 
+    iconName: 'heart-pulse', 
+    type: 'upcoming' 
   },
-  {
-    id: '2',
-    doctorName: 'Dra. Gómez',
-    specialty: 'Oftalmólogo',
-    date: '15 Nov',
-    time: '3:30 PM',
-    location: 'Centro Óptico',
-    iconName: 'eye-outline',
-    type: 'upcoming',
+  { 
+    id: '2', 
+    doctorName: 'Dra. Gómez', 
+    specialty: 'Oftalmólogo', 
+    date: '15 Nov', 
+    time: '3:30 PM', 
+    location: 'Centro Óptico', 
+    iconName: 'eye-outline', 
+    type: 'upcoming' 
   },
 ];
 
-export const Citas = ({ navigation }: any) => {
+export default function ProximasCitasSenior() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   return (
     <SafeAreaView style={citasStyles.container}>
+      <View style={[citasStyles.header, { justifyContent: 'space-between' }]}>
+        <View style={{ width: 40 }} />
+        
+        <Text style={citasStyles.headerTitle}>Mis citas médicas</Text>
+        
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('HistorialCitas')}
+          style={{ padding: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Ver historial de citas"
+        >
+          <MaterialCommunityIcons name="history" size={28} color={themeColors.textDark} />
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={mockAppointments}
+        data={seniorMockAppointments}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <AppointmentCard appointment={item} />}
         contentContainerStyle={citasStyles.listContainer}
         showsVerticalScrollIndicator={false}
       />
-      
-      <FAB
-        icon="plus"
-        label="Nueva Cita"
-        style={citasStyles.fab}
-        color={themeColors.text} 
-        accessible={true}
-        accessibilityLabel="Agendar una nueva cita médica"
-        onPress={() => navigation.navigate('AgendarCita')} 
-      />
     </SafeAreaView>
   );
-};
-export default Citas;
+}
