@@ -1,101 +1,161 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
-const escala = (base: number, ancho: number) => {
-	const factor = ancho / 390;
-	return Math.max(base * 0.88, Math.min(base * factor, base * 1.12));
-};
-
-export const createStyles = (ancho: number, alto: number) => {
-	const anchoTarjeta = Math.min(ancho - 24, 460);
-	const titulo = escala(38, ancho);
-
-	return StyleSheet.create({
-		contenedorPantalla: {
-			flex: 1,
-			backgroundColor: '#E5E7EB',
-			alignItems: 'center',
-			justifyContent: 'center',
-			paddingHorizontal: 12,
-			paddingVertical: 8,
-		},
-		tarjetaPrincipal: {
-			width: anchoTarjeta,
-			flexGrow: 1,
-			maxHeight: Math.max(alto - 16, 600),
-			backgroundColor: '#ECECEC',
-			borderRadius: 22,
-			borderWidth: 1,
-			borderColor: '#D8DDE5',
-			paddingHorizontal: 14,
-			paddingTop: 12,
-			paddingBottom: 12,
-		},
-		botonCerrar: {
-			width: 40,
-			height: 40,
-			borderRadius: 20,
-			alignItems: 'center',
-			justifyContent: 'center',
-			marginBottom: 8,
-		},
-		titulo: {
-			fontSize: titulo,
-			lineHeight: titulo * 1.08,
-			fontWeight: '900',
-			color: '#1E293B',
-			textAlign: 'center',
-			marginBottom: 16,
-		},
-		bloqueBotones: {
-			width: '100%',
-			rowGap: 10,
-		},
-		botonLlamada: {
-			minHeight: 48,
-			borderRadius: 26,
-			backgroundColor: '#14EC5C',
-			paddingHorizontal: 14,
-			flexDirection: 'row',
-			alignItems: 'center',
-			justifyContent: 'center',
-			columnGap: 8,
-		},
-		botonLlamada911: {
-			minHeight: 48,
-			borderRadius: 26,
-			backgroundColor: '#EF1C1C',
-			paddingHorizontal: 14,
-			flexDirection: 'row',
-			alignItems: 'center',
-			justifyContent: 'center',
-			columnGap: 8,
-		},
-		textoBotonLlamada: {
-			color: '#0F172A',
-			fontSize: escala(22, ancho),
-			fontWeight: '900',
-		},
-		contenedorInferior: {
-			flex: 1,
-			justifyContent: 'flex-end',
-			alignItems: 'flex-end',
-			paddingTop: 12,
-		},
-		botonAgregar: {
-			minHeight: 48,
-			minWidth: 160,
-			borderRadius: 26,
-			backgroundColor: '#14EC5C',
-			paddingHorizontal: 14,
-			flexDirection: 'row',
-			alignItems: 'center',
-			justifyContent: 'center',
-			columnGap: 6,
-		},
-		textoBotonAgregar: {
-			color: '#0F172A',
-			fontSize: escala(24, ancho),
-			fontWeight: '900',
-		},
-	});
-};
+export const styles = StyleSheet.create({
+    contenedor: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    // Header unificado
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+    },
+    botonAtras: {
+        padding: 5,
+    },
+    tituloHeader: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#0F172A',
+    },
+    scrollContenido: {
+        paddingHorizontal: 24,
+        paddingBottom: 120,
+    },
+    // Alerta Superior
+    alertaContainer: {
+        alignItems: 'center',
+        backgroundColor: '#FEF2F2',
+        padding: 24,
+        borderRadius: 24,
+        marginBottom: 30,
+        borderWidth: 1,
+        borderColor: '#FEE2E2',
+    },
+    iconoAlertaFondo: {
+        width: 64,
+        height: 64,
+        backgroundColor: '#FEE2E2',
+        borderRadius: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    tituloAlerta: {
+        fontSize: 20,
+        fontWeight: '900',
+        color: '#0F172A',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    subtituloAlerta: {
+        fontSize: 14,
+        color: '#64748B',
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    // Secciones
+    seccionTitulo: {
+        fontSize: 14,
+        fontWeight: '800',
+        color: '#64748B',
+        marginBottom: 16,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    // Tarjetas de Contacto Normales
+    tarjetaContacto: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        borderRadius: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.03,
+        shadowRadius: 10,
+        elevation: 3,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
+    },
+    iconoContactoFondo: {
+        width: 50,
+        height: 50,
+        backgroundColor: '#EFF6FF',
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    infoContacto: {
+        flex: 1,
+    },
+    nombreContacto: {
+        fontSize: 18,
+        fontWeight: '800',
+        color: '#0F172A',
+        marginBottom: 4,
+    },
+    numeroContacto: {
+        fontSize: 13,
+        color: '#64748B',
+        fontWeight: '500',
+    },
+    // Botón 911
+    boton911: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EF4444',
+        padding: 20,
+        borderRadius: 24,
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    texto911: {
+        fontSize: 22,
+        fontWeight: '900',
+        color: '#FFFFFF',
+    },
+    subtexto911: {
+        fontSize: 14,
+        color: '#FEE2E2',
+        fontWeight: '600',
+        marginTop: 2,
+    },
+    // FAB Agregar Contacto
+    fabContainer: {
+        position: 'absolute',
+        bottom: 30,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        pointerEvents: 'box-none',
+    },
+    botonAgregar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#00E676',
+        paddingHorizontal: 24,
+        paddingVertical: 16,
+        borderRadius: 30,
+        shadowColor: '#00E676',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    textoBotonAgregar: {
+        color: '#0F172A',
+        fontWeight: '800',
+        fontSize: 16,
+        marginLeft: 8,
+    }
+});

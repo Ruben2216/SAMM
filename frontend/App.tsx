@@ -20,7 +20,7 @@ import { Perfil } from './src/features/senior/screens/Perfil';
 import { Emergencia } from './src/features/senior/screens/Emergencia';
 import { AgregarContactos } from './src/features/senior/screens/Emergencia/AgregarContactos';
 import { Asistencia } from './src/features/senior/screens/Emergencia/Asistencia';
-import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NesesitaAyuda';
+import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NecesitaAyuda';
 
 import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
 

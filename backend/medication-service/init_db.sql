@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS "Medicamentos" (
     "Nombre" VARCHAR(150) NOT NULL,
     "Dosis" VARCHAR(100) NOT NULL,
     "Frecuencia" VARCHAR(100) NOT NULL,
+    "Notas" VARCHAR(500),
     "Activo" BOOLEAN DEFAULT TRUE,
     "Fecha_Creacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
