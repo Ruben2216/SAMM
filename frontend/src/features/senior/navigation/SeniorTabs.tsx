@@ -7,7 +7,7 @@ import { theme } from '../../../theme';
 // Importamos las vistas desde la carpeta screens vecina
 import { Inicio } from '../screens/Inicio';
 import { Historial } from '../screens/Historial';
-import { Citas } from '../screens/Citas';
+import  Citas  from '../screens/Citas';
 import { Perfil } from '../screens/Perfil';
 
 const Tab = createBottomTabNavigator();
