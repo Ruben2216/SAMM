@@ -83,7 +83,11 @@ INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor
 
 
 ### Medicamentos (8001)
-1. Crear entorno virtual: python3 -m venv venv
+1. Crear entorno virtual: 
+    cd backend/medication-service
+    python3 -m venv venv
 2. Activarlo: source venv/bin/activate
 3. Configurar el .env (se los mando)
 4. Ejecutarlo: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+5. Instalar esto (validacion de horarios y toma de pastillas)
+    pip install apscheduler tzdata
