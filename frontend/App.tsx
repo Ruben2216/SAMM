@@ -11,6 +11,10 @@ import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
 import { CrearCuenta } from './src/features/onboarding/screens/CrearCuenta';
 import { VinculacionFamiliar } from './src/features/onboarding/screens/VinculacionFamiliar';
 import { VinculacionSenior } from './src/features/onboarding/screens/VinculacionSenior';
+import { CreateCircleScreen } from './src/features/onboarding/screens/CreateCircleScreen/CreateCircleScreen';
+import { RolEnCirculo } from './src/features/onboarding/screens/RolEnCirculo';
+//Es solo por ahora
+import {MiPerfilFamiliar} from './src/features/family/screens/Perfil';}
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
@@ -19,6 +23,7 @@ import { Citas as ProximasCitasScreen } from './src/features/senior/screens/Cita
 import { Perfil } from './src/features/senior/screens/Perfil';
 
 import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
+
 
 const Stack = createStackNavigator();
 
@@ -33,6 +38,8 @@ export default function App() {
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
         <NavigationContainer>
           <Stack.Navigator
+          //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
+           // initialRouteName="MiPerfilFamiliar"
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },
@@ -44,6 +51,9 @@ export default function App() {
             <Stack.Screen name="CrearCuenta" component={CrearCuenta} />
             <Stack.Screen name="VinculacionFamiliar" component={VinculacionFamiliar} />
             <Stack.Screen name="VinculacionSenior" component={VinculacionSenior} />
+            <Stack.Screen name="CreateCircleScreen" component={CreateCircleScreen} />
+            <Stack.Screen name="RolEnCirculo" component={RolEnCirculo} />
+
 
             {/* Ruta Principal del Adulto Mayor */}
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />
@@ -54,6 +64,7 @@ export default function App() {
 
             {/* Ruta Principal del Familiar */}
             <Stack.Screen name="FamilyTabs" component={FamilyTabs} />
+            <Saca.Screen name="MiPerfilFamiliar" component={MiPerfilFamiliar} />
 
           </Stack.Navigator>
         </NavigationContainer>

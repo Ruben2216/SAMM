@@ -31,6 +31,8 @@ Antes de ejecutar la aplicacion, entrar a la carpeta del frontend e instalar las
 cd frontend
 npm install
 ```
+### Se debe de crear un archivo .env dentro de frontend con:
+EXPO_PUBLIC_MAPBOX_TOKEN=pk.eyJ1Ijoiam9zZTIyMSIsImEiOiJjbW1hMWJiOHAwOXNkMndvb2RlNTB6ZjZhIn0.tLiiTYUFfb_FFgEyfE52Nw
 
 ### Ejecutar la aplicacion
 Iniciar el servidor de desarrollo con:
@@ -69,16 +71,15 @@ npm install @react-navigation/bottom-tabs@^6
 3. colocar lo siguiente para el hash de la contraseña: python -c "from passlib.hash import bcrypt; print(bcrypt.hash('123456'))"
 4. Copiar el codifo que te de y crearlo en la base de datos:
 ```bash
-INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth")
-VALUES ('Pedro Familiar', 'familiar@gmail.com', 'TUCODIGOAQUI', 'familiar', 'local');
+INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth") VALUES ('Pedro Familiar', 'familiar@gmail.com', '$2b$12$U1XGXQ.dtUf5CsQoLWCm2uVWY/.T8/VGaBKH5ZJ/WypgHduV6EA8W', 'familiar', 'local');
 ```
 5. Inicia sesion como familiar
 
 ### Actualizacion para acceder como adulto (lo mismo que familiar pero al final):
 ```bash
-INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth")
-VALUES ('Abuelo Roberto', 'adulto@gmail.com', 'PEGA_AQUÍ_EL_MISMO_HASH_DE_ANTES', 'adulto_mayor', 'local');
+INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth") VALUES ('Abuelo Roberto', 'adulto@gmail.com', '$2b$12$U1XGXQ.dtUf5CsQoLWCm2uVWY/.T8/VGaBKH5ZJ/WypgHduV6EA8W', 'adulto_mayor', 'local');
 ```
+                                        
 
 
 ### Medicamentos (8001)

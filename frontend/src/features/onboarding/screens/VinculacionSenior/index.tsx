@@ -29,7 +29,7 @@ export const VinculacionSenior: React.FC = () => {
     const codigoCompleto = codigoIngresado.join('');
     if (codigoCompleto.length === 5) {
       console.log('Código ingresado:', codigoCompleto);
-      navegacion.navigate('Welcome' as never);
+      navegacion.navigate('CreateCircleScreen' as never);
     }
   };
 
