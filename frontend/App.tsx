@@ -14,7 +14,7 @@ import { VinculacionSenior } from './src/features/onboarding/screens/Vinculacion
 import { CreateCircleScreen } from './src/features/onboarding/screens/CreateCircleScreen/CreateCircleScreen';
 import { RolEnCirculo } from './src/features/onboarding/screens/RolEnCirculo';
 //Es solo por ahora
-import {MiPerfilFamiliar} from './src/features/family/screens/Perfil';}
+import {MiPerfilFamiliar} from './src/features/family/screens/Perfil';
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';

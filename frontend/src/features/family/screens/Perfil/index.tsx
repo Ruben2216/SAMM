@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './MiPerfil.styles';
-import { PerfilFamiliarState } from './types';
+import { PerfilFamiliarState } from './type';
 
 export const MiPerfilFamiliar: React.FC = () => {
   const navigation = useNavigation();
