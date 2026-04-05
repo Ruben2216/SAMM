@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, ActivityIndicator, View } from 'react-native';
 import { Text } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from './styles';
 import { PrimaryButtonProps } from './types';
 
@@ -13,6 +14,8 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   deshabilitado = false,
   cargando = false,
   anchoCompleto = true,
+  nombreIcono,
+  tamanoIcono = 24,
 }) => {
   const estaDeshabilitado = deshabilitado || cargando;
 
@@ -33,9 +36,24 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       {cargando ? (
         <ActivityIndicator color="#000" size="small" />
       ) : (
-        <Text style={[styles.textoBoton, estaDeshabilitado && styles.textoBotonDeshabilitado]}>
-          {titulo}
-        </Text>
+        <View style={styles.contenido}>
+          {nombreIcono ? (
+            <Icon
+              name={nombreIcono}
+              size={tamanoIcono}
+              color="#000"
+              style={styles.icono}
+            />
+          ) : null}
+          <Text
+            style={[
+              styles.textoBoton,
+              estaDeshabilitado && styles.textoBotonDeshabilitado,
+            ]}
+          >
+            {titulo}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );

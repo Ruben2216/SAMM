@@ -4,7 +4,6 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["esnext"],
-    "types": ["node"],
     "jsx": "react-native",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
@@ -13,15 +12,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    },
-
-    "ignoreDeprecations": "6.0"
+    }
   },
-  "extends": "expo/tsconfig.base",
+  "extends": "expo/tsconfig.base.json",
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

@@ -67,6 +67,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
     lineHeight: 40,
     marginTop: 16,
+    textAlign: 'center',
   },
 
   descripcion: {

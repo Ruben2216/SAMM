@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Text } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Text, Share } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
@@ -11,12 +11,26 @@ export const VinculacionFamiliar: React.FC = () => {
   const navegacion = useNavigation();
   const [codigoVinculacion] = useState<string>('XXXXX');
 
-  const manejarCompartir = () => {
-    console.log('Compartir código:', codigoVinculacion);
+  const manejarCompartir = async () => {
+    try {
+      const mensaje = `Hola. Este es tu código de vinculación para la aplicación SAMM: ${codigoVinculacion}. Ingrésalo en la pantalla de vinculación de tu dispositivo para conectar nuestras cuentas.`;
+
+      await Share.share({
+        message: mensaje,
+        title: 'Código de vinculación SAMM',
+      });
+    } catch (error) {
+      console.error('[VinculacionFamiliar] Error al compartir el código:', error);
+    }
   };
 
   const manejarRetroceder = () => {
     navegacion.goBack();
+  };
+
+  const manejarOmitir = () => {
+    console.log('[VinculacionFamiliar] Omitir — navegando a FamilyTabs');
+    (navegacion as any).navigate('FamilyTabs');
   };
 
   const codigoArray = codigoVinculacion.split('');
@@ -48,7 +62,12 @@ export const VinculacionFamiliar: React.FC = () => {
       </View>
 
       <View style={styles.filaOmitir}>
-        <TouchableOpacity onPress={manejarRetroceder} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={manejarOmitir}
+          activeOpacity={0.7}
+          accessibilityLabel="Omitir vinculación y continuar a la pantalla principal"
+          accessibilityRole="button"
+        >
           <Text style={styles.textoOmitir}>Omitir</Text>
         </TouchableOpacity>
       </View>

@@ -20,6 +20,16 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
 
+  contenido: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  icono: {
+    marginRight: 12,
+  },
+
   botonAnchoCompleto: {
     width: '100%',
   },

@@ -4,4 +4,6 @@ export interface PrimaryButtonProps {
   deshabilitado?: boolean;
   cargando?: boolean;
   anchoCompleto?: boolean;
+  nombreIcono?: string;
+  tamanoIcono?: number;
 }
