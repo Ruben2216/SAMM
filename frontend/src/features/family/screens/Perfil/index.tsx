@@ -161,3 +161,5 @@ export const MiPerfilFamiliar: React.FC = () => {
     </ScrollView>
   );
 };
+
+export const Perfil = MiPerfilFamiliar;
