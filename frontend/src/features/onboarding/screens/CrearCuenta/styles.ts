@@ -98,12 +98,9 @@ export const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: '#CBD5E1',
         borderRadius: 4,
-        marginTop: 2
-    },
-
-    checkboxActivo: {
-        backgroundColor: theme.colors.primary,
-        borderColor: theme.colors.primary
+        marginTop: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 
     textoTerminos: {
