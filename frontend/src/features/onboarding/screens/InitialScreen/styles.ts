@@ -19,6 +19,20 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  botonMiUbicacion: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+
   hojaInferior: {
     paddingHorizontal: 32,
     paddingTop: 32,

@@ -14,6 +14,7 @@ export const theme = {
     text: '#1E293B', // Texto principal
     textSecondary: '#8a94a6', // Texto secundario
     error: '#EF4444', // Errores
+    pinUbicacionUsuario: '#EF4444', // Color dedicado para el pin de ubicación del usuario
     border: '#f0f2f5', // Bordes sutiles
     disabled: '#CBD5E1', // Elementos deshabilitados
     placeholder: '#94A3B8', // Placeholders
