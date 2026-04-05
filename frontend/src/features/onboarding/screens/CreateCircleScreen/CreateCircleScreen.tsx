@@ -23,7 +23,7 @@ export const CreateCircleScreen: React.FC = () => {
 
   const manejarContinuar = () => {
     console.log('Nombre del círculo:', nombreCirculo);
-    navegacion.navigate('RolEnCirculo');
+    (navegacion as any).navigate('RolEnCirculo');
     // Aquí irá navegación o llamada a backend
   };
 

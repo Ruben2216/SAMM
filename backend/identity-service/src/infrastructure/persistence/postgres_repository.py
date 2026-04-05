@@ -30,6 +30,7 @@ class PostgresUserRepository(UserRepositoryPort):
             Contrasena_Hash=modelo.Contrasena_Hash,
             Proveedor_Auth=modelo.Proveedor_Auth,
             Google_Id=modelo.Google_Id,
+            url_Avatar=getattr(modelo, "url_Avatar", None),
             Rol=modelo.Rol,
             Activo=modelo.Activo,
             Fecha_Registro=modelo.Fecha_Registro,
@@ -44,6 +45,7 @@ class PostgresUserRepository(UserRepositoryPort):
             Contrasena_Hash=usuario.Contrasena_Hash,
             Proveedor_Auth=usuario.Proveedor_Auth,
             Google_Id=usuario.Google_Id,
+            url_Avatar=usuario.url_Avatar,
             Rol=usuario.Rol,
             Activo=usuario.Activo,
             Fecha_Registro=usuario.Fecha_Registro or date.today(),
@@ -99,6 +101,7 @@ class PostgresUserRepository(UserRepositoryPort):
         modelo.Contrasena_Hash = usuario.Contrasena_Hash
         modelo.Proveedor_Auth = usuario.Proveedor_Auth
         modelo.Google_Id = usuario.Google_Id
+        modelo.url_Avatar = usuario.url_Avatar
         modelo.Rol = usuario.Rol
         modelo.Activo = usuario.Activo
 

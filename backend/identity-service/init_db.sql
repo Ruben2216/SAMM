@@ -3,8 +3,6 @@
 -- PostgreSQL
 -- ============================================================
 
--- 1. Crear el usuario SAMM
-
 -- 2. Crear la base de datos
 CREATE DATABASE samm_db ;
 
@@ -19,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
     "Contrasena_Hash"   VARCHAR(255),
     "Proveedor_Auth"    VARCHAR(20) NOT NULL DEFAULT 'local',
     "Google_Id"         VARCHAR(255) UNIQUE,
+    "url_Avatar"        VARCHAR(2048),
     "Rol"               VARCHAR(20),
     "Activo"            BOOLEAN DEFAULT TRUE,
     "Fecha_Registro"    DATE NOT NULL DEFAULT CURRENT_DATE
@@ -27,6 +26,7 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
 -- 6. Crear índices para búsquedas frecuentes
 CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON "Usuarios" ("Correo");
 CREATE INDEX IF NOT EXISTS idx_usuarios_google_id ON "Usuarios" ("Google_Id");
+
 
 -- 7. Verificar
 SELECT 'Tabla Usuarios creada exitosamente' AS resultado;

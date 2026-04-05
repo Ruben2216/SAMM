@@ -18,6 +18,7 @@ class UsuarioModel(Base):
     Contrasena_Hash = Column(String(255), nullable=True)       # NULL si es cuenta de Google
     Proveedor_Auth = Column(String(20), nullable=False, default="local")  # 'local' | 'google'
     Google_Id = Column(String(255), unique=True, nullable=True, index=True)
+    url_Avatar = Column("url_Avatar", String(2048), nullable=True)
     Rol = Column(String(20), nullable=True)                    # 'familiar' | 'adulto_mayor' | NULL
     Activo = Column(Boolean, default=True)
     Fecha_Registro = Column(Date, nullable=False, server_default=func.current_date())

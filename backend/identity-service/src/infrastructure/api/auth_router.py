@@ -58,6 +58,7 @@ class UsuarioResponse(BaseModel):
     Nombre: str
     Correo: str
     Proveedor_Auth: str
+    url_Avatar: Optional[str] = None
     Rol: Optional[str]
     Activo: bool
 
@@ -97,6 +98,7 @@ def login_con_google(
                 Nombre=resultado.usuario.Nombre,
                 Correo=resultado.usuario.Correo,
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
+                url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Activo=resultado.usuario.Activo,
             ),
@@ -132,6 +134,7 @@ def login_manual(
                 Nombre=resultado.usuario.Nombre,
                 Correo=resultado.usuario.Correo,
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
+                url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Activo=resultado.usuario.Activo,
             ),
@@ -173,6 +176,7 @@ def registrar_usuario(
                 Nombre=resultado.usuario.Nombre,
                 Correo=resultado.usuario.Correo,
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
+                url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Activo=resultado.usuario.Activo,
             ),
@@ -211,6 +215,7 @@ def asignar_rol(
                 Nombre=usuario.Nombre,
                 Correo=usuario.Correo,
                 Proveedor_Auth=usuario.Proveedor_Auth,
+                url_Avatar=getattr(usuario, "url_Avatar", None),
                 Rol=usuario.Rol,
                 Activo=usuario.Activo,
             ),
@@ -239,6 +244,7 @@ def obtener_perfil(
         Nombre=usuario_actual.Nombre,
         Correo=usuario_actual.Correo,
         Proveedor_Auth=usuario_actual.Proveedor_Auth,
+        url_Avatar=getattr(usuario_actual, "url_Avatar", None),
         Rol=usuario_actual.Rol,
         Activo=usuario_actual.Activo,
     )

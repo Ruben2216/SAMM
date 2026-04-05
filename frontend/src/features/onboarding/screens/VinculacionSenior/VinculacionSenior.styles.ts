@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { theme } from '../../../../theme';
 import { globalStyles } from '../../../../theme/globalStyles';
+import { transparent } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 export const styles = StyleSheet.create({
   contenedorPantalla: {
@@ -8,15 +9,44 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
+    paddingTop: 16,
   },
 
-  seccionEncabezado: {
-    marginTop: 20,
-    marginBottom: 24,
+  contenidoScroll: {
+    flexGrow: 1,
+  },
+
+  filaEncabezado: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+
+  botonRetroceder: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 0,
+    position: 'relative',
+    top: 13,
+    right: 10,
+  },
+
+  iconoRetroceder: {
+    transform: [{ translateX: 1 }],
   },
 
   contenedorProgreso: {
-    marginBottom: 16,
+    flex: 1,
+  },
+
+  filaOmitir: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 30,
+    marginTop: -30,
   },
 
   textoOmitir: {
@@ -52,20 +82,41 @@ export const styles = StyleSheet.create({
     marginBottom: 32,
   },
 
-  contenedorFlecha: {
-    marginBottom: 12,
+  campoCodigo: {
+    width: 55,
+    height: 72,
+    borderRadius: 20,
+    borderWidth: 1,
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#0f172a',
+    textAlign: 'center',
+    textAlignVertical: 'center',
   },
 
-  iconoFlecha: {
-    width: 23,
-    height: 23,
+  campoCodigoActivo: {
+    backgroundColor: '#b8e6c8',
+    borderColor: theme.colors.primary,
+  },
+
+  campoCodigoInactivo: {
+    backgroundColor: '#d0fbde',
+    borderColor: '#f1f5f9',
   },
 
   enlaceDonde: {
-    fontSize: 18,
+    marginTop: 10,
+    fontSize: 19.5,
     fontWeight: '700',
     color: theme.colors.primary,
-    textDecorationLine: 'underline',
     textAlign: 'center',
+  },
+
+  contenedorEnlaceDonde: {
+    marginBottom: 24,
+  },
+
+  espaciadorFlexible: {
+    height: 24,
   },
 });

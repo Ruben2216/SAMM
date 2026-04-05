@@ -16,6 +16,7 @@ export interface Usuario {
     Proveedor_Auth: string;
     Rol: string | null;
     Activo: boolean;
+    url_Avatar?: string | null;
 }
 
 export interface ResultadoLogin {
@@ -41,6 +42,8 @@ interface AuthState {
     loginConCredenciales: (correo: string, contrasena: string) => Promise<ResultadoLogin>;
     registrar: (datos: DatosRegistro) => Promise<ResultadoLogin>;
     asignarRol: (rol: 'familiar' | 'adulto_mayor') => Promise<ResultadoLogin>;
+    actualizarAvatar: (imagenBase64: string, mimeType?: string) => Promise<{ exito: boolean; mensaje?: string }>;
+    eliminarAvatar: () => Promise<{ exito: boolean; mensaje?: string }>;
     cerrarSesion: () => Promise<void>;
     cargarSesionGuardada: () => Promise<void>;
 }
@@ -263,6 +266,56 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             console.error('[AuthStore] Error asignando rol:', mensaje);
             set({ cargando: false });
             return { exito: false, es_nuevo: false, mensaje };
+        }
+    },
+
+    actualizarAvatar: async (
+        imagenBase64: string,
+        mimeType?: string
+    ): Promise<{ exito: boolean; mensaje?: string }> => {
+        console.log('[AuthStore] Actualizando avatar...');
+        set({ cargando: true });
+
+        try {
+            const response = await httpClient.put('/users/me/avatar', {
+                imagen_base64: imagenBase64,
+                mime_type: mimeType,
+            });
+
+            const usuario = response.data as Usuario;
+            await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
+
+            set({ usuario, cargando: false });
+            console.log('[AuthStore] Avatar actualizado exitosamente');
+
+            return { exito: true };
+        } catch (error: any) {
+            const mensaje = error.response?.data?.detail || error.message || 'Error al actualizar avatar';
+            console.error('[AuthStore] Error actualizando avatar:', mensaje);
+            set({ cargando: false });
+            return { exito: false, mensaje };
+        }
+    },
+
+    eliminarAvatar: async (): Promise<{ exito: boolean; mensaje?: string }> => {
+        console.log('[AuthStore] Eliminando avatar...');
+        set({ cargando: true });
+
+        try {
+            const response = await httpClient.delete('/users/me/avatar');
+
+            const usuario = response.data as Usuario;
+            await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
+
+            set({ usuario, cargando: false });
+            console.log('[AuthStore] Avatar eliminado exitosamente');
+
+            return { exito: true };
+        } catch (error: any) {
+            const mensaje = error.response?.data?.detail || error.message || 'Error al eliminar avatar';
+            console.error('[AuthStore] Error eliminando avatar:', mensaje);
+            set({ cargando: false });
+            return { exito: false, mensaje };
         }
     },
 
