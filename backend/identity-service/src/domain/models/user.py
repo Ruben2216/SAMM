@@ -16,6 +16,7 @@ class Usuario:
     Contrasena_Hash: Optional[str] = None   # None si Proveedor_Auth='google'
     Proveedor_Auth: str = "local"           # 'local' | 'google'
     Google_Id: Optional[str] = None         # ID único de Google
+    url_Avatar: Optional[str] = None        # URL/ruta del avatar del usuario
     Rol: Optional[str] = None              # 'familiar' | 'adulto_mayor' | None
     Activo: bool = True
     Fecha_Registro: date = field(default_factory=date.today)

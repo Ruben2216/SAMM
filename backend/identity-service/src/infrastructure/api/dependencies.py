@@ -4,6 +4,7 @@ Conecta los puertos (interfaces abstractas) con sus implementaciones concretas.
 Este es el único lugar donde se conocen las implementaciones de infraestructura.
 """
 import logging
+import os
 from typing import Generator
 
 from fastapi import Depends, HTTPException, status
@@ -16,10 +17,14 @@ from src.infrastructure.security.google_verifier import GoogleTokenVerifier
 from src.infrastructure.security.jwt_service import JWTService
 from src.infrastructure.security.bcrypt_hasher import BcryptHasher
 
+from src.infrastructure.services.local_avatar_storage import LocalAvatarStorage
+
 from src.application.google_login_use_case import GoogleLoginUseCase
 from src.application.login_user_use_case import LoginUserUseCase
 from src.application.register_user_use_case import RegisterUserUseCase
 from src.application.update_role_use_case import UpdateRoleUseCase
+from src.application.update_avatar_use_case import UpdateAvatarUseCase
+from src.application.delete_avatar_use_case import DeleteAvatarUseCase
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +48,12 @@ def obtener_servicio_jwt() -> JWTService:
 
 def obtener_hasher() -> BcryptHasher:
     return BcryptHasher()
+
+
+def obtener_storage_avatar() -> LocalAvatarStorage:
+    # Directorio base para servir /media (ver main.py). Ajustable vía env.
+    directorio_base = os.getenv("SAMM_MEDIA_DIR", "uploads")
+    return LocalAvatarStorage(directorio_base)
 
 
 # --- Casos de uso ---
@@ -76,6 +87,20 @@ def obtener_actualizar_rol_uc(
     jwt_svc: JWTService = Depends(obtener_servicio_jwt),
 ) -> UpdateRoleUseCase:
     return UpdateRoleUseCase(repo, jwt_svc)
+
+
+def obtener_actualizar_avatar_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+    storage: LocalAvatarStorage = Depends(obtener_storage_avatar),
+) -> UpdateAvatarUseCase:
+    return UpdateAvatarUseCase(repo, storage)
+
+
+def obtener_eliminar_avatar_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+    storage: LocalAvatarStorage = Depends(obtener_storage_avatar),
+) -> DeleteAvatarUseCase:
+    return DeleteAvatarUseCase(repo, storage)
 
 
 # --- Autenticación del usuario actual ---

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
@@ -211,11 +212,13 @@ export const CrearCuenta: React.FC = () => {
                 <TouchableOpacity
                     style={styles.terminosContainer}
                     onPress={() => setAcepto(!acepto)}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel="He leído y acepto los términos y condiciones y la política de privacidad"
+                    accessibilityState={{ checked: acepto }}
                 >
-                    <View style={[
-                        styles.checkbox,
-                        acepto && styles.checkboxActivo
-                    ]} />
+                    <View style={styles.checkbox}>
+                        {acepto ? <Icon name="check" size={14} color={theme.colors.text} /> : null}
+                    </View>
 
                     <Text
                         style={styles.textoTerminos}
