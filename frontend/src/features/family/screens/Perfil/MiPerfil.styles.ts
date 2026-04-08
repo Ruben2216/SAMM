@@ -23,9 +23,6 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
 
-  perfil__contenido: {
-    paddingBottom: 20,
-  },
 
   encabezado: {
     flexDirection: 'row',
@@ -54,7 +51,7 @@ export const styles = StyleSheet.create({
 
   contenido: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
+    paddingBottom: 10,
   },
 
   tarjetaPerfil: {

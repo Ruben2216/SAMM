@@ -28,7 +28,7 @@ import { AgregarContactos } from './src/features/senior/screens/Emergencia/Agreg
 import { Asistencia } from './src/features/senior/screens/Emergencia/Asistencia';
 import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NecesitaAyuda';
 
-import { FamilyTabs } from '@/features/family/navigation/FamilyTabs';
+import { FamilyTabs } from './src/features/family/navigation/FamilyTabs';
 import CitasFamiliarScreen from './src/features/family/screens/Citas';
 
 

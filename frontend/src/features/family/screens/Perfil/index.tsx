@@ -310,7 +310,6 @@ export const MiPerfilFamiliar: React.FC = () => {
   return (
     <ScrollView
       style={styles.perfil}
-      contentContainerStyle={styles.perfil__contenido}
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.encabezado} accessibilityRole="header">
