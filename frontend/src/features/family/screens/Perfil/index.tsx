@@ -18,6 +18,7 @@ import { PerfilFamiliarState } from './type';
 import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
+import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 
 type TipoSelectorSupervision = 'frecuencia' | 'tiempo';
 
@@ -43,10 +44,11 @@ const ajusteMenuSupervisionX = 0;
 const ajusteMenuSupervisionY = 0;
 
 export const MiPerfilFamiliar: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const usuarioAutenticado = useAuthStore(estado => estado.usuario);
   const actualizarAvatar = useAuthStore(estado => estado.actualizarAvatar);
   const eliminarAvatar = useAuthStore(estado => estado.eliminarAvatar);
+  const cerrarSesion = useAuthStore(estado => estado.cerrarSesion);
 
   const referenciaSelectorFrecuencia = useRef<React.ElementRef<typeof View>>(null);
   const referenciaSelectorTiempo = useRef<React.ElementRef<typeof View>>(null);
@@ -67,6 +69,8 @@ export const MiPerfilFamiliar: React.FC = () => {
   const [selectorAbierto, setSelectorAbierto] = useState<TipoSelectorSupervision | null>(
     null,
   );
+
+  const [modalCerrarSesionVisible, setModalCerrarSesionVisible] = useState(false);
 
   const [state, setState] = useState<PerfilFamiliarState>({
     nombre: 'Carlos Gómez',
@@ -198,7 +202,25 @@ export const MiPerfilFamiliar: React.FC = () => {
   };
 
   const manejarCerrarSesion = () => {
-    console.log('[PerfilFamiliar] Cerrar sesión');
+    setModalCerrarSesionVisible(true);
+  };
+
+  const manejarCancelarCerrarSesion = () => {
+    setModalCerrarSesionVisible(false);
+  };
+
+  const manejarConfirmarCerrarSesion = async () => {
+    try {
+      await cerrarSesion();
+      setModalCerrarSesionVisible(false);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Initial' }],
+      });
+    } catch (error: any) {
+      console.error('[PerfilFamiliar] Error cerrando sesión:', error?.message ?? error);
+      Alert.alert('No se pudo cerrar sesión', 'Intenta de nuevo.');
+    }
   };
 
   const manejarAyudaSoporte = () => {
@@ -627,6 +649,16 @@ export const MiPerfilFamiliar: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      <ConfirmationModal
+        esVisible={modalCerrarSesionVisible}
+        textoPregunta="¿Seguro que deseas cerrar la sesión?"
+        textoCancelar="Cancelar"
+        textoConfirmar="Cerrar sesión"
+        alCancelar={manejarCancelarCerrarSesion}
+        alConfirmar={() => void manejarConfirmarCerrarSesion()}
+        accessibilityLabel="Confirmación para cerrar sesión"
+      />
     </ScrollView>
   );
 };
