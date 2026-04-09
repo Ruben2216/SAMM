@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Text, TextInput } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Text, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
@@ -7,6 +7,7 @@ import { PrimaryButton } from '../../../../components/ui/primary-button';
 import { ModalAyudaCodigo } from '../../../../components/ui/modal-ayuda-codigo';
 import { styles } from './VinculacionSenior.styles';
 import { theme } from '../../../../theme';
+import httpClient from '../../../../services/httpService';
 
 export const VinculacionSenior: React.FC = () => {
   const hitSlopGrande = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -15,6 +16,7 @@ export const VinculacionSenior: React.FC = () => {
   const [codigoIngresado, setCodigoIngresado] = useState<string[]>(['', '', '', '', '']);
   const [indiceFocus, setIndiceFocus] = useState<number>(0);
   const [esVisibleModalAyuda, setEsVisibleModalAyuda] = useState<boolean>(false);
+  const [cargando, setCargando] = useState<boolean>(false);
 
   const enfocarIndice = (nuevoIndice: number) => {
     setIndiceFocus(nuevoIndice);
@@ -88,11 +90,22 @@ export const VinculacionSenior: React.FC = () => {
     navegacion.goBack();
   };
 
-  const manejarVincular = () => {
+  const manejarVincular = async () => {
     const codigoCompleto = codigoIngresado.join('');
-    if (codigoCompleto.length === 5) {
-      console.log('Código ingresado:', codigoCompleto);
-      navegacion.navigate('CreateCircleScreen' as never);
+    if (codigoCompleto.length !== 5) return;
+
+    setCargando(true);
+    try {
+      const response = await httpClient.post('/vinculacion/validar', { codigo: codigoCompleto });
+      const { Id_Vinculacion } = response.data;
+      console.log('[VinculacionSenior] Vinculación exitosa — Id:', Id_Vinculacion);
+      (navegacion as any).navigate('CreateCircleScreen', { idVinculacion: Id_Vinculacion });
+    } catch (err: any) {
+      const mensaje = err.response?.data?.detail || 'Error al vincular';
+      console.error('[VinculacionSenior] Error:', mensaje);
+      Alert.alert('Error', mensaje);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -104,7 +117,7 @@ export const VinculacionSenior: React.FC = () => {
     setEsVisibleModalAyuda(false);
   };
 
-  const esValidoVincular = codigoIngresado.every((car) => car !== '');
+  const esValidoVincular = codigoIngresado.every((car) => car !== '') && !cargando;
 
   return (
     <ScrollView
@@ -183,6 +196,7 @@ export const VinculacionSenior: React.FC = () => {
               autoCapitalize="characters"
               autoCorrect={false}
               selectTextOnFocus
+              editable={!cargando}
               accessibilityLabel={`Campo de código ${indice + 1}`}
             />
           ))}
@@ -192,7 +206,7 @@ export const VinculacionSenior: React.FC = () => {
       <View style={styles.espaciadorFlexible} />
 
       <PrimaryButton
-        titulo="Vincular"
+        titulo={cargando ? 'Vinculando...' : 'Vincular'}
         alPresionar={manejarVincular}
         deshabilitado={!esValidoVincular}
         nombreIcono="link-variant"

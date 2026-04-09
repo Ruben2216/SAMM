@@ -1,8 +1,8 @@
 """
-Modelo SQLAlchemy: Tabla Usuarios
-Mapeado a la tabla 'Usuarios' en PostgreSQL con nomenclatura en español.
+Modelos SQLAlchemy: Tablas Usuarios y Vinculaciones
+Mapeados a PostgreSQL con nomenclatura en español.
 """
-from sqlalchemy import Column, Integer, String, Boolean, Date
+from sqlalchemy import Column, Integer, String, Boolean, Date, DateTime, ForeignKey
 from sqlalchemy.sql import func
 
 from src.infrastructure.persistence.database import Base
@@ -20,5 +20,18 @@ class UsuarioModel(Base):
     Google_Id = Column(String(255), unique=True, nullable=True, index=True)
     url_Avatar = Column("url_Avatar", String(2048), nullable=True)
     Rol = Column(String(20), nullable=True)                    # 'familiar' | 'adulto_mayor' | NULL
+    Codigo_Vinculacion = Column(String(5), unique=True, nullable=True)  # Solo familiares
     Activo = Column(Boolean, default=True)
     Fecha_Registro = Column(Date, nullable=False, server_default=func.current_date())
+
+
+class VinculacionModel(Base):
+    """Modelo de persistencia para la tabla Vinculaciones."""
+    __tablename__ = "Vinculaciones"
+
+    Id_Vinculacion = Column(Integer, primary_key=True, autoincrement=True)
+    Id_Familiar = Column(Integer, ForeignKey("Usuarios.Id_Usuario"), nullable=False)
+    Id_Adulto_Mayor = Column(Integer, ForeignKey("Usuarios.Id_Usuario"), nullable=False)
+    Nombre_Circulo = Column(String(100), nullable=True)
+    Rol_Adulto_Mayor = Column(String(50), nullable=True)
+    Fecha_Vinculacion = Column(DateTime, server_default=func.now())

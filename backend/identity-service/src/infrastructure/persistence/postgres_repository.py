@@ -32,6 +32,7 @@ class PostgresUserRepository(UserRepositoryPort):
             Google_Id=modelo.Google_Id,
             url_Avatar=getattr(modelo, "url_Avatar", None),
             Rol=modelo.Rol,
+            Codigo_Vinculacion=modelo.Codigo_Vinculacion,
             Activo=modelo.Activo,
             Fecha_Registro=modelo.Fecha_Registro,
         )
@@ -47,6 +48,7 @@ class PostgresUserRepository(UserRepositoryPort):
             Google_Id=usuario.Google_Id,
             url_Avatar=usuario.url_Avatar,
             Rol=usuario.Rol,
+            Codigo_Vinculacion=usuario.Codigo_Vinculacion,
             Activo=usuario.Activo,
             Fecha_Registro=usuario.Fecha_Registro or date.today(),
         )
@@ -77,6 +79,15 @@ class PostgresUserRepository(UserRepositoryPort):
         logger.info(f"[Repo] Usuario NO encontrado por Id")
         return None
 
+    def buscar_por_codigo_vinculacion(self, codigo: str) -> Optional[Usuario]:
+        logger.info(f"[Repo] Buscando usuario por Codigo_Vinculacion: {codigo}")
+        modelo = self._sesion.query(UsuarioModel).filter_by(Codigo_Vinculacion=codigo).first()
+        if modelo:
+            logger.info(f"[Repo] Familiar encontrado — Id_Usuario: {modelo.Id_Usuario}")
+            return self._modelo_a_entidad(modelo)
+        logger.info(f"[Repo] Familiar NO encontrado por código")
+        return None
+
     def guardar(self, usuario: Usuario) -> Usuario:
         logger.info(f"[Repo] Guardando nuevo usuario — Correo: {usuario.Correo}")
         modelo = self._entidad_a_modelo(usuario)
@@ -103,6 +114,7 @@ class PostgresUserRepository(UserRepositoryPort):
         modelo.Google_Id = usuario.Google_Id
         modelo.url_Avatar = usuario.url_Avatar
         modelo.Rol = usuario.Rol
+        modelo.Codigo_Vinculacion = usuario.Codigo_Vinculacion
         modelo.Activo = usuario.Activo
 
         self._sesion.commit()

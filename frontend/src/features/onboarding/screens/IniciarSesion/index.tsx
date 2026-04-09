@@ -141,7 +141,7 @@ export const IniciarSesion: React.FC = () => {
     };
 
     const manejarRegistro = () => {
-        console.log('[IniciarSesion] Ir a crear cuenta');
+        (navigation as any).navigate('Welcome');
     };
 
     return (

@@ -25,6 +25,11 @@ from src.application.register_user_use_case import RegisterUserUseCase
 from src.application.update_role_use_case import UpdateRoleUseCase
 from src.application.update_avatar_use_case import UpdateAvatarUseCase
 from src.application.delete_avatar_use_case import DeleteAvatarUseCase
+from src.application.generar_codigo_use_case import GenerarCodigoUseCase
+from src.application.validar_codigo_use_case import ValidarCodigoUseCase
+from src.application.actualizar_circulo_use_case import ActualizarCirculoUseCase
+
+from src.infrastructure.persistence.postgres_vinculacion_repository import PostgresVinculacionRepository
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +106,29 @@ def obtener_eliminar_avatar_uc(
     storage: LocalAvatarStorage = Depends(obtener_storage_avatar),
 ) -> DeleteAvatarUseCase:
     return DeleteAvatarUseCase(repo, storage)
+
+
+def obtener_repositorio_vinculacion(db: Session = Depends(obtener_sesion)) -> PostgresVinculacionRepository:
+    return PostgresVinculacionRepository(db)
+
+
+def obtener_generar_codigo_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+) -> GenerarCodigoUseCase:
+    return GenerarCodigoUseCase(repo)
+
+
+def obtener_validar_codigo_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+    repo_vinculacion: PostgresVinculacionRepository = Depends(obtener_repositorio_vinculacion),
+) -> ValidarCodigoUseCase:
+    return ValidarCodigoUseCase(repo, repo_vinculacion)
+
+
+def obtener_actualizar_circulo_uc(
+    repo_vinculacion: PostgresVinculacionRepository = Depends(obtener_repositorio_vinculacion),
+) -> ActualizarCirculoUseCase:
+    return ActualizarCirculoUseCase(repo_vinculacion)
 
 
 # --- Autenticación del usuario actual ---

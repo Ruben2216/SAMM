@@ -27,6 +27,11 @@ class UserRepositoryPort(ABC):
         ...
 
     @abstractmethod
+    def buscar_por_codigo_vinculacion(self, codigo: str) -> Optional[Usuario]:
+        """Busca un familiar por su código de vinculación."""
+        ...
+
+    @abstractmethod
     def guardar(self, usuario: Usuario) -> Usuario:
         """Persiste un nuevo usuario y retorna la entidad con Id asignado."""
         ...

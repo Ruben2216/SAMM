@@ -18,6 +18,7 @@ class Usuario:
     Google_Id: Optional[str] = None         # ID único de Google
     url_Avatar: Optional[str] = None        # URL/ruta del avatar del usuario
     Rol: Optional[str] = None              # 'familiar' | 'adulto_mayor' | None
+    Codigo_Vinculacion: Optional[str] = None  # Código de 5 chars (solo familiares)
     Activo: bool = True
     Fecha_Registro: date = field(default_factory=date.today)
 

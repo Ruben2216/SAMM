@@ -15,6 +15,7 @@ export interface Usuario {
     Correo: string;
     Proveedor_Auth: string;
     Rol: string | null;
+    Codigo_Vinculacion?: string | null;
     Activo: boolean;
     url_Avatar?: string | null;
 }

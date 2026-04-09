@@ -3,7 +3,9 @@ Caso de Uso: Registro de Usuario (Manual)
 Crea un nuevo usuario con correo y contraseña hasheada.
 """
 import logging
+import random
 import re
+import string
 from dataclasses import dataclass
 
 from src.domain.models.user import Usuario
@@ -33,6 +35,15 @@ class RegisterUserUseCase:
         self._repositorio = repositorio_usuario
         self._hasher = hasher
         self._token = servicio_token
+
+    def _generar_codigo_unico(self) -> str:
+        """Genera un código alfanumérico de 5 caracteres único."""
+        caracteres = string.ascii_uppercase + string.digits
+        for _ in range(100):
+            codigo = ''.join(random.choices(caracteres, k=5))
+            if not self._repositorio.buscar_por_codigo_vinculacion(codigo):
+                return codigo
+        raise ValueError("No se pudo generar un código único")
 
     def ejecutar(
         self, nombre: str, correo: str, contrasena: str, rol: str
@@ -76,6 +87,12 @@ class RegisterUserUseCase:
         contrasena_hash = self._hasher.hashear(contrasena)
         logger.info("[Registro] Contraseña hasheada exitosamente")
 
+        # Generar código de vinculación si es familiar
+        codigo_vinculacion = None
+        if rol == "familiar":
+            codigo_vinculacion = self._generar_codigo_unico()
+            logger.info(f"[Registro] Código de vinculación generado: {codigo_vinculacion}")
+
         # Crear usuario
         usuario = Usuario(
             Nombre=nombre,
@@ -83,6 +100,7 @@ class RegisterUserUseCase:
             Contrasena_Hash=contrasena_hash,
             Proveedor_Auth="local",
             Rol=rol,
+            Codigo_Vinculacion=codigo_vinculacion,
         )
         usuario = self._repositorio.guardar(usuario)
         logger.info(f"[Registro] Usuario creado — Id_Usuario: {usuario.Id_Usuario}")

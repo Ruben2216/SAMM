@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { ScrollView, View, Text, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from './CreateCircleScreen.styles';
+import httpClient from '../../../../services/httpService';
 
 export const CreateCircleScreen: React.FC = () => {
   const navegacion = useNavigation();
+  const route = useRoute();
+  const { idVinculacion } = (route.params as { idVinculacion: number }) || {};
+
   const [nombreCirculo, setNombreCirculo] = useState<string>('');
+  const [cargando, setCargando] = useState<boolean>(false);
 
   const sugerencias = [
     'Familia',
@@ -21,10 +26,26 @@ export const CreateCircleScreen: React.FC = () => {
     setNombreCirculo(nombre);
   };
 
-  const manejarContinuar = () => {
-    console.log('Nombre del círculo:', nombreCirculo);
-    (navegacion as any).navigate('RolEnCirculo');
-    // Aquí irá navegación o llamada a backend
+  const manejarContinuar = async () => {
+    if (!nombreCirculo.trim()) {
+      Alert.alert('Error', 'Ingresa un nombre para tu círculo');
+      return;
+    }
+
+    setCargando(true);
+    try {
+      await httpClient.put(`/vinculacion/circulo/${idVinculacion}`, {
+        nombre_circulo: nombreCirculo.trim(),
+      });
+      console.log('[CreateCircle] Nombre guardado:', nombreCirculo);
+      (navegacion as any).navigate('RolEnCirculo', { idVinculacion });
+    } catch (err: any) {
+      const mensaje = err.response?.data?.detail || 'Error al guardar el círculo';
+      console.error('[CreateCircle] Error:', mensaje);
+      Alert.alert('Error', mensaje);
+    } finally {
+      setCargando(false);
+    }
   };
 
   const manejarRetroceder = () => {
@@ -74,6 +95,7 @@ export const CreateCircleScreen: React.FC = () => {
             value={nombreCirculo}
             onChangeText={setNombreCirculo}
             style={styles.textoInput}
+            editable={!cargando}
           />
         </View>
 
@@ -85,6 +107,7 @@ export const CreateCircleScreen: React.FC = () => {
             key={index}
             style={styles.itemSugerencia}
             onPress={() => manejarSeleccionSugerencia(item)}
+            disabled={cargando}
             accessibilityLabel={`Seleccionar ${item}`}
             accessibilityRole="button"
           >
@@ -98,13 +121,18 @@ export const CreateCircleScreen: React.FC = () => {
 
         {/* Botón */}
         <TouchableOpacity
-          style={styles.botonContinuar}
+          style={[styles.botonContinuar, (!nombreCirculo.trim() || cargando) && { opacity: 0.5 }]}
           onPress={manejarContinuar}
+          disabled={!nombreCirculo.trim() || cargando}
           accessibilityLabel="Continuar"
           accessibilityRole="button"
           activeOpacity={0.8}
         >
-          <Text style={styles.textoBoton}>Continuar</Text>
+          {cargando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.textoBoton}>Continuar</Text>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>

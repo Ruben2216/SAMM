@@ -60,6 +60,7 @@ class UsuarioResponse(BaseModel):
     Proveedor_Auth: str
     url_Avatar: Optional[str] = None
     Rol: Optional[str]
+    Codigo_Vinculacion: Optional[str] = None
     Activo: bool
 
     class Config:
@@ -100,6 +101,7 @@ def login_con_google(
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
+                Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=resultado.es_nuevo,
@@ -136,6 +138,7 @@ def login_manual(
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
+                Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=False,
@@ -178,6 +181,7 @@ def registrar_usuario(
                 Proveedor_Auth=resultado.usuario.Proveedor_Auth,
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
+                Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=True,
@@ -217,6 +221,7 @@ def asignar_rol(
                 Proveedor_Auth=usuario.Proveedor_Auth,
                 url_Avatar=getattr(usuario, "url_Avatar", None),
                 Rol=usuario.Rol,
+                Codigo_Vinculacion=usuario.Codigo_Vinculacion,
                 Activo=usuario.Activo,
             ),
             es_nuevo=False,
@@ -246,5 +251,6 @@ def obtener_perfil(
         Proveedor_Auth=usuario_actual.Proveedor_Auth,
         url_Avatar=getattr(usuario_actual, "url_Avatar", None),
         Rol=usuario_actual.Rol,
+        Codigo_Vinculacion=usuario_actual.Codigo_Vinculacion,
         Activo=usuario_actual.Activo,
     )

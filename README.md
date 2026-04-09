@@ -91,3 +91,28 @@ INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor
 4. Ejecutarlo: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 5. Instalar esto (validacion de horarios y toma de pastillas)
     pip install apscheduler tzdata
+
+
+### Cambiar tabla de usuarios y crear otra (codigo de vinculacion)
+```bash
+ALTER TABLE "Usuarios"
+ADD Codigo_Vinculacion VARCHAR(5) UNIQUE;
+
+CREATE TABLE "Vinculaciones" (
+    "Id_Vinculacion" SERIAL PRIMARY KEY,
+    "Id_Familiar" INT NOT NULL,
+    "Id_Adulto_Mayor" INT NOT NULL,
+    "Fecha_Vinculacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_familiar
+        FOREIGN KEY ("Id_Familiar") REFERENCES "Usuarios"("Id_Usuario"),
+
+    CONSTRAINT fk_adulto
+        FOREIGN KEY ("Id_Adulto_Mayor") REFERENCES "Usuarios"("Id_Usuario")
+);
+
+ALTER TABLE "Vinculaciones" ADD COLUMN "Nombre_Circulo" VARCHAR(100);
+ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" VARCHAR(50);
+
+
+```

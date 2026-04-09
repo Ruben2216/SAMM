@@ -1,15 +1,44 @@
-import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Text, Share } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, View, TouchableOpacity, Text, Share, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { IconoCompartir } from '../../../../assets/iconos/iconos-vinculacion';
 import { styles } from './VinculacionFamiliar.styles';
 import { theme } from '../../../../theme';
+import httpClient from '../../../../services/httpService';
+import { useAuthStore } from '../../../auth/authStore';
 
 export const VinculacionFamiliar: React.FC = () => {
   const navegacion = useNavigation();
-  const [codigoVinculacion] = useState<string>('XXXXX');
+  const usuario = useAuthStore((state) => state.usuario);
+  const [codigoVinculacion, setCodigoVinculacion] = useState<string>('');
+  const [cargando, setCargando] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const obtenerCodigo = async () => {
+      // Si el usuario ya tiene código guardado, usarlo directamente
+      if (usuario?.Codigo_Vinculacion) {
+        setCodigoVinculacion(usuario.Codigo_Vinculacion);
+        setCargando(false);
+        return;
+      }
+
+      try {
+        const response = await httpClient.post('/vinculacion/generar');
+        setCodigoVinculacion(response.data.codigo);
+      } catch (err: any) {
+        const mensaje = err.response?.data?.detail || 'Error al obtener el código';
+        console.error('[VinculacionFamiliar] Error:', mensaje);
+        setError(mensaje);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    obtenerCodigo();
+  }, []);
 
   const manejarCompartir = async () => {
     try {
@@ -33,7 +62,7 @@ export const VinculacionFamiliar: React.FC = () => {
     (navegacion as any).navigate('FamilyTabs');
   };
 
-  const codigoArray = codigoVinculacion.split('');
+  const codigoArray = codigoVinculacion ? codigoVinculacion.split('') : [];
 
   return (
     <ScrollView
@@ -79,26 +108,32 @@ export const VinculacionFamiliar: React.FC = () => {
           Comparte este código con tu familiar para conectarlo a tu cuenta
         </Text>
 
-        <View style={styles.contenedorCodigos}>
-          {codigoArray.map((caracter, indice) => (
-            <View key={indice} style={styles.cajaCodigo}>
-              <Text style={styles.textoCodigoCaracter}>{caracter}</Text>
+        {cargando ? (
+          <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 32 }} />
+        ) : error ? (
+          <Text style={{ color: 'red', textAlign: 'center', marginTop: 32 }}>{error}</Text>
+        ) : (
+          <>
+            <View style={styles.contenedorCodigos}>
+              {codigoArray.map((caracter, indice) => (
+                <View key={indice} style={styles.cajaCodigo}>
+                  <Text style={styles.textoCodigoCaracter}>{caracter}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
 
-        <TouchableOpacity
-          style={styles.botonCompartir}
-          onPress={manejarCompartir}
-          activeOpacity={0.8}
-          accessibilityLabel="Compartir código de vinculación"
-          accessibilityRole="button"
-        >
-          <IconoCompartir tamaño={36} color="#0f172a" />
-          <Text style={styles.textoBotonCompartir}>Compartir código</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.indicativoExpiracion}>El código expira en 24h</Text>
+            <TouchableOpacity
+              style={styles.botonCompartir}
+              onPress={manejarCompartir}
+              activeOpacity={0.8}
+              accessibilityLabel="Compartir código de vinculación"
+              accessibilityRole="button"
+            >
+              <IconoCompartir tamaño={36} color="#0f172a" />
+              <Text style={styles.textoBotonCompartir}>Compartir código</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </ScrollView>
   );

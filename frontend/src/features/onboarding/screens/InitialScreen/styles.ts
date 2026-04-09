@@ -138,6 +138,7 @@ export const styles = StyleSheet.create({
 
   subrayado: {
     textDecorationLine: 'underline',
-    color: '#007AFF',
+    color: theme.colors.primary,
+    fontWeight: '700',
   },
 });

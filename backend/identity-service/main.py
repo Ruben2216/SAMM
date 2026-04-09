@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from src.infrastructure.persistence.database import engine, Base
 from src.infrastructure.api.auth_router import router as auth_router
 from src.infrastructure.api.profile_router import router as profile_router
+from src.infrastructure.api.vinculacion_router import router as vinculacion_router
 
 # Configurar logging
 logging.basicConfig(
@@ -39,6 +40,7 @@ app.add_middleware(
 # Incluir router de autenticación
 app.include_router(auth_router)
 app.include_router(profile_router)
+app.include_router(vinculacion_router)
 
 
 def _configurar_static_media() -> None:
