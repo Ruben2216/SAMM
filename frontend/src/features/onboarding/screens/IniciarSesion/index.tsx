@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
 import { signInWithGoogleNative, esExpoGo } from '../../../../services/googleAuthService';
+
+import { AlertaModal } from '../../../../components/ui/confirmation-modal/AlertaModal';
 
 export const IniciarSesion: React.FC = () => {
     const navigation = useNavigation();
@@ -13,8 +15,20 @@ export const IniciarSesion: React.FC = () => {
     const [contrasena, setContrasena] = useState('');
     const [verContrasena, setVerContrasena] = useState(false);
 
+    // Modal de Alerta
+    const [alertaVisible, setAlertaVisible] = useState(false);
+    const [alertaTitulo, setAlertaTitulo] = useState('');
+    const [alertaMensaje, setAlertaMensaje] = useState('');
+
     // Auth store
     const { loginConCredenciales, loginConGoogle, cargando } = useAuthStore();
+
+    // Mostrar el modal
+    const mostrarAlerta = (titulo: string, mensaje: string) => {
+        setAlertaTitulo(titulo);
+        setAlertaMensaje(mensaje);
+        setAlertaVisible(true);
+    };
 
     /**
      * Procesa el id_token de Google (desde cualquier estrategia)
@@ -43,7 +57,7 @@ export const IniciarSesion: React.FC = () => {
                 }
             }
         } else {
-            Alert.alert('Error', resultado.mensaje || 'Error al iniciar sesión con Google');
+            mostrarAlerta('Error', resultado.mensaje || 'Error al iniciar sesión con Google');
         }
     };
 
@@ -57,12 +71,12 @@ export const IniciarSesion: React.FC = () => {
         // Validar que sea Gmail
         if (!email.endsWith('@gmail.com')) {
             console.warn('[IniciarSesion] Correo no es Gmail');
-            Alert.alert('Error', 'Solo se permiten correos de Gmail (@gmail.com)');
+            mostrarAlerta('Correo Inválido', 'Solo se permiten correos de Gmail (@gmail.com)');
             return;
         }
 
         if (!contrasena) {
-            Alert.alert('Error', 'Ingresa tu contraseña');
+            mostrarAlerta('Campo Requerido', 'Por favor, ingresa tu contraseña');
             return;
         }
 
@@ -84,7 +98,7 @@ export const IniciarSesion: React.FC = () => {
             }
         } else {
             console.error('[IniciarSesion] Login fallido:', resultado.mensaje);
-            Alert.alert('Error', resultado.mensaje || 'Correo o contraseña incorrectos');
+            mostrarAlerta('Error de acceso', resultado.mensaje || 'Correo o contraseña incorrectos');
         }
     };
 
@@ -96,11 +110,9 @@ export const IniciarSesion: React.FC = () => {
 
         if (esExpoGo()) {
             console.log('[IniciarSesion] Expo Go detectado — Google Auth no disponible');
-            Alert.alert(
-                'No disponible en Expo Go',
-                'Google Sign-In requiere un Development Build.\n\n' +
-                'Para probar, usa el login con correo y contraseña.\n\n' +
-                'Para habilitar Google Auth, ejecuta:\nnpx expo run:android',
+            mostrarAlerta(
+                'Aviso de Desarrollo',
+                'Google Sign-In requiere compilar la app (Development Build).\n\nPor ahora, usa el login con correo y contraseña para probar.'
             );
             return;
         }
@@ -111,24 +123,23 @@ export const IniciarSesion: React.FC = () => {
             if (idToken) {
                 await manejarGoogleToken(idToken);
             } else {
-                Alert.alert('Error', 'No se pudo obtener el token de Google');
+                mostrarAlerta('Error', 'No se pudo obtener el token de Google');
             }
         } catch (error: any) {
             console.error('[IniciarSesion] Error en Google nativo:', error);
             
             // Mostrar error detallado en el celular para poder depurarlo
-            let errorMessage = "Ocurrió un error desconocido";
+            let errorMessage = "Ocurrió un error desconocido al conectar con Google.";
             if (error?.message) {
                 errorMessage = error.message;
             } else if (typeof error === 'string') {
                 errorMessage = error;
             }
-            // Agregamos el código de error nativo si existe, útil para debug de Google Play Services
             if (error?.code) {
                 errorMessage += `\n(Código: ${error.code})`;
             }
 
-            Alert.alert('Fallo Nativo de Autenticación', errorMessage);
+            mostrarAlerta('Fallo de Autenticación', errorMessage);
         }
     };
 
@@ -146,7 +157,6 @@ export const IniciarSesion: React.FC = () => {
 
     return (
         <View style={styles.contenedor}>
-
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity
@@ -251,8 +261,15 @@ export const IniciarSesion: React.FC = () => {
                     />
                     <Text style={styles.textoGoogle} children="Google" />
                 </TouchableOpacity>
-
             </View>
+
+            {/* MODAL PERSONALIZADO INYECTADO AQUÍ */}
+            <AlertaModal
+                esVisible={alertaVisible}
+                titulo={alertaTitulo}
+                mensaje={alertaMensaje}
+                alCerrar={() => setAlertaVisible(false)}
+            />
         </View>
     );
 };
