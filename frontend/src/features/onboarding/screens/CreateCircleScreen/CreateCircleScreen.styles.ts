@@ -1,29 +1,35 @@
 import { StyleSheet } from 'react-native';
 import { theme } from '../../../../theme';
-import { globalStyles } from '../../../../theme/globalStyles';
 
 export const styles = StyleSheet.create({
-  contenedorPantalla: {
-    ...globalStyles.contenedorPantalla,
-    flexGrow: 1,
+  areaSegura: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  tecladoContenedor: {
+    flex: 1,
+  },
+  contenedorPantalla: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  contenidoScroll: {
+    flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 16,
   },
 
   encabezado: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-
   botonRetroceder: {
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: -8,
   },
-
   tituloEncabezado: {
     fontSize: 16,
     fontWeight: '600',
@@ -32,109 +38,101 @@ export const styles = StyleSheet.create({
   },
 
   contenedorContenido: {
+    flex: 1, 
     alignItems: 'center',
-    marginTop: 16,
   },
-
   iconoCirculo: {
     width: 70,
     height: 70,
-    borderRadius: 50,
+    borderRadius: 35,
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
-
+  
   titulo: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 28,
+    fontWeight: '800',
+    color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-
   descripcion: {
-    fontSize: 16,
-    color: '#475569',
+    fontSize: 14,
+    color: '#64748B',
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 22,
+    marginBottom: 28, 
   },
 
   inputContainer: {
     width: '100%',
-    height: 60,
-    borderRadius: 16,
+    height: 55, 
+    borderRadius: 25, 
     borderWidth: 1,
     borderColor: '#E2E8F0',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 18,
+    marginBottom: 24, 
+    backgroundColor: '#fff',
   },
-
   textoInput: {
+    flex: 1,
     fontSize: 16,
-    color: '#1E293B',
+    color: '#334155',
   },
 
   tituloSugerencias: {
     width: '100%',
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
-    marginBottom: 12,
-    letterSpacing: 1,
+    color: '#334155',
+    marginBottom: 10,
   },
 
   itemSugerencia: {
     width: '100%',
-    height: 60,
-    borderRadius: 16,
+    height: 55, 
+    borderRadius: 25, 
     borderWidth: 1,
     borderColor: '#E2E8F0',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
-
   iconoMas: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-
-  textoSugerencia: {
-    fontSize: 16,
-    fontWeight: '600',
+  textoIconoMas: {
     color: '#0f172a',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  textoSugerencia: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#334155',
   },
 
   botonContinuar: {
     width: '100%',
-    height: 60,
+    height: 55, 
     backgroundColor: theme.colors.primary,
-    borderRadius: 16,
+    borderRadius: 25, 
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    marginTop: 20, 
   },
-
   textoBoton: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#0f172a',
   },

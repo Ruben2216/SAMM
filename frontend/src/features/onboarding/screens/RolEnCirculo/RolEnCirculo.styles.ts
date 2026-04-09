@@ -1,13 +1,18 @@
 import { StyleSheet } from 'react-native';
 import { theme } from '../../../../theme';
-import { globalStyles } from '../../../../theme/globalStyles';
 
 export const styles = StyleSheet.create({
-  contenedorPantalla: {
-    ...globalStyles.contenedorPantalla,
+  areaSegura: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  contenedorPantalla: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  contenidoScroll: {
+    flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 16,
   },
 
   filaEncabezado: {
@@ -15,38 +20,40 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-
   botonRetroceder: {
-    marginRight: 12,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -8, 
   },
-
   textoHeader: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#0f172a',
+    color: '#1E293B',
+    marginLeft: 12,
   },
 
   contenido: {
-    flex: 1,
+    flex: 1, 
   },
 
   titulo: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontSize: 28,
+    fontWeight: '800',
+    color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-
   descripcion: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#64748B',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
   },
 
   listaOpciones: {
-    gap: 14,
+    gap: 10,
   },
 
   opcion: {
@@ -54,11 +61,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
+    borderRadius: 25, 
+    height: 55, 
+    paddingHorizontal: 18,
+    backgroundColor: '#fff',
   },
-
   opcionSeleccionada: {
     borderColor: theme.colors.primary,
     backgroundColor: '#F0FDF4',
@@ -69,10 +76,9 @@ export const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#CBD5F5',
+    borderColor: '#CBD5E1', 
     marginRight: 12,
   },
-
   radioSeleccionado: {
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primary,
@@ -80,28 +86,22 @@ export const styles = StyleSheet.create({
 
   textoOpcion: {
     fontSize: 16,
-    color: '#0f172a',
+    color: '#334155',
     fontWeight: '500',
   },
 
   botonContinuar: {
     width: '100%',
-    height: 56,
-    backgroundColor: '#22C55E',
-    borderRadius: 28,
+    height: 55,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 20,
+    marginTop: 20,
   },
-
-  botonDeshabilitado: {
-    backgroundColor: '#A7F3D0',
-  },
-
   textoBoton: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#0f172a',
   },
 });
