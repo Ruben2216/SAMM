@@ -47,7 +47,7 @@ export const WelcomeScreen: React.FC = () => {
       contentContainerStyle={styles.contenedor}
       showsVerticalScrollIndicator={false}
     >
-      <ProgressBar pasoActual={1} pasosTotales={4} />
+      <ProgressBar pasoActual={1} pasosTotales={3} />
 
       <View style={styles.seccionEncabezado}>
         <Text style={styles.titulo} children="Bienvenido a SAMM" />

@@ -43,3 +43,16 @@ class HistorialToma(Base):
     Alerta_Enviada_Familiar = Column(Boolean, default=False)
 
     medicamento = relationship("Medicamento", back_populates="historial")
+
+# Tabla 4: Perfil de Salud del Adulto Mayor
+class PerfilSalud(Base):
+    __tablename__ = "Perfiles_Salud"
+
+    Id_Perfil = Column(Integer, primary_key=True, index=True)
+    Id_Usuario = Column(Integer, nullable=False, unique=True, index=True)
+    Tipo_Sangre = Column(String(20), nullable=True)
+    Alergias = Column(String(500), nullable=True)
+    Peso = Column(String(20), nullable=True)
+    Edad = Column(Integer, nullable=True)
+    Condicion_Medica = Column(String(500), nullable=True)
+    Telefono = Column(String(30), nullable=True)

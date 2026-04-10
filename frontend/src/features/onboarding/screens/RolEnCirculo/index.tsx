@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context'; // <-- Para evitar el Notch
 import { styles } from './RolEnCirculo.styles';
+import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { theme } from '../../../../theme';
 import httpClient from '../../../../services/httpService';
 
@@ -76,17 +77,19 @@ export const RolEnCirculo: React.FC = () => {
             />
           </TouchableOpacity>
 
-          <Text style={styles.textoHeader}>Mi rol</Text>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <ProgressBar pasoActual={5} pasosTotales={5} />
+          </View>
         </View>
 
         {/* Contenido principal */}
         <View style={styles.contenido}>
           <Text style={styles.titulo}>
-            ¿Cuál es tu rol en el{'\n'}Círculo Familiar?
+            ¿Qué es tu familiar{'\n'}para ti?
           </Text>
 
           <Text style={styles.descripcion}>
-            Selecciona la opción que mejor te describa.
+            Selecciona la relación que tiene contigo la persona que te cuida.
           </Text>
 
           {/* Lista de opciones unificada con el diseño de inputs */}

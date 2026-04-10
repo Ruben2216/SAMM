@@ -147,7 +147,7 @@ export const VinculacionSenior: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.contenedorProgreso}>
-          <ProgressBar pasoActual={3} pasosTotales={3} />
+          <ProgressBar pasoActual={3} pasosTotales={5} />
         </View>
       </View>
 

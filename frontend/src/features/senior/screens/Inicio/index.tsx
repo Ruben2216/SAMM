@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } fr
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useAuthStore } from '../../../auth/authStore';
+import httpClient from '../../../../services/httpService';
 
 const generarSemana = () => {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -32,15 +34,28 @@ const DICCIONARIO_FRECUENCIA: { [key: string]: string } = {
 
 export const Inicio = () => {
     const navigation = useNavigation<any>();
+    const usuario = useAuthStore((s) => s.usuario);
     const [medicamentos, setMedicamentos] = useState<any[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [tieneVinculacion, setTieneVinculacion] = useState<boolean | null>(null);
 
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8000";
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
+
+    const cargarVinculacion = async () => {
+        try {
+            const res = await httpClient.get('/vinculacion/mis-vinculaciones');
+            setTieneVinculacion(res.data.length > 0);
+        } catch {
+            setTieneVinculacion(false);
+        }
+    };
 
     const cargarMedicamentos = async () => {
         try {
             setCargando(true);
-            const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/1`);
+            const userId = usuario?.Id_Usuario;
+            if (!userId) { setCargando(false); return; }
+            const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/${userId}`);
             if (!respuesta.ok) throw new Error("Error al cargar los datos");
             const datosDB = await respuesta.json();
 
@@ -84,6 +99,7 @@ export const Inicio = () => {
     useFocusEffect(
         useCallback(() => {
             cargarMedicamentos();
+            cargarVinculacion();
         }, [])
     );
 
@@ -147,13 +163,41 @@ export const Inicio = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContenido}>
                 <View style={styles.headerRow}>
                     <View>
-                        <Text style={styles.saludo}>HOLA, USUARIO...</Text>
+                        <Text style={styles.saludo}>HOLA, {usuario?.Nombre?.split(' ')[0]?.toUpperCase() || 'USUARIO'}</Text>
                         <Text style={styles.titulo}>Medicamentos de hoy</Text>
                     </View>
                     <TouchableOpacity style={styles.botonNotificacion}>
                         <Ionicons name="notifications-outline" size={24} color="#0F172A" />
                     </TouchableOpacity>
                 </View>
+
+                {tieneVinculacion === false && (
+                    <TouchableOpacity
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#0F172A',
+                            borderRadius: 12,
+                            padding: 14,
+                            marginBottom: 16,
+                            borderWidth: 1,
+                            borderColor: '#1E293B',
+                        }}
+                        activeOpacity={0.8}
+                        onPress={() => navigation.navigate('VinculacionSenior')}
+                    >
+                        <Ionicons name="link-outline" size={22} color="#00E676" />
+                        <View style={{ flex: 1, marginLeft: 12 }}>
+                            <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600' }}>
+                                Vincula a tu familiar
+                            </Text>
+                            <Text style={{ color: '#94A3B8', fontSize: 12, marginTop: 2 }}>
+                                Ingresa el código para conectar con tu cuidador
+                            </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#64748B" />
+                    </TouchableOpacity>
+                )}
 
                 <View style={styles.fechasContainer}>
                     {SEMANA.map((dia) => (

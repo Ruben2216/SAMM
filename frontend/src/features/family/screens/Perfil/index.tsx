@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
   Alert,
   Dimensions,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   Switch,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +19,16 @@ import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
+
+interface VinculacionInfo {
+  Id_Vinculacion: number;
+  Id_Familiar: number;
+  Id_Adulto_Mayor: number;
+  Nombre_Familiar: string | null;
+  Nombre_Adulto_Mayor: string | null;
+  Nombre_Circulo: string | null;
+  Rol_Adulto_Mayor: string | null;
+}
 
 type TipoSelectorSupervision = 'frecuencia' | 'tiempo';
 
@@ -71,15 +81,13 @@ export const MiPerfilFamiliar: React.FC = () => {
   );
 
   const [modalCerrarSesionVisible, setModalCerrarSesionVisible] = useState(false);
+  const [vinculaciones, setVinculaciones] = useState<VinculacionInfo[]>([]);
 
   const [state, setState] = useState<PerfilFamiliarState>({
-    nombre: 'Carlos Gómez',
-    correo: 'carlos.gomez@email.com',
-    rol: 'Administrador',
-    familiares: [
-      { id: '1', nombre: 'Carlos Gómez', rol: 'Administrador', esPrincipal: true },
-      { id: '2', nombre: 'María Gómez', rol: 'Mi Hermana' },
-    ],
+    nombre: '',
+    correo: '',
+    rol: 'Familiar',
+    familiares: [],
     notificaciones: {
       tomaCorrecta: true,
       olvidoCritico: true,
@@ -92,6 +100,40 @@ export const MiPerfilFamiliar: React.FC = () => {
     },
     biometriaActiva: true,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      const cargarVinculaciones = async () => {
+        try {
+          const res = await httpClient.get('/vinculacion/mis-vinculaciones');
+          const vincs: VinculacionInfo[] = res.data;
+          setVinculaciones(vincs);
+
+          // Build familiares list from real data
+          const miembros = [];
+          // Add myself (the familiar)
+          miembros.push({
+            id: String(usuarioAutenticado?.Id_Usuario || '0'),
+            nombre: usuarioAutenticado?.Nombre || 'Yo',
+            rol: 'Familiar',
+            esPrincipal: true,
+          });
+          // Add linked seniors
+          for (const v of vincs) {
+            miembros.push({
+              id: String(v.Id_Adulto_Mayor),
+              nombre: v.Nombre_Adulto_Mayor || 'Adulto Mayor',
+              rol: 'Adulto Mayor',
+            });
+          }
+          setState(prev => ({ ...prev, familiares: miembros }));
+        } catch (err) {
+          console.log('[PerfilFamiliar] No se pudieron cargar vinculaciones:', err);
+        }
+      };
+      cargarVinculaciones();
+    }, [usuarioAutenticado])
+  );
 
   const toggleNotificacion = (key: keyof typeof state.notificaciones) => {
     setState(prev => ({
@@ -390,7 +432,11 @@ export const MiPerfilFamiliar: React.FC = () => {
           </View>
         </View>
 
-        <Text style={styles.tituloSeccion}>FAMILIA</Text>
+        <Text style={styles.tituloSeccion}>
+          {vinculaciones.length > 0 && vinculaciones[0].Nombre_Circulo
+            ? vinculaciones[0].Nombre_Circulo.toUpperCase()
+            : 'MI CÍRCULO'}
+        </Text>
         <View style={styles.tarjetaSeccion} accessibilityLabel="Miembros de la familia">
           {state.familiares.map((familiar, indice) => {
             const esPrincipal = Boolean(familiar.esPrincipal);

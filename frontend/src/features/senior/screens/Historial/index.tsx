@@ -3,19 +3,23 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
+import { useAuthStore } from '../../../auth/authStore';
 
 export const Historial = () => {
     const navigation = useNavigation<any>();
+    const usuario = useAuthStore((s) => s.usuario);
     const [filtro, setFiltro] = useState('Todos'); // Todos, Tomada, No tomada
     const [historialAgrupado, setHistorialAgrupado] = useState<any>({});
     const [cargando, setCargando] = useState(true);
 
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8000";
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
     const cargarHistorial = async () => {
         try {
             setCargando(true);
-            const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/1/historial`);
+            const userId = usuario?.Id_Usuario;
+            if (!userId) { setCargando(false); return; }
+            const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/${userId}/historial`);
             const datos = await respuesta.json();
 
             // Logica para agrupar por "Hoy", "Ayer", etc.

@@ -125,7 +125,7 @@ export const CrearCuenta: React.FC = () => {
     return (
         <View style={styles.contenedor}>
 
-            <ProgressBar pasoActual={2} pasosTotales={4} />
+            <ProgressBar pasoActual={2} pasosTotales={3} />
 
             <View style={styles.contenido}>
 

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Switch, Alert, ScrollView } from 'react-n
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
+import { useAuthStore } from '../../../auth/authStore';
 
 const ITEM_HEIGHT = 60; 
 const HORAS = Array.from({ length: 12 }, (_, i) => (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`));
@@ -11,6 +12,7 @@ const MINUTOS = Array.from({ length: 60 }, (_, i) => (i < 10 ? `0${i}` : `${i}`)
 export const EstablecerHora = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
+    const usuario = useAuthStore((s) => s.usuario);
     const datos = route.params?.medicamento || {};
     const esModoEditar = !!datos.id_medicamento;
 
@@ -44,7 +46,7 @@ export const EstablecerHora = () => {
         const horaFormateada = `${horaNumerica.toString().padStart(2, '0')}:${minuto}:00`;
 
         const payload = {
-            Id_Usuario: 1, 
+            Id_Usuario: usuario?.Id_Usuario || 1,
             Nombre: datos.nombre || "Medicamento",
             Dosis: datos.dosis || "Sin especificar",
             Frecuencia: datos.frecuencia || "una",
@@ -53,7 +55,7 @@ export const EstablecerHora = () => {
         };
 
         try {
-            const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8000";
+            const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
             
             const urlFinal = esModoEditar ? `${apiUrl}/medicamentos/${datos.id_medicamento}` : `${apiUrl}/medicamentos/`;
             const metodoRest = esModoEditar ? 'PUT' : 'POST';

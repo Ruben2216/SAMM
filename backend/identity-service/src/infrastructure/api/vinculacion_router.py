@@ -13,11 +13,15 @@ from src.domain.models.user import Usuario
 from src.application.generar_codigo_use_case import GenerarCodigoUseCase
 from src.application.validar_codigo_use_case import ValidarCodigoUseCase
 from src.application.actualizar_circulo_use_case import ActualizarCirculoUseCase
+from src.infrastructure.persistence.postgres_vinculacion_repository import PostgresVinculacionRepository
+from src.infrastructure.persistence.postgres_repository import PostgresUserRepository
 from src.infrastructure.api.dependencies import (
     obtener_generar_codigo_uc,
     obtener_validar_codigo_uc,
     obtener_actualizar_circulo_uc,
     obtener_usuario_actual,
+    obtener_repositorio_vinculacion,
+    obtener_repositorio,
 )
 
 logger = logging.getLogger(__name__)
@@ -47,6 +51,16 @@ class VinculacionResponse(BaseModel):
 class ActualizarCirculoRequest(BaseModel):
     nombre_circulo: Optional[str] = None
     rol_adulto_mayor: Optional[str] = None
+
+
+class MiVinculacionResponse(BaseModel):
+    Id_Vinculacion: int
+    Id_Familiar: int
+    Id_Adulto_Mayor: int
+    Nombre_Familiar: Optional[str] = None
+    Nombre_Adulto_Mayor: Optional[str] = None
+    Nombre_Circulo: Optional[str] = None
+    Rol_Adulto_Mayor: Optional[str] = None
 
 
 # ===================== Endpoints =====================
@@ -136,3 +150,37 @@ def actualizar_circulo(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+@router.get("/mis-vinculaciones", response_model=list[MiVinculacionResponse])
+def mis_vinculaciones(
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    repo_vinculacion: PostgresVinculacionRepository = Depends(obtener_repositorio_vinculacion),
+    repo_usuarios: PostgresUserRepository = Depends(obtener_repositorio),
+):
+    """
+    Retorna las vinculaciones del usuario autenticado con los nombres
+    de los usuarios vinculados. Funciona para familiares y adultos mayores.
+    """
+    logger.info(f"[API] GET /vinculacion/mis-vinculaciones — Id_Usuario: {usuario_actual.Id_Usuario}, Rol: {usuario_actual.Rol}")
+
+    if usuario_actual.Rol == "familiar":
+        vinculaciones = repo_vinculacion.buscar_por_familiar(usuario_actual.Id_Usuario)
+    else:
+        vinculaciones = repo_vinculacion.buscar_por_adulto_mayor(usuario_actual.Id_Usuario)
+
+    resultado = []
+    for v in vinculaciones:
+        familiar = repo_usuarios.buscar_por_id(v.Id_Familiar)
+        adulto = repo_usuarios.buscar_por_id(v.Id_Adulto_Mayor)
+        resultado.append(MiVinculacionResponse(
+            Id_Vinculacion=v.Id_Vinculacion,
+            Id_Familiar=v.Id_Familiar,
+            Id_Adulto_Mayor=v.Id_Adulto_Mayor,
+            Nombre_Familiar=familiar.Nombre if familiar else None,
+            Nombre_Adulto_Mayor=adulto.Nombre if adulto else None,
+            Nombre_Circulo=v.Nombre_Circulo,
+            Rol_Adulto_Mayor=v.Rol_Adulto_Mayor,
+        ))
+
+    return resultado

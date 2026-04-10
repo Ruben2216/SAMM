@@ -14,6 +14,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './CreateCircleScreen.styles';
+import { ProgressBar } from '../../../../components/ui/progress-bar';
 import httpClient from '../../../../services/httpService';
 
 export const CreateCircleScreen: React.FC = () => {
@@ -94,9 +95,9 @@ export const CreateCircleScreen: React.FC = () => {
               <Icon name="arrow-left" size={24} color="#14EC5C" />
             </TouchableOpacity>
 
-            <Text style={styles.tituloEncabezado}>
-              Indica el nombre de tu Círculo
-            </Text>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <ProgressBar pasoActual={4} pasosTotales={5} />
+            </View>
           </View>
 
           {/* Contenido principal */}
