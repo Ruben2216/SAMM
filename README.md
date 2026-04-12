@@ -115,4 +115,31 @@ ALTER TABLE "Vinculaciones" ADD COLUMN "Nombre_Circulo" VARCHAR(100);
 ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" VARCHAR(50);
 
 
+ 
+
 ```
+### citas 
+1. crear:
+ cd backend/appointments-service
+2. crear entorno virtual
+ python3 -m venv venv
+3. source venv/bin/activate
+4. instalar dependencias
+   pip install -r requirements.txt
+5. correr: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+---
+### Para `.env` de appointments-service
+
+#Conexión a PostgreSQL 
+DATABASE_URL=postgresql://SAMM:samm@localhost:5432/samm_citas_db
+
+#Configuración del Microservicio de Citas
+SERVICE_PORT=8004
+
+
+---
+### `.env` del frontend para consumir citas
+EXPO_PUBLIC_API_URL_CITAS=http://TU_IP_LAPTOP:8004
+---
+
+ 

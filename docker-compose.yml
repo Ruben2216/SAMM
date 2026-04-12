@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/appointments-service/init_db.sql:/docker-entrypoint-initdb.d/02-appointments-init.sql
 
   redis:
     image: redis:7-alpine
@@ -39,6 +40,15 @@ services:
       - GOOGLE_WEB_CLIENT_ID=238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl.apps.googleusercontent.com
       - JWT_SECRET_KEY=samm-secret-key-cambiar-en-produccion
       - JWT_EXPIRATION_HOURS=24
+    depends_on:
+      - postgres
+
+  appointments-service:
+    build: ./backend/appointments-service
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://SAMM:samm@postgres:5432/samm_citas_db
     depends_on:
       - postgres
 
