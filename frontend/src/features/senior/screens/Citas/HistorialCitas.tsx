@@ -13,33 +13,34 @@ import { obtenerCitasUsuario } from '../../../../services/citasService';
 import { useAuthStore } from '../../../auth/authStore';
 
 type RootStackParamList = {
-  HistorialCitas: undefined;
+  // Ajusta según tus rutas reales
+  ProximasCitas: undefined; 
 };
 
-export default function ProximasCitasSenior() {
+export default function HistorialCitasSenior() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { usuario } = useAuthStore();
   
   const [citas, setCitas] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  const cargarCitas = async () => {
+  const cargarHistorial = async () => {
     try {
       setCargando(true);
       // Usamos el ID del adulto mayor logueado. Si no hay, intentamos con el ID temporal (2)
       const idUsuario = usuario?.Id_Usuario || 2; 
       const data = await obtenerCitasUsuario(idUsuario);
       
-      // Solo mostramos las citas "programadas"
-      const citasProgramadas = data.filter((cita: any) => cita.estado === 'programada');
+      // Para el historial, filtramos TODO lo que NO sea "programada"
+      const citasHistorial = data.filter((cita: any) => cita.estado !== 'programada');
       
-      // Ordenamos por fecha
-      citasProgramadas.sort((a: any, b: any) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+      // Ordenamos por fecha (la más reciente primero)
+      citasHistorial.sort((a: any, b: any) => new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime());
       
-      setCitas(citasProgramadas);
+      setCitas(citasHistorial);
     } catch (error) {
-      console.log('Error al cargar citas:', error);
-      Alert.alert('Error', 'No pudimos cargar tus citas.');
+      console.log('Error al cargar historial:', error);
+      Alert.alert('Error', 'No pudimos cargar tu historial de citas.');
     } finally {
       setCargando(false);
     }
@@ -47,25 +48,22 @@ export default function ProximasCitasSenior() {
 
   useFocusEffect(
     useCallback(() => {
-      cargarCitas();
+      cargarHistorial();
     }, [])
   );
 
   return (
     <SafeAreaView style={citasStyles.container}>
-      <View style={[citasStyles.header, { justifyContent: 'space-between' }]}>
-        <View style={{ width: 40 }} />
-        
-        <Text style={citasStyles.headerTitle}>Mis citas médicas</Text>
-        
+      <View style={citasStyles.header}>
         <TouchableOpacity 
-          onPress={() => navigation.navigate('HistorialCitas')}
-          style={{ padding: 8 }}
+          style={citasStyles.headerRightButton} // Usamos el estilo para el botón de retroceso
+          onPress={() => navigation.goBack()}
           accessibilityRole="button"
-          accessibilityLabel="Ver historial de citas"
+          accessibilityLabel="Regresar"
         >
-          <MaterialCommunityIcons name="history" size={28} color={themeColors.text} />
+          <MaterialCommunityIcons name="arrow-left" size={28} color={themeColors.text} />
         </TouchableOpacity>
+        <Text style={citasStyles.headerTitle}>Historial de citas</Text>
       </View>
 
       {cargando ? (
@@ -77,8 +75,8 @@ export default function ProximasCitasSenior() {
           renderItem={({ item }) => (
             <AppointmentCard 
               appointment={item} 
-              refreshData={cargarCitas} 
-              // ¡Este es el secreto! Le decimos a la tarjeta que sea de solo lectura
+              refreshData={cargarHistorial} 
+              // Mantenemos el modo solo lectura para el adulto mayor
               readOnly={true} 
             />
           )}
@@ -86,7 +84,7 @@ export default function ProximasCitasSenior() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
             <Text style={{ textAlign: 'center', marginTop: 50, color: themeColors.textMuted }}>
-              No tienes citas médicas programadas.
+              Aún no tienes un historial de citas médicas.
             </Text>
           )}
         />

@@ -123,10 +123,19 @@ ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" VARCHAR(50);
  cd backend/appointments-service
 2. crear entorno virtual
  python3 -m venv venv
-3. source venv/bin/activate
-4. instalar dependencias
+3. activar el entorno virtual
+ source venv/bin/activate
+4. instalar dependencias (actualizado)
    pip install -r requirements.txt
-5. correr: uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+5. correr el microservicio
+ uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+
+
+ ### Instalar libreria de calendario y reloj (momentaria)
+ 1. Ingresar a:
+  cd frontend
+ 2. Correr el siguiente comando:
+ npx expo install @react-native-community/datetimepicker
 ---
 ### Para `.env` de appointments-service
 
@@ -136,8 +145,22 @@ DATABASE_URL=postgresql://SAMM:samm@localhost:5432/samm_citas_db
 #Configuración del Microservicio de Citas
 SERVICE_PORT=8004
 
-
 ---
+### Base de datos samm_citas_db (momentaria)
+```bash
+CREATE TABLE citas (
+    id SERIAL PRIMARY KEY,
+    id_usuario INTEGER NOT NULL,
+    id_usuario_creador INTEGER NOT NULL,
+    doctor_nombre VARCHAR(100) NOT NULL,
+    especialidad VARCHAR(100),
+    fecha_hora TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    ubicacion VARCHAR(255),
+    notas TEXT,
+    estado VARCHAR(50) DEFAULT 'programada'
+);
+```
+
 ### `.env` del frontend para consumir citas
 EXPO_PUBLIC_API_URL_CITAS=http://TU_IP_LAPTOP:8004
 ---

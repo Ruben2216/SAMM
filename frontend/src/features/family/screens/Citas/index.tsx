@@ -1,35 +1,60 @@
-// src/features/family/screens/Citas/index.tsx
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { AppointmentCard } from './components/AppointmentCard';
-import { Appointment } from './types';
 import { citasStyles, themeColors } from './styles';
 
-// Tipado estricto para la navegación
+// Conexión al backend
+import { obtenerCitasUsuario } from '../../../../services/citasService';
+
 type RootStackParamList = {
   AgendarCita: undefined;
-  // ... otras rutas
 };
-
-const mockAppointments: Appointment[] = [
-  { id: '1', doctorName: 'Dr. Pérez', specialty: 'Cardiólogo', date: '20 Oct', time: '10:00 AM', location: 'Clinica Santa Maria', iconName: 'heart-pulse', type: 'upcoming' },
-  { id: '2', doctorName: 'Dra. Gómez', specialty: 'Oftalmólogo', date: '15 Nov', time: '3:30 PM', location: 'Centro Óptico', iconName: 'eye-outline', type: 'upcoming' },
-];
-
-const historyAppointments: Appointment[] = [
-  { id: '3', doctorName: 'Dr. López', specialty: 'Médico general', date: '5 Sep', time: '9:00 AM', location: 'Clinica Santa Maria', iconName: 'account-box-outline', type: 'history' },
-  { id: '4', doctorName: 'Dra. Ruiz', specialty: 'Médico general', date: '20 Ago', time: '2:00 PM', location: 'Centro médico', iconName: 'account-box-outline', type: 'history' },
-];
 
 export default function CitasFamiliarScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [activeTab, setActiveTab] = useState<'proximas' | 'historial'>('proximas');
+  
+  // Estados para los datos reales
+  const [citasProximas, setCitasProximas] = useState<any[]>([]);
+  const [citasHistorial, setCitasHistorial] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
 
-  const currentData = activeTab === 'proximas' ? mockAppointments : historyAppointments;
+  // Función para traer datos del servidor
+  const cargarCitas = async () => {
+    try {
+      setCargando(true);
+      // TEMP: Buscamos las citas del ID 2
+      const data = await obtenerCitasUsuario(2);
+      
+      // Separamos en Próximas y el Historial usando el campo "estado"
+      const proximas = data.filter((cita: any) => cita.estado === 'programada');
+      const historial = data.filter((cita: any) => cita.estado !== 'programada');
+      
+      // Ordenamos las próximas por fecha (la más cercana primero)
+      proximas.sort((a: any, b: any) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+      
+      setCitasProximas(proximas);
+      setCitasHistorial(historial);
+    } catch (error) {
+      console.log('Error al cargar citas:', error);
+      Alert.alert('Error', 'No pudimos cargar tus citas de la base de datos.');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Recarga automáticamente al entrar a la pantalla
+  useFocusEffect(
+    useCallback(() => {
+      cargarCitas();
+    }, [])
+  );
+
+  const currentData = activeTab === 'proximas' ? citasProximas : citasHistorial;
   const currentTitle = activeTab === 'proximas' ? 'Mis citas médicas' : 'Historial de citas';
 
   return (
@@ -38,8 +63,6 @@ export default function CitasFamiliarScreen() {
         <TouchableOpacity 
           style={citasStyles.backButton} 
           onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Regresar a la pantalla anterior"
         >
           <MaterialCommunityIcons name="arrow-left" size={28} color={themeColors.textDark} />
         </TouchableOpacity>
@@ -47,21 +70,30 @@ export default function CitasFamiliarScreen() {
       </View>
 
       <View style={{ flex: 1 }}>
-        <FlatList
-          data={currentData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <AppointmentCard appointment={item} />}
-          contentContainerStyle={citasStyles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
+        {cargando ? (
+           <ActivityIndicator size="large" color={themeColors.primary} style={{ marginTop: 50 }} />
+        ) : (
+          <FlatList
+            data={currentData}
+            // Usamos el ID real de la base de datos como Key (convertido a string)
+            keyExtractor={(item) => item.id.toString()}
+            // Le pasamos a la tarjeta la función cargarCitas para que se actualice al borrar
+            renderItem={({ item }) => <AppointmentCard appointment={item} refreshData={cargarCitas} />}
+            contentContainerStyle={citasStyles.listContainer}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <Text style={{ textAlign: 'center', marginTop: 50, color: themeColors.textMuted }}>
+                No hay citas en esta sección.
+              </Text>
+            )}
+          />
+        )}
         
         {/* BOTÓN NUEVA CITA */}
         {activeTab === 'proximas' && (
           <TouchableOpacity
             style={citasStyles.fab}
             onPress={() => navigation.navigate('AgendarCita')}
-            accessibilityRole="button"
-            accessibilityLabel="Agregar nueva cita médica"
           >
             <MaterialCommunityIcons name="plus" size={24} color={themeColors.textDark} />
             <Text style={citasStyles.fabText}>Nueva Cita</Text>
@@ -74,8 +106,6 @@ export default function CitasFamiliarScreen() {
         <TouchableOpacity 
           style={citasStyles.tabItem} 
           onPress={() => setActiveTab('proximas')}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'proximas' }}
         >
           <MaterialCommunityIcons 
             name={activeTab === 'proximas' ? 'calendar-month' : 'calendar-month-outline'} 
@@ -88,8 +118,6 @@ export default function CitasFamiliarScreen() {
         <TouchableOpacity 
           style={citasStyles.tabItem} 
           onPress={() => setActiveTab('historial')}
-          accessibilityRole="tab"
-          accessibilityState={{ selected: activeTab === 'historial' }}
         >
           <MaterialCommunityIcons 
             name="history" 
