@@ -1,408 +1,332 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextInput,
+  Alert,
+  Switch,
+  Image,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
+import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 
 interface PerfilSaludData {
-    Tipo_Sangre: string;
-    Alergias: string;
-    Peso: string;
-    Edad: string;
-    Condicion_Medica: string;
-    Telefono: string;
+  Tipo_Sangre: string;
+  Alergias: string;
+  Peso: string;
+  Edad: string;
+  Condicion_Medica: string;
+  Telefono: string;
 }
 
-const CampoEditable = ({
-    label,
-    value,
-    onChange,
-    keyboard = 'default',
-}: {
-    label: string;
-    value: string;
-    onChange: (v: string) => void;
-    keyboard?: 'default' | 'numeric' | 'phone-pad';
-}) => (
-    <View style={{ marginBottom: 14 }}>
-        <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600', marginBottom: 6 }}>{label}</Text>
-        <TextInput
-            value={value}
-            onChangeText={onChange}
-            keyboardType={keyboard}
-            style={{
-                backgroundColor: '#FFFFFF',
-                borderWidth: 1,
-                borderColor: '#E2E8F0',
-                borderRadius: 14,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                fontSize: 16,
-                color: '#0F172A',
-                fontWeight: '600',
-            }}
-            placeholderTextColor="#CBD5E1"
-            placeholder={`Ingresa ${label.toLowerCase()}`}
-        />
-    </View>
-);
-
 export const Perfil = () => {
-    const navigation = useNavigation<any>();
-    const usuario = useAuthStore((s) => s.usuario);
-    const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
+  const navigation = useNavigation<any>();
+  const usuario = useAuthStore((s) => s.usuario);
+  const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
 
-    const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
+  const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
 
-    const [vinculacion, setVinculacion] = useState<any>(null);
-    const [perfil, setPerfil] = useState<PerfilSaludData>({
-        Tipo_Sangre: '',
-        Alergias: '',
-        Peso: '',
-        Edad: '',
-        Condicion_Medica: '',
-        Telefono: '',
-    });
-    const [editando, setEditando] = useState(false);
-    const [cargando, setCargando] = useState(true);
-    const [guardando, setGuardando] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
+  const [vinculacion, setVinculacion] = useState<any>(null);
+  const [perfil, setPerfil] = useState<PerfilSaludData>({
+    Tipo_Sangre: '',
+    Alergias: '',
+    Peso: '',
+    Edad: '',
+    Condicion_Medica: '',
+    Telefono: '',
+  });
+  const [editando, setEditando] = useState(false);
+  const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-    const cargarDatos = async () => {
-        try {
-            setCargando(true);
-            const userId = usuario?.Id_Usuario;
-            if (!userId) return;
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+      const userId = usuario?.Id_Usuario;
+      if (!userId) return;
 
-            // Cargar perfil de salud desde medication-service
-            try {
-                const res = await fetch(`${apiMedicamentos}/perfil-salud/usuario/${userId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setPerfil({
-                        Tipo_Sangre: data.Tipo_Sangre || '',
-                        Alergias: data.Alergias || '',
-                        Peso: data.Peso || '',
-                        Edad: data.Edad ? String(data.Edad) : '',
-                        Condicion_Medica: data.Condicion_Medica || '',
-                        Telefono: data.Telefono || '',
-                    });
-                }
-            } catch (err) {
-                console.log('Sin perfil de salud aún');
-            }
-
-            // Cargar vinculación desde identity-service
-            try {
-                const resVinc = await httpClient.get('/vinculacion/mis-vinculaciones');
-                if (resVinc.data.length > 0) {
-                    setVinculacion(resVinc.data[0]);
-                }
-            } catch (err) {
-                console.log('Sin vinculación');
-            }
-        } finally {
-            setCargando(false);
+      try {
+        const res = await fetch(`${apiMedicamentos}/perfil-salud/usuario/${userId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPerfil({
+            Tipo_Sangre: data.Tipo_Sangre || '',
+            Alergias: data.Alergias || '',
+            Peso: data.Peso || '',
+            Edad: data.Edad ? String(data.Edad) : '',
+            Condicion_Medica: data.Condicion_Medica || '',
+            Telefono: data.Telefono || '',
+          });
         }
-    };
+      } catch (err) {
+        console.log('Sin perfil de salud aún');
+      }
 
-    useFocusEffect(
-        useCallback(() => {
-            cargarDatos();
-        }, [])
-    );
-
-    const guardarPerfil = async () => {
-        try {
-            setGuardando(true);
-            const userId = usuario?.Id_Usuario;
-            if (!userId) return;
-
-            const res = await fetch(`${apiMedicamentos}/perfil-salud/usuario/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    Tipo_Sangre: perfil.Tipo_Sangre || null,
-                    Alergias: perfil.Alergias || null,
-                    Peso: perfil.Peso || null,
-                    Edad: perfil.Edad ? parseInt(perfil.Edad) : null,
-                    Condicion_Medica: perfil.Condicion_Medica || null,
-                    Telefono: perfil.Telefono || null,
-                }),
-            });
-
-            if (res.ok) {
-                setEditando(false);
-                Alert.alert('Guardado', 'Tu perfil de salud se actualizó correctamente.');
-            } else {
-                Alert.alert('Error', 'No se pudo guardar el perfil.');
-            }
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo conectar al servidor.');
-        } finally {
-            setGuardando(false);
+      try {
+        const resVinc = await httpClient.get('/vinculacion/mis-vinculaciones');
+        if (resVinc.data.length > 0) {
+          setVinculacion(resVinc.data[0]);
         }
-    };
-
-    const manejarCerrarSesion = async () => {
-        try {
-            await cerrarSesion();
-            setModalVisible(false);
-            navigation.reset({ index: 0, routes: [{ name: 'Initial' }] });
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo cerrar sesión.');
-        }
-    };
-
-    const nombreUsuario = usuario?.Nombre || 'Usuario';
-    const iniciales = nombreUsuario.split(' ').map((p: string) => p[0]).join('').toUpperCase().substring(0, 2);
-    const nombreFamiliar = vinculacion?.Nombre_Familiar || '';
-    const inicialesFamiliar = nombreFamiliar
-        ? nombreFamiliar.split(' ').map((p: string) => p[0]).join('').toUpperCase().substring(0, 2)
-        : '??';
-
-    if (cargando) {
-        return (
-            <View style={[styles.contenedor, { justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color="#00E676" />
-            </View>
-        );
+      } catch (err) {
+        console.log('Sin vinculación');
+      }
+    } finally {
+      setCargando(false);
     }
+  };
 
+  useFocusEffect(
+    useCallback(() => {
+      cargarDatos();
+    }, [])
+  );
+
+  const guardarPerfil = async () => {
+    try {
+      setGuardando(true);
+      const userId = usuario?.Id_Usuario;
+      if (!userId) return;
+
+      const res = await fetch(`${apiMedicamentos}/perfil-salud/usuario/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Tipo_Sangre: perfil.Tipo_Sangre || null,
+          Alergias: perfil.Alergias || null,
+          Peso: perfil.Peso || null,
+          Edad: perfil.Edad ? parseInt(perfil.Edad) : null,
+          Condicion_Medica: perfil.Condicion_Medica || null,
+          Telefono: perfil.Telefono || null,
+        }),
+      });
+
+      if (res.ok) {
+        setEditando(false);
+        Alert.alert('Guardado', 'Tu perfil de salud se actualizó correctamente.');
+      } else {
+        Alert.alert('Error', 'No se pudo guardar el perfil.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar al servidor.');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const manejarCerrarSesion = async () => {
+    try {
+      await cerrarSesion();
+      setModalVisible(false);
+      navigation.reset({ index: 0, routes: [{ name: 'Initial' }] });
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo cerrar sesión.');
+    }
+  };
+
+  const nombreUsuario = usuario?.Nombre || 'Usuario';
+  const iniciales = nombreUsuario.split(' ').map((p) => p[0]).join('').toUpperCase().substring(0, 2);
+
+  if (cargando) {
     return (
-        <View style={styles.contenedor}>
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.scrollContenido}
-            >
-                {/* --- HEADER --- */}
-                <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonIcono}>
-                        <Ionicons name="arrow-back" size={28} color="#0F172A" />
-                    </TouchableOpacity>
-
-                    <Text style={styles.tituloHeader}>Mi perfil</Text>
-
-                    <TouchableOpacity
-                        onPress={() => editando ? guardarPerfil() : setEditando(true)}
-                        style={styles.botonIcono}
-                    >
-                        {guardando ? (
-                            <ActivityIndicator size="small" color="#00E676" />
-                        ) : (
-                            <Ionicons
-                                name={editando ? "checkmark" : "create-outline"}
-                                size={28}
-                                color={editando ? "#00E676" : "#0F172A"}
-                            />
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* --- TARJETA PRINCIPAL --- */}
-                <View style={styles.tarjetaPerfil}>
-                    <View style={styles.avatarContenedor}>
-                        <Text style={{ color: '#FFFFFF', fontSize: 28, fontWeight: '900' }}>{iniciales}</Text>
-                    </View>
-                    <Text style={styles.nombreUsuario}>{nombreUsuario}</Text>
-                    <Text style={styles.edadUsuario}>
-                        {perfil.Edad ? `${perfil.Edad} años` : 'Edad sin registrar'}
-                    </Text>
-                </View>
-
-                {/* --- MI CÍRCULO --- */}
-                {vinculacion && (
-                    <>
-                        <View style={styles.seccionTituloRow}>
-                            <Ionicons name="people-circle" size={24} color="#6366F1" />
-                            <Text style={styles.tituloSeccion}>
-                                {vinculacion.Nombre_Circulo || 'Mi Círculo'}
-                            </Text>
-                        </View>
-
-                        <View style={{
-                            backgroundColor: '#F5F3FF',
-                            borderRadius: 20,
-                            padding: 16,
-                            borderWidth: 1,
-                            borderColor: '#DDD6FE',
-                            marginBottom: 25,
-                        }}>
-                            {/* Integrante: Yo (adulto mayor) */}
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-                                <View style={{
-                                    width: 42, height: 42, borderRadius: 21,
-                                    backgroundColor: '#6366F1', justifyContent: 'center', alignItems: 'center', marginRight: 12,
-                                }}>
-                                    <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{iniciales}</Text>
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>{nombreUsuario}</Text>
-                                    <Text style={{ fontSize: 13, color: '#6366F1', fontWeight: '600' }}>Adulto Mayor</Text>
-                                </View>
-                                <View style={{ backgroundColor: '#EDE9FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }}>
-                                    <Text style={{ fontSize: 11, color: '#6366F1', fontWeight: '700' }}>Tú</Text>
-                                </View>
-                            </View>
-
-                            {/* Separador */}
-                            <View style={{ height: 1, backgroundColor: '#DDD6FE', marginBottom: 14 }} />
-
-                            {/* Integrante: Familiar */}
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={{
-                                    width: 42, height: 42, borderRadius: 21,
-                                    backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center', marginRight: 12,
-                                }}>
-                                    <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{inicialesFamiliar}</Text>
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>{nombreFamiliar}</Text>
-                                    <Text style={{ fontSize: 13, color: '#10B981', fontWeight: '600' }}>
-                                        {vinculacion.Rol_Adulto_Mayor || 'Familiar'}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </>
-                )}
-
-                {/* --- DATOS DE SALUD --- */}
-                <View style={styles.seccionTituloRow}>
-                    <Ionicons name="heart" size={24} color="#D97777" />
-                    <Text style={styles.tituloSeccion}>Datos de Salud</Text>
-                </View>
-
-                {editando ? (
-                    <View style={{ marginBottom: 35 }}>
-                        <CampoEditable label="Edad" value={perfil.Edad} onChange={(v) => setPerfil(p => ({ ...p, Edad: v }))} keyboard="numeric" />
-                        <CampoEditable label="Tipo de sangre" value={perfil.Tipo_Sangre} onChange={(v) => setPerfil(p => ({ ...p, Tipo_Sangre: v }))} />
-                        <CampoEditable label="Alergias" value={perfil.Alergias} onChange={(v) => setPerfil(p => ({ ...p, Alergias: v }))} />
-                        <CampoEditable label="Peso" value={perfil.Peso} onChange={(v) => setPerfil(p => ({ ...p, Peso: v }))} />
-                        <CampoEditable label="Condición médica" value={perfil.Condicion_Medica} onChange={(v) => setPerfil(p => ({ ...p, Condicion_Medica: v }))} />
-                        <CampoEditable label="Teléfono" value={perfil.Telefono} onChange={(v) => setPerfil(p => ({ ...p, Telefono: v }))} keyboard="phone-pad" />
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
-                            <TouchableOpacity
-                                onPress={() => { setEditando(false); cargarDatos(); }}
-                                style={{ flex: 0.48, backgroundColor: '#F1F5F9', borderRadius: 16, paddingVertical: 14, alignItems: 'center' }}
-                            >
-                                <Text style={{ color: '#64748B', fontWeight: '700' }}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={guardarPerfil}
-                                style={{ flex: 0.48, backgroundColor: '#00E676', borderRadius: 16, paddingVertical: 14, alignItems: 'center' }}
-                            >
-                                <Text style={{ color: '#0F172A', fontWeight: '800' }}>Guardar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ) : (
-                    <>
-                        <View style={styles.saludGrid}>
-                            <View style={styles.tarjetaSalud}>
-                                <Text style={styles.saludLabel}>Tipo de sangre</Text>
-                                <Text style={styles.saludValor}>{perfil.Tipo_Sangre || 'Sin registrar'}</Text>
-                            </View>
-                            <View style={styles.tarjetaSalud}>
-                                <Text style={styles.saludLabel}>Alergias</Text>
-                                <Text style={styles.saludValor}>{perfil.Alergias || 'Sin registrar'}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.saludGrid}>
-                            <View style={styles.tarjetaSalud}>
-                                <Text style={styles.saludLabel}>Peso</Text>
-                                <Text style={styles.saludValor}>{perfil.Peso || 'Sin registrar'}</Text>
-                            </View>
-                            <View style={styles.tarjetaSalud}>
-                                <Text style={styles.saludLabel}>Condición</Text>
-                                <Text style={styles.saludValor}>{perfil.Condicion_Medica || 'Sin registrar'}</Text>
-                            </View>
-                        </View>
-
-                        {/* --- TELÉFONO --- */}
-                        {perfil.Telefono ? (
-                            <View style={{
-                                backgroundColor: '#FFFFFF',
-                                borderWidth: 1,
-                                borderColor: '#CBD5E1',
-                                borderRadius: 20,
-                                paddingVertical: 16,
-                                paddingHorizontal: 20,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                marginBottom: 35,
-                            }}>
-                                <Ionicons name="call-outline" size={20} color="#10B981" style={{ marginRight: 12 }} />
-                                <View>
-                                    <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>Teléfono</Text>
-                                    <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>{perfil.Telefono}</Text>
-                                </View>
-                            </View>
-                        ) : null}
-                    </>
-                )}
-
-                {/* --- MI CUIDADOR --- */}
-                <View style={styles.seccionTituloRow}>
-                    <Ionicons name="checkmark-circle" size={26} color="#4ADE80" />
-                    <Text style={styles.tituloSeccion}>Mi Cuidador</Text>
-                </View>
-
-                {vinculacion ? (
-                    <View style={styles.tarjetaCuidador}>
-                        <View style={styles.infoCuidadorRow}>
-                            <View style={styles.avatarCuidador}>
-                                <Ionicons name="person" size={24} color="#94A3B8" />
-                            </View>
-                            <View>
-                                <Text style={styles.nombreCuidador}>{vinculacion.Nombre_Familiar}</Text>
-                                <Text style={styles.rolCuidador}>Familiar vinculado</Text>
-                            </View>
-                        </View>
-                        <TouchableOpacity style={styles.botonLlamar} activeOpacity={0.8}>
-                            <Ionicons name="call" size={24} color="#0F172A" />
-                        </TouchableOpacity>
-                    </View>
-                ) : (
-                    <Text style={{ color: '#94A3B8', textAlign: 'center', marginTop: 8 }}>
-                        No tienes un cuidador vinculado aún.
-                    </Text>
-                )}
-
-                {/* --- CERRAR SESIÓN --- */}
-                <TouchableOpacity
-                    onPress={() => setModalVisible(true)}
-                    style={{
-                        marginTop: 40,
-                        backgroundColor: '#FEE2E2',
-                        borderRadius: 16,
-                        paddingVertical: 16,
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="log-out-outline" size={22} color="#DC2626" />
-                    <Text style={{ color: '#DC2626', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>
-                        Cerrar Sesión
-                    </Text>
-                </TouchableOpacity>
-
-            </ScrollView>
-
-            <ConfirmationModal
-                esVisible={modalVisible}
-                textoPregunta="¿Seguro que deseas cerrar la sesión?"
-                textoCancelar="Cancelar"
-                textoConfirmar="Cerrar sesión"
-                alCancelar={() => setModalVisible(false)}
-                alConfirmar={() => void manejarCerrarSesion()}
-            />
-        </View>
+      <View style={[styles.perfil, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
     );
+  }
+
+  return (
+    <ScrollView style={styles.perfil} showsVerticalScrollIndicator={false}>
+      {/* --- ENCABEZADO --- */}
+      <View style={styles.encabezado}>
+        <Text style={styles.encabezado__titulo}>Mi Perfil</Text>
+        <TouchableOpacity onPress={() => editando ? guardarPerfil() : setEditando(true)}>
+          {guardando ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+          ) : (
+            <Text style={styles.encabezado__accion}>{editando ? 'Guardar' : 'Editar'}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.contenido}>
+        {/* --- TARJETA PERFIL --- */}
+        <View style={styles.tarjetaPerfil}>
+          <View style={styles.tarjetaPerfil__avatar}>
+            <Text style={styles.tarjetaPerfil__textoAvatar}>{iniciales}</Text>
+            <View style={styles.tarjetaPerfil__bordeAvatar} />
+          </View>
+          <Text style={styles.tarjetaPerfil__nombre}>{nombreUsuario}</Text>
+          <Text style={styles.tarjetaPerfil__correo}>{usuario?.Correo}</Text>
+          <View style={styles.tarjetaPerfil__badge}>
+            <Text style={styles.tarjetaPerfil__badgeTexto}>
+              {perfil.Edad ? `${perfil.Edad} AÑOS` : 'EDAD NO REGISTRADA'}
+            </Text>
+          </View>
+        </View>
+
+        {/* --- MI CÍRCULO --- */}
+        <Text style={styles.tituloSeccion}>
+          {vinculacion?.Nombre_Circulo ? vinculacion.Nombre_Circulo.toUpperCase() : 'MI CÍRCULO'}
+        </Text>
+        <View style={styles.tarjetaSeccion}>
+          {/* Fila: YO */}
+          <View style={[styles.filaFamilia, styles.fila__separador]}>
+            <View style={styles.filaFamilia__izquierda}>
+              <View style={styles.filaFamilia__avatarYo}>
+                <Text style={styles.filaFamilia__textoAvatarYo}>YO</Text>
+              </View>
+              <View style={styles.filaFamilia__texto}>
+                <Text style={styles.filaFamilia__nombre}>{nombreUsuario}</Text>
+                <Text style={styles.filaFamilia__rol}>Adulto Mayor</Text>
+              </View>
+            </View>
+            <View style={styles.filaFamilia__badgePrincipal}>
+              <Text style={styles.filaFamilia__badgePrincipalTexto}>Tú</Text>
+            </View>
+          </View>
+
+          {/* Fila: CUIDADOR */}
+          {vinculacion && (
+            <View style={styles.filaFamilia}>
+              <View style={styles.filaFamilia__izquierda}>
+                <View style={styles.filaFamilia__avatar}>
+                  <Text style={styles.filaFamilia__textoAvatar}>
+                    {vinculacion.Nombre_Familiar?.substring(0, 1).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.filaFamilia__texto}>
+                  <Text style={styles.filaFamilia__nombre}>{vinculacion.Nombre_Familiar}</Text>
+                  <Text style={styles.filaFamilia__rol}>{vinculacion.Rol_Adulto_Mayor || 'Familiar'}</Text>
+                </View>
+              </View>
+              <View style={styles.filaFamilia__badgeColaborador}>
+                <Text style={styles.filaFamilia__badgeColaboradorTexto}>Cuidador</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* --- DATOS DE SALUD --- */}
+        <Text style={styles.tituloSeccion}>DATOS DE SALUD</Text>
+        <View style={styles.tarjetaSeccion}>
+          {editando ? (
+            <View style={{ padding: 16 }}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Edad</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={perfil.Edad}
+                  onChangeText={(v) => setPerfil(p => ({ ...p, Edad: v }))}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Tipo de Sangre</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={perfil.Tipo_Sangre}
+                  onChangeText={(v) => setPerfil(p => ({ ...p, Tipo_Sangre: v }))}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Alergias</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={perfil.Alergias}
+                  onChangeText={(v) => setPerfil(p => ({ ...p, Alergias: v }))}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Peso</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={perfil.Peso}
+                  onChangeText={(v) => setPerfil(p => ({ ...p, Peso: v }))}
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Condición Médica</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={perfil.Condicion_Medica}
+                  onChangeText={(v) => setPerfil(p => ({ ...p, Condicion_Medica: v }))}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={() => setEditando(false)}
+                style={styles.filaAccion}
+              >
+                <Text style={styles.filaAccion__texto}>Cancelar Edición</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={[styles.filaSupervision, styles.fila__separador]}>
+                <View style={styles.filaSupervision__texto}>
+                  <Text style={styles.filaSupervision__titulo}>Tipo de Sangre</Text>
+                  <Text style={styles.filaSupervision__descripcion}>{perfil.Tipo_Sangre || 'No registrado'}</Text>
+                </View>
+                <Icon name="heart-pulse" size={24} color={theme.colors.error} />
+              </View>
+              <View style={[styles.filaSupervision, styles.fila__separador]}>
+                <View style={styles.filaSupervision__texto}>
+                  <Text style={styles.filaSupervision__titulo}>Alergias</Text>
+                  <Text style={styles.filaSupervision__descripcion}>{perfil.Alergias || 'Ninguna'}</Text>
+                </View>
+                <Icon name="alert-circle-outline" size={24} color="#F59E0B" />
+              </View>
+              <View style={[styles.filaSupervision, styles.fila__separador]}>
+                <View style={styles.filaSupervision__texto}>
+                  <Text style={styles.filaSupervision__titulo}>Peso</Text>
+                  <Text style={styles.filaSupervision__descripcion}>{perfil.Peso || 'No registrado'}</Text>
+                </View>
+                <Icon name="scale-bathroom" size={24} color={theme.colors.primary} />
+              </View>
+              <View style={styles.filaSupervision}>
+                <View style={styles.filaSupervision__texto}>
+                  <Text style={styles.filaSupervision__titulo}>Condición</Text>
+                  <Text style={styles.filaSupervision__descripcion}>{perfil.Condicion_Medica || 'Estable'}</Text>
+                </View>
+                <Icon name="medical-bag" size={24} color="#6366F1" />
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* --- CONTACTO Y SEGURIDAD --- */}
+        <Text style={styles.tituloSeccion}>SEGURIDAD</Text>
+        <View style={styles.tarjetaSeccion}>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.filaBoton}
+          >
+            <Text style={styles.filaBoton__texto}>Cerrar Sesión</Text>
+            <Icon name="logout" size={18} color={theme.colors.error} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.pie}>
+          <Text style={styles.pie__version}>SAMM v1 - Adulto Mayor</Text>
+        </View>
+      </View>
+
+      <ConfirmationModal
+        esVisible={modalVisible}
+        textoPregunta="¿Seguro que deseas cerrar la sesión?"
+        textoCancelar="Cancelar"
+        textoConfirmar="Cerrar sesión"
+        alCancelar={() => setModalVisible(false)}
+        alConfirmar={() => void manejarCerrarSesion()}
+      />
+    </ScrollView>
+  );
 };
