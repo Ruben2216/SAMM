@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
+import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
 
 interface VinculacionInfo {
     Id_Vinculacion: number;
@@ -14,6 +15,7 @@ interface VinculacionInfo {
     Nombre_Adulto_Mayor: string | null;
     Nombre_Circulo: string | null;
     Rol_Adulto_Mayor: string | null;
+    Rol_Familiar?: string | null;
 }
 
 interface MedicamentoInfo {
@@ -69,6 +71,10 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
 
     const nombreFamiliar = usuario?.Nombre?.split(' ')[0] || 'Familiar';
     const nombreSenior = vinculacion?.Nombre_Adulto_Mayor || 'Sin vincular';
+    const parentescoSenior =
+        vinculacion?.Rol_Familiar ||
+        obtenerParentescoDelAdultoParaFamiliar(vinculacion?.Rol_Adulto_Mayor) ||
+        'Adulto Mayor';
     const iniciales = nombreSenior !== 'Sin vincular'
         ? nombreSenior.split(' ').map((p: string) => p[0]).join('').toUpperCase().substring(0, 2)
         : '??';
@@ -118,7 +124,7 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                     </View>
                                     <View>
                                         <Text style={styles.nombreSenior}>{nombreSenior}</Text>
-                                        <Text style={styles.bateriaSenior}>Adulto Mayor</Text>
+                                        <Text style={styles.bateriaSenior}>{parentescoSenior}</Text>
                                     </View>
                                 </View>
 
@@ -171,7 +177,7 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}>
-                                <View style={styles.iconoFondoAzul}>
+                                <View style={styles.iconoFondoRosa}>
                                     <Ionicons name="map" size={24} color="#10B981" />
                                 </View>
                                 <Text style={styles.textoCardGrid}>Mapa GPS</Text>

@@ -12,4 +12,5 @@ class Vinculacion:
     Id_Adulto_Mayor: int = 0
     Nombre_Circulo: Optional[str] = None
     Rol_Adulto_Mayor: Optional[str] = None
+    Rol_Familiar: Optional[str] = None
     Fecha_Vinculacion: datetime = field(default_factory=datetime.now)

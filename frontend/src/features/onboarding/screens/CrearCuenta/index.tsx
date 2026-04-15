@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, TextInput, Image, Alert, ActivityIndicator } from 'react-native';
-import { Text } from 'react-native-paper';
+import { SegmentedButtons, Text } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from './styles';
@@ -20,6 +20,10 @@ export const CrearCuenta: React.FC = () => {
     const [correo, setCorreo] = useState('');
     const [contrasena, setContrasena] = useState('');
     const [confirmarContrasena, setConfirmarContrasena] = useState('');
+
+    const [sexoSeleccionado, setSexoSeleccionado] = useState<'Hombre' | 'Mujer' | 'Otro'>(
+        'Otro'
+    );
 
     const [verContrasena, setVerContrasena] = useState(false);
     const [verConfirmar, setVerConfirmar] = useState(false);
@@ -93,6 +97,7 @@ export const CrearCuenta: React.FC = () => {
                 correo: correo.trim().toLowerCase(),
                 contrasena,
                 rol,
+                sexo: sexoSeleccionado,
             });
 
             if (resultado.exito) {
@@ -157,6 +162,28 @@ export const CrearCuenta: React.FC = () => {
                     onChangeText={setCorreo}
                 />
                 {errores.correo ? <Text style={styles.error} children={errores.correo} /> : null}
+
+                {/* Sexo */}
+                <View >
+                    <Text
+                        style={styles.etiquetaSexo}
+                        accessibilityLabel="Selecciona tu sexo"
+                    >
+                        Sexo
+                    </Text>
+                    <SegmentedButtons
+                        value={sexoSeleccionado}
+                        onValueChange={(valor) =>
+                            setSexoSeleccionado(valor as 'Hombre' | 'Mujer' | 'Otro')
+                        }
+                        style={styles.botonesSegmentados}
+                        buttons={[
+                            { value: 'Mujer', label: 'Mujer', accessibilityLabel: 'Seleccionar sexo mujer' },
+                            { value: 'Hombre', label: 'Hombre', accessibilityLabel: 'Seleccionar sexo hombre' },
+                            { value: 'Otro', label: 'Otro', accessibilityLabel: 'Seleccionar sexo otro' },
+                        ]}
+                    />
+                </View>
 
                 {/* Contraseña */}
                 <Text style={styles.label} children="Contraseña" />

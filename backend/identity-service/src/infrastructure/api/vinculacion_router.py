@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from src.domain.models.user import Usuario
+from src.application.vinculacion_utils import calcular_parentesco_reciproco
 from src.application.generar_codigo_use_case import GenerarCodigoUseCase
 from src.application.validar_codigo_use_case import ValidarCodigoUseCase
 from src.application.actualizar_circulo_use_case import ActualizarCirculoUseCase
@@ -45,6 +46,7 @@ class VinculacionResponse(BaseModel):
     Id_Adulto_Mayor: int
     Nombre_Circulo: Optional[str] = None
     Rol_Adulto_Mayor: Optional[str] = None
+    Rol_Familiar: Optional[str] = None
     mensaje: str
 
 
@@ -61,6 +63,7 @@ class MiVinculacionResponse(BaseModel):
     Nombre_Adulto_Mayor: Optional[str] = None
     Nombre_Circulo: Optional[str] = None
     Rol_Adulto_Mayor: Optional[str] = None
+    Rol_Familiar: Optional[str] = None
 
 
 # ===================== Endpoints =====================
@@ -142,6 +145,7 @@ def actualizar_circulo(
             Id_Adulto_Mayor=vinculacion.Id_Adulto_Mayor,
             Nombre_Circulo=vinculacion.Nombre_Circulo,
             Rol_Adulto_Mayor=vinculacion.Rol_Adulto_Mayor,
+            Rol_Familiar=getattr(vinculacion, "Rol_Familiar", None),
             mensaje="Círculo actualizado",
         )
     except ValueError as e:
@@ -173,6 +177,12 @@ def mis_vinculaciones(
     for v in vinculaciones:
         familiar = repo_usuarios.buscar_por_id(v.Id_Familiar)
         adulto = repo_usuarios.buscar_por_id(v.Id_Adulto_Mayor)
+
+        rol_familiar = getattr(v, "Rol_Familiar", None)
+        if not rol_familiar and v.Rol_Adulto_Mayor:
+            sexo_adulto = getattr(adulto, "sexo", "Otro") if adulto else "Otro"
+            rol_familiar = calcular_parentesco_reciproco(v.Rol_Adulto_Mayor, sexo_adulto)
+
         resultado.append(MiVinculacionResponse(
             Id_Vinculacion=v.Id_Vinculacion,
             Id_Familiar=v.Id_Familiar,
@@ -181,6 +191,7 @@ def mis_vinculaciones(
             Nombre_Adulto_Mayor=adulto.Nombre if adulto else None,
             Nombre_Circulo=v.Nombre_Circulo,
             Rol_Adulto_Mayor=v.Rol_Adulto_Mayor,
+            Rol_Familiar=rol_familiar,
         ))
 
     return resultado

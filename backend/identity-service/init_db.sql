@@ -23,6 +23,20 @@ CREATE TABLE IF NOT EXISTS "Usuarios" (
     "Fecha_Registro"    DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
+-- Campo sexo (para parentescos recíprocos).
+ALTER TABLE "Usuarios"
+ADD COLUMN IF NOT EXISTS "sexo" VARCHAR(10) NOT NULL DEFAULT 'Otro';
+
+-- Constraint (idempotente)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_usuarios_sexo') THEN
+        ALTER TABLE "Usuarios"
+        ADD CONSTRAINT ck_usuarios_sexo
+            CHECK ("sexo" IN ('Hombre', 'Mujer', 'Otro'));
+    END IF;
+END $$;
+
 -- === README (líneas 96-119): Código de vinculación + tabla Vinculaciones ===
 
 -- ALTER TABLE "Usuarios" ADD Codigo_Vinculacion VARCHAR(5) UNIQUE;
@@ -41,7 +55,8 @@ CREATE TABLE IF NOT EXISTS "Vinculaciones" (
     "Id_Adulto_Mayor" INT NOT NULL,
     "Fecha_Vinculacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "Nombre_Circulo" VARCHAR(100),
-    "Rol_Adulto_Mayor" VARCHAR(50)
+    "Rol_Adulto_Mayor" VARCHAR(50),
+    "Rol_Familiar" VARCHAR(50)
 );
 
 -- ALTER TABLE "Vinculaciones" ADD COLUMN "Nombre_Circulo" ...;
@@ -49,6 +64,9 @@ ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Nombre_Circulo" VARCHAR(10
 
 -- ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" ...;
 ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Rol_Adulto_Mayor" VARCHAR(50);
+
+-- Rol recíproco (lo que verá el Familiar respecto al Adulto Mayor)
+ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Rol_Familiar" VARCHAR(50);
 
 -- Constraints fk_familiar / fk_adulto (idempotente)
 DO $$

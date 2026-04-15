@@ -46,7 +46,7 @@ class RegisterUserUseCase:
         raise ValueError("No se pudo generar un código único")
 
     def ejecutar(
-        self, nombre: str, correo: str, contrasena: str, rol: str
+        self, nombre: str, correo: str, contrasena: str, rol: str, sexo: str = "Otro"
     ) -> ResultadoRegistro:
         """
         Flujo:
@@ -67,6 +67,10 @@ class RegisterUserUseCase:
         if rol not in ("familiar", "adulto_mayor"):
             logger.warning(f"[Registro] Rol inválido — {rol}")
             raise ValueError("El rol debe ser 'familiar' o 'adulto_mayor'")
+
+        if sexo not in ("Hombre", "Mujer", "Otro"):
+            logger.warning(f"[Registro] Sexo inválido — {sexo}")
+            raise ValueError("El sexo debe ser 'Hombre', 'Mujer' u 'Otro'")
 
         # Verificar duplicados
         existente = self._repositorio.buscar_por_correo(correo)
@@ -101,6 +105,7 @@ class RegisterUserUseCase:
             Proveedor_Auth="local",
             Rol=rol,
             Codigo_Vinculacion=codigo_vinculacion,
+            sexo=sexo,
         )
         usuario = self._repositorio.guardar(usuario)
         logger.info(f"[Registro] Usuario creado — Id_Usuario: {usuario.Id_Usuario}")

@@ -14,11 +14,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { styles } from './MiPerfil.styles';
-import { PerfilFamiliarState } from './type';
+import { Familiar, PerfilFamiliarState } from './type';
 import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
+import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
 
 interface VinculacionInfo {
   Id_Vinculacion: number;
@@ -28,6 +29,7 @@ interface VinculacionInfo {
   Nombre_Adulto_Mayor: string | null;
   Nombre_Circulo: string | null;
   Rol_Adulto_Mayor: string | null;
+  Rol_Familiar?: string | null;
 }
 
 type TipoSelectorSupervision = 'frecuencia' | 'tiempo';
@@ -103,14 +105,22 @@ export const MiPerfilFamiliar: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!usuarioAutenticado?.Id_Usuario) {
+        return;
+      }
+
+      const abortController = new AbortController();
+
       const cargarVinculaciones = async () => {
         try {
-          const res = await httpClient.get('/vinculacion/mis-vinculaciones');
+          const res = await httpClient.get('/vinculacion/mis-vinculaciones', {
+            signal: abortController.signal,
+          });
           const vincs: VinculacionInfo[] = res.data;
           setVinculaciones(vincs);
 
           // Build familiares list from real data
-          const miembros = [];
+          const miembros: Familiar[] = [];
           // Add myself (the familiar)
           miembros.push({
             id: String(usuarioAutenticado?.Id_Usuario || '0'),
@@ -123,7 +133,10 @@ export const MiPerfilFamiliar: React.FC = () => {
             miembros.push({
               id: String(v.Id_Adulto_Mayor),
               nombre: v.Nombre_Adulto_Mayor || 'Adulto Mayor',
-              rol: 'Adulto Mayor',
+              rol:
+                v.Rol_Familiar ||
+                obtenerParentescoDelAdultoParaFamiliar(v.Rol_Adulto_Mayor) ||
+                'Adulto Mayor',
             });
           }
           setState(prev => ({ ...prev, familiares: miembros }));
@@ -132,6 +145,9 @@ export const MiPerfilFamiliar: React.FC = () => {
         }
       };
       cargarVinculaciones();
+      return () => {
+        abortController.abort();
+      };
     }, [usuarioAutenticado])
   );
 

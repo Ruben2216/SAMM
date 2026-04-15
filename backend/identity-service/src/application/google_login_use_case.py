@@ -74,6 +74,7 @@ class GoogleLoginUseCase:
                     Proveedor_Auth="google",
                     Google_Id=info_google.Google_Id,
                     Rol=None,  # Sin rol, es nuevo
+                    sexo="Otro",
                 )
                 usuario = self._repositorio.guardar(usuario)
                 es_nuevo = True

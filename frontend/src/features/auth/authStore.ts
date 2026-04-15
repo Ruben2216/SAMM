@@ -18,6 +18,7 @@ export interface Usuario {
     Codigo_Vinculacion?: string | null;
     Activo: boolean;
     url_Avatar?: string | null;
+    sexo?: 'Hombre' | 'Mujer' | 'Otro';
 }
 
 export interface ResultadoLogin {
@@ -31,6 +32,7 @@ interface DatosRegistro {
     correo: string;
     contrasena: string;
     rol: string;
+    sexo: 'Hombre' | 'Mujer' | 'Otro';
 }
 
 interface AuthState {

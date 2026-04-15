@@ -4,14 +4,21 @@ from typing import Optional
 
 from src.domain.models.vinculacion import Vinculacion
 from src.domain.ports.vinculacion_repository_port import VinculacionRepositoryPort
+from src.domain.ports.user_repository_port import UserRepositoryPort
+from src.application.vinculacion_utils import calcular_parentesco_reciproco
 
 logger = logging.getLogger(__name__)
 
 
 class ActualizarCirculoUseCase:
 
-    def __init__(self, repositorio_vinculacion: VinculacionRepositoryPort):
+    def __init__(
+        self,
+        repositorio_vinculacion: VinculacionRepositoryPort,
+        repositorio_usuarios: UserRepositoryPort,
+    ):
         self._repo = repositorio_vinculacion
+        self._repo_usuarios = repositorio_usuarios
 
     def ejecutar(
         self,
@@ -34,6 +41,13 @@ class ActualizarCirculoUseCase:
         if rol_adulto_mayor is not None:
             vinculacion.Rol_Adulto_Mayor = rol_adulto_mayor
             logger.info(f"[ActualizarCirculo] Rol: {rol_adulto_mayor}")
+
+            adulto = self._repo_usuarios.buscar_por_id(id_adulto_mayor)
+            sexo_adulto = getattr(adulto, "sexo", "Otro") if adulto else "Otro"
+            vinculacion.Rol_Familiar = calcular_parentesco_reciproco(
+                rol_adulto_mayor,
+                sexo_adulto,
+            )
 
         vinculacion = self._repo.actualizar(vinculacion)
         return vinculacion

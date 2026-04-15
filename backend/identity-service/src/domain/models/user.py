@@ -19,6 +19,7 @@ class Usuario:
     url_Avatar: Optional[str] = None        # URL/ruta del avatar del usuario
     Rol: Optional[str] = None              # 'familiar' | 'adulto_mayor' | None
     Codigo_Vinculacion: Optional[str] = None  # Código de 5 chars (solo familiares)
+    sexo: str = "Otro"                      # 'Hombre' | 'Mujer' | 'Otro'
     Activo: bool = True
     Fecha_Registro: date = field(default_factory=date.today)
 

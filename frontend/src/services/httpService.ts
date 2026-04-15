@@ -49,11 +49,27 @@ httpClient.interceptors.response.use(
         return response;
     },
     (error) => {
+        // Requests canceladas (por navegación/logout) no deberían ensuciar la consola.
+        if (error?.code === 'ERR_CANCELED' || axios.isCancel?.(error)) {
+            return Promise.reject(error);
+        }
+
         if (error.response) {
-            console.error(
-                `[httpService] Error ${error.response.status}:`,
-                error.response.data?.detail || error.message
-            );
+            const status = error.response.status;
+            const detalle = error.response.data?.detail || error.message;
+
+            // 401 suele ocurrir al cerrar sesión o cuando el token expira.
+            // Evitamos `console.error` para que no aparezca LogBox.
+            if (status === 401) {
+                if (tokenActual) {
+                    console.warn(`[httpService] Error 401:`, detalle);
+                } else {
+                    console.log('[httpService] 401 (sin sesión):', detalle);
+                }
+                return Promise.reject(error);
+            }
+
+            console.error(`[httpService] Error ${status}:`, detalle);
         } else {
             console.error('[httpService] Error de red:', error.message);
         }

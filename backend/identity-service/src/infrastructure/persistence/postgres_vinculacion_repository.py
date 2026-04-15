@@ -23,6 +23,7 @@ class PostgresVinculacionRepository(VinculacionRepositoryPort):
             Id_Adulto_Mayor=modelo.Id_Adulto_Mayor,
             Nombre_Circulo=modelo.Nombre_Circulo,
             Rol_Adulto_Mayor=modelo.Rol_Adulto_Mayor,
+            Rol_Familiar=getattr(modelo, "Rol_Familiar", None),
             Fecha_Vinculacion=modelo.Fecha_Vinculacion,
         )
 
@@ -68,6 +69,7 @@ class PostgresVinculacionRepository(VinculacionRepositoryPort):
             raise ValueError(f"Vinculación {vinculacion.Id_Vinculacion} no encontrada")
         modelo.Nombre_Circulo = vinculacion.Nombre_Circulo
         modelo.Rol_Adulto_Mayor = vinculacion.Rol_Adulto_Mayor
+        modelo.Rol_Familiar = getattr(vinculacion, "Rol_Familiar", None)
         self._sesion.commit()
         self._sesion.refresh(modelo)
         return self._modelo_a_entidad(modelo)

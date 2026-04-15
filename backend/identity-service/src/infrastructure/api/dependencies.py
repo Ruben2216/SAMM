@@ -127,8 +127,9 @@ def obtener_validar_codigo_uc(
 
 def obtener_actualizar_circulo_uc(
     repo_vinculacion: PostgresVinculacionRepository = Depends(obtener_repositorio_vinculacion),
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
 ) -> ActualizarCirculoUseCase:
-    return ActualizarCirculoUseCase(repo_vinculacion)
+    return ActualizarCirculoUseCase(repo_vinculacion, repo)
 
 
 # --- Autenticación del usuario actual ---

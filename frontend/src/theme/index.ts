@@ -9,6 +9,10 @@ export const theme = {
     ...MD3LightTheme.colors,
     primary: '#14EC5C', // Verde Neón SAMM
     secondary: '#10e968', // Variante del verde
+    // MD3: `SegmentedButtons` usa `secondaryContainer` como fondo del segmento seleccionado.
+    // Usamos la paleta verde definida por SAMM para evitar el morado por defecto.
+    secondaryContainer: '#14EC5C',
+    onSecondaryContainer: '#1E293B',
     background: '#F8FAFC', // Fondo general
     surface: '#FFFFFF', // Superficies (tarjetas, modales)
     text: '#1E293B', // Texto principal

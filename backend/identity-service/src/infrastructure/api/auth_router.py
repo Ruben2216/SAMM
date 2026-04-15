@@ -6,7 +6,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, Literal
 
 from src.domain.models.user import Usuario
 from src.application.google_login_use_case import GoogleLoginUseCase
@@ -45,6 +45,7 @@ class RegisterRequest(BaseModel):
     correo: str
     contrasena: str
     rol: str  # 'familiar' | 'adulto_mayor'
+    sexo: Literal['Hombre', 'Mujer', 'Otro'] = 'Otro'
 
 
 class UpdateRoleRequest(BaseModel):
@@ -61,6 +62,7 @@ class UsuarioResponse(BaseModel):
     url_Avatar: Optional[str] = None
     Rol: Optional[str]
     Codigo_Vinculacion: Optional[str] = None
+    sexo: str = 'Otro'
     Activo: bool
 
     class Config:
@@ -102,6 +104,7 @@ def login_con_google(
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
+                sexo=getattr(resultado.usuario, "sexo", "Otro") or "Otro",
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=resultado.es_nuevo,
@@ -139,6 +142,7 @@ def login_manual(
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
+                sexo=getattr(resultado.usuario, "sexo", "Otro") or "Otro",
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=False,
@@ -168,6 +172,7 @@ def registrar_usuario(
             correo=body.correo,
             contrasena=body.contrasena,
             rol=body.rol,
+            sexo=body.sexo,
         )
 
         logger.info(f"[API] Registro exitoso — Id_Usuario: {resultado.usuario.Id_Usuario}")
@@ -182,6 +187,7 @@ def registrar_usuario(
                 url_Avatar=getattr(resultado.usuario, "url_Avatar", None),
                 Rol=resultado.usuario.Rol,
                 Codigo_Vinculacion=resultado.usuario.Codigo_Vinculacion,
+                sexo=getattr(resultado.usuario, "sexo", "Otro") or "Otro",
                 Activo=resultado.usuario.Activo,
             ),
             es_nuevo=True,
@@ -222,6 +228,7 @@ def asignar_rol(
                 url_Avatar=getattr(usuario, "url_Avatar", None),
                 Rol=usuario.Rol,
                 Codigo_Vinculacion=usuario.Codigo_Vinculacion,
+                sexo=getattr(usuario, "sexo", "Otro") or "Otro",
                 Activo=usuario.Activo,
             ),
             es_nuevo=False,
@@ -252,5 +259,6 @@ def obtener_perfil(
         url_Avatar=getattr(usuario_actual, "url_Avatar", None),
         Rol=usuario_actual.Rol,
         Codigo_Vinculacion=usuario_actual.Codigo_Vinculacion,
+        sexo=getattr(usuario_actual, "sexo", "Otro") or "Otro",
         Activo=usuario_actual.Activo,
     )

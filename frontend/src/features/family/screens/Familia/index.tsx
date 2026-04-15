@@ -23,6 +23,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFocusEffect } from "@react-navigation/native";
 import httpClient from "../../../../services/httpService";
+import { obtenerParentescoDelAdultoParaFamiliar } from "../../../../utils/parentescoFormatter";
 
 if (
   Platform.OS === "android" &&
@@ -39,6 +40,7 @@ interface VinculacionInfo {
   Nombre_Adulto_Mayor: string | null;
   Nombre_Circulo: string | null;
   Rol_Adulto_Mayor: string | null;
+  Rol_Familiar?: string | null;
 }
 
 interface PerfilCuidado {
@@ -92,7 +94,7 @@ const ItemPerfil = ({
         <View style={styles.tarjetaPerfil__info}>
           <Text style={styles.tarjetaPerfil__nombre}>{perfil.nombre}</Text>
           <Text style={styles.tarjetaPerfil__meta}>
-            Adulto Mayor{perfil.nombreCirculo ? ` • ${perfil.nombreCirculo}` : ""}
+            {perfil.rolEnCirculo || "Adulto Mayor"}{perfil.nombreCirculo ? ` • ${perfil.nombreCirculo}` : ""}
           </Text>
         </View>
       </TouchableOpacity>
@@ -144,7 +146,8 @@ export const Familia = () => {
         id: String(v.Id_Vinculacion),
         nombre: v.Nombre_Adulto_Mayor || "Sin nombre",
         iniciales: generarIniciales(v.Nombre_Adulto_Mayor || "NP"),
-        rolEnCirculo: v.Rol_Adulto_Mayor || "",
+        rolEnCirculo:
+          v.Rol_Familiar || obtenerParentescoDelAdultoParaFamiliar(v.Rol_Adulto_Mayor),
         nombreCirculo: v.Nombre_Circulo || "",
         idAdultoMayor: v.Id_Adulto_Mayor,
       }));

@@ -189,15 +189,7 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
-    iconoFondoAzul: {
-        width: 50,
-        height: 50,
-        borderRadius: 16,
-        backgroundColor: '#EFF6FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
+
     textoCardGrid: {
         color: '#334155',
         fontWeight: '700',

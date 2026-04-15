@@ -30,7 +30,20 @@ export const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 6,
+        marginTop: 8,
         color: '#334155',
+    },
+
+
+    etiquetaSexo: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 8,
+        color: '#334155',
+    },
+
+    botonesSegmentados: {
+        backgroundColor: theme.colors.surface,
     },
 
     input: {

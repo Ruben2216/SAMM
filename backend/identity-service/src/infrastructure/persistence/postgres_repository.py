@@ -33,6 +33,7 @@ class PostgresUserRepository(UserRepositoryPort):
             url_Avatar=getattr(modelo, "url_Avatar", None),
             Rol=modelo.Rol,
             Codigo_Vinculacion=modelo.Codigo_Vinculacion,
+            sexo=getattr(modelo, "sexo", "Otro") or "Otro",
             Activo=modelo.Activo,
             Fecha_Registro=modelo.Fecha_Registro,
         )
@@ -49,6 +50,7 @@ class PostgresUserRepository(UserRepositoryPort):
             url_Avatar=usuario.url_Avatar,
             Rol=usuario.Rol,
             Codigo_Vinculacion=usuario.Codigo_Vinculacion,
+            sexo=getattr(usuario, "sexo", "Otro") or "Otro",
             Activo=usuario.Activo,
             Fecha_Registro=usuario.Fecha_Registro or date.today(),
         )
@@ -115,6 +117,7 @@ class PostgresUserRepository(UserRepositoryPort):
         modelo.url_Avatar = usuario.url_Avatar
         modelo.Rol = usuario.Rol
         modelo.Codigo_Vinculacion = usuario.Codigo_Vinculacion
+        modelo.sexo = getattr(usuario, "sexo", "Otro") or "Otro"
         modelo.Activo = usuario.Activo
 
         self._sesion.commit()

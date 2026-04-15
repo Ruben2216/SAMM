@@ -21,6 +21,7 @@ class UsuarioModel(Base):
     url_Avatar = Column("url_Avatar", String(2048), nullable=True)
     Rol = Column(String(20), nullable=True)                    # 'familiar' | 'adulto_mayor' | NULL
     Codigo_Vinculacion = Column(String(5), unique=True, nullable=True)  # Solo familiares
+    sexo = Column(String(10), nullable=False, default="Otro")
     Activo = Column(Boolean, default=True)
     Fecha_Registro = Column(Date, nullable=False, server_default=func.current_date())
 
@@ -34,4 +35,5 @@ class VinculacionModel(Base):
     Id_Adulto_Mayor = Column(Integer, ForeignKey("Usuarios.Id_Usuario"), nullable=False)
     Nombre_Circulo = Column(String(100), nullable=True)
     Rol_Adulto_Mayor = Column(String(50), nullable=True)
+    Rol_Familiar = Column(String(50), nullable=True)
     Fecha_Vinculacion = Column(DateTime, server_default=func.now())
