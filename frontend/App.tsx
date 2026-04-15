@@ -30,6 +30,7 @@ import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/Necesita
 
 import { FamilyTabs } from './src/features/family/navigation/FamilyTabs';
 import CitasFamiliarScreen from './src/features/family/screens/Citas';
+import { CodigoVinculacion } from './src/features/family/screens/CodigoVinculacion';
 
 
 const Stack = createStackNavigator();
@@ -82,6 +83,7 @@ export default function App() {
             <Stack.Screen name="MiPerfilFamiliar" component={MiPerfilFamiliar} />
 
             <Stack.Screen name="CitasFamiliar" component={CitasFamiliarScreen} />
+            <Stack.Screen name="CodigoVinculacion" component={CodigoVinculacion} />
 
           </Stack.Navigator>
         </NavigationContainer>

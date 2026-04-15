@@ -501,7 +501,7 @@ export const MiPerfilFamiliar: React.FC = () => {
           })}
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('VinculacionFamiliar' as never)}
+            onPress={() => navigation.navigate('CodigoVinculacion' as never)}
             style={styles.filaAccion}
             accessibilityLabel="Agregar un familiar"
             accessibilityRole="button"

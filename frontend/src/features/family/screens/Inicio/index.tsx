@@ -97,7 +97,7 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                     <TouchableOpacity
                         style={styles.botonVincular}
                         activeOpacity={0.8}
-                        onPress={() => navigation.navigate('VinculacionFamiliar')}
+                        onPress={() => navigation.navigate('CodigoVinculacion')}
                     >
                         <Ionicons name="add" size={16} color="#10B981" />
                         <Text style={styles.textoVincular}>Vincular</Text>
