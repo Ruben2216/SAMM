@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from src.infrastructure.persistence.database import engine, Base
+from src.infrastructure.persistence.database import engine, Base, aplicar_migraciones_desde_init_db
 from src.infrastructure.api.auth_router import router as auth_router
 from src.infrastructure.api.profile_router import router as profile_router
 from src.infrastructure.api.vinculacion_router import router as vinculacion_router
@@ -53,6 +53,8 @@ def _configurar_static_media() -> None:
 @app.on_event("startup")
 def startup():
     """Al iniciar el servidor, crea las tablas en PostgreSQL si no existen."""
+    logger.info("[Startup] Aplicando migraciones SQL desde init_db.sql...")
+    aplicar_migraciones_desde_init_db()
     logger.info("[Startup] Creando tablas en PostgreSQL si no existen...")
     Base.metadata.create_all(bind=engine)
     logger.info("[Startup] Tablas verificadas/creadas exitosamente")

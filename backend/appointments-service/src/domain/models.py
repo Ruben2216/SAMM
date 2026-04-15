@@ -3,7 +3,7 @@ from src.infrastructure.database import Base
 import datetime
 
 class Cita(Base):
-    __tablename__ = "Citas"
+    __tablename__ = "citas"
 
     id = Column(Integer, primary_key=True, index=True)
     id_usuario = Column(Integer, index=True, nullable=False) 
@@ -13,4 +13,4 @@ class Cita(Base):
     fecha_hora = Column(DateTime, default=datetime.datetime.utcnow)
     ubicacion = Column(String(255))
     notas = Column(Text, nullable=True)
-    estado = Column(String(50), default="programada")
+    estado = Column(String(20), default="programada")
