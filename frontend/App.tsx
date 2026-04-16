@@ -19,7 +19,7 @@ import {MiPerfilFamiliar} from './src/features/family/screens/Perfil';
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
 import { EstablecerHora } from './src/features/senior/screens/EstablecerHora';
-import ProximasCitasScreen from './src/features/family/screens/Citas';
+import CitasScreen from './src/features/family/screens/Citas';
 import AgendarCitaScreen from './src/features/family/screens/Citas/AgendarCita';
 import HistorialCitasScreen from './src/features/family/screens/Citas/HistorialCitas';
 import { Perfil } from './src/features/senior/screens/Perfil';
@@ -29,8 +29,9 @@ import { Asistencia } from './src/features/senior/screens/Emergencia/Asistencia'
 import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NecesitaAyuda';
 
 import { FamilyTabs } from './src/features/family/navigation/FamilyTabs';
-import CitasFamiliarScreen from './src/features/family/screens/Citas';
 import { CodigoVinculacion } from './src/features/family/screens/CodigoVinculacion';
+import { MedicamentosFamiliar } from './src/features/family/screens/MedicamentosFamiliar';
+import { HistorialFamiliar } from './src/features/family/screens/HistorialFamiliar';
 
 
 const Stack = createStackNavigator();
@@ -69,7 +70,7 @@ export default function App() {
             <Stack.Screen name="SeniorTabs" component={SeniorTabs} />
             <Stack.Screen name="AgregarMedicamento" component={AgregarMedicamento} />
             <Stack.Screen name="EstablecerHora" component={EstablecerHora} />
-            <Stack.Screen name="Citas" component={ProximasCitasScreen} />
+            <Stack.Screen name="Citas" component={CitasScreen} />
             <Stack.Screen name="AgendarCita" component={AgendarCitaScreen} />
             <Stack.Screen name="HistorialCitas" component={HistorialCitasScreen} />
             <Stack.Screen name="Perfil" component={Perfil} />
@@ -82,8 +83,10 @@ export default function App() {
             <Stack.Screen name="FamilyTabs" component={FamilyTabs} />
             <Stack.Screen name="MiPerfilFamiliar" component={MiPerfilFamiliar} />
 
-            <Stack.Screen name="CitasFamiliar" component={CitasFamiliarScreen} />
+            <Stack.Screen name="CitasFamiliar" component={CitasScreen} />
             <Stack.Screen name="CodigoVinculacion" component={CodigoVinculacion} />
+            <Stack.Screen name="MedicamentosFamiliar" component={MedicamentosFamiliar} />
+            <Stack.Screen name="HistorialFamiliar" component={HistorialFamiliar} />
 
           </Stack.Navigator>
         </NavigationContainer>

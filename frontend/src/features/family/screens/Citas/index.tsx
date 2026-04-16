@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
 import { AppointmentCard } from './components/AppointmentCard';
 import { citasStyles, themeColors } from './styles';
@@ -16,8 +16,10 @@ type RootStackParamList = {
 
 export default function CitasFamiliarScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const route = useRoute();
+  const { idAdultoMayor } = (route.params as { idAdultoMayor?: number }) || {};
   const [activeTab, setActiveTab] = useState<'proximas' | 'historial'>('proximas');
-  
+
   // Estados para los datos reales
   const [citasProximas, setCitasProximas] = useState<any[]>([]);
   const [citasHistorial, setCitasHistorial] = useState<any[]>([]);
@@ -27,8 +29,8 @@ export default function CitasFamiliarScreen() {
   const cargarCitas = async () => {
     try {
       setCargando(true);
-      // TEMP: Buscamos las citas del ID 2
-      const data = await obtenerCitasUsuario(2);
+      const idUsuario = idAdultoMayor || 2;
+      const data = await obtenerCitasUsuario(idUsuario);
       
       // Separamos en Próximas y el Historial usando el campo "estado"
       const proximas = data.filter((cita: any) => cita.estado === 'programada');

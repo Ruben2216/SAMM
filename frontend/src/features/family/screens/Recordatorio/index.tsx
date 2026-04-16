@@ -1,27 +1,23 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
-import { IconoCalendario } from '../../../../assets/iconos/iconos-familiares';
 import {
   IconoMedicina,
-  IconoInyeccion,
   IconoVerificado,
-  IconoUbicacion,
   IconoFlechaDerecha,
 } from '../../../../assets/iconos/iconos-recordatorio';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import httpClient from '../../../../services/httpService';
 
-type TipoItem = 'medicina' | 'inyeccion' | 'cita';
-type EstadoItem = 'tomada' | 'noRegistrada' | 'pendiente';
 type Periodo = 'mañana' | 'tarde' | 'noche';
 
 interface ItemAgenda {
   id: string;
   titulo: string;
   hora: string;
-  estado: EstadoItem;
-  tipo: TipoItem;
-  subtitulo?: string;
+  horaCruda: string;
+  estado: 'tomada' | 'pendiente';
   personaIniciales: string;
   personaColor: string;
   personaTextoColor: string;
@@ -29,66 +25,49 @@ interface ItemAgenda {
   periodo: Periodo;
 }
 
-const FILTROS = ['Todos', 'Papá (Roberto)', 'Mamá (Elena)'];
+interface VinculacionInfo {
+  Id_Vinculacion: number;
+  Id_Adulto_Mayor: number;
+  Nombre_Adulto_Mayor: string | null;
+  Nombre_Circulo: string | null;
+}
 
-const DATOS_AGENDA: ItemAgenda[] = [
-  {
-    id: '1',
-    titulo: 'Losartan 50mg',
-    hora: '8:00 AM',
-    estado: 'tomada',
-    tipo: 'medicina',
-    personaIniciales: 'RM',
-    personaColor: '#E2E8F0',
-    personaTextoColor: '#475569',
-    personaNombre: 'Papá (Roberto)',
-    periodo: 'mañana',
-  },
-  {
-    id: '2',
-    titulo: 'Insulina',
-    hora: '9:00 AM',
-    estado: 'noRegistrada',
-    tipo: 'inyeccion',
-    personaIniciales: 'EG',
-    personaColor: '#818CF8',
-    personaTextoColor: '#FFFFFF',
-    personaNombre: 'Mamá (Elena)',
-    periodo: 'mañana',
-  },
-  {
-    id: '3',
-    titulo: 'Cita: Cardiólogo',
-    hora: '4:00 PM',
-    estado: 'pendiente',
-    tipo: 'cita',
-    subtitulo: 'Hospital Central',
-    personaIniciales: 'RM',
-    personaColor: '#E2E8F0',
-    personaTextoColor: '#475569',
-    personaNombre: 'Papá (Roberto)',
-    periodo: 'tarde',
-  },
-];
-
-// Icono según el tipo de recordatorio
-const IconoTipo = ({ tipo }: { tipo: TipoItem }) => {
-  const esVerde = tipo === 'medicina';
-  return (
-    <View
-      style={[
-        styles.iconoTipo,
-        esVerde ? styles.iconoTipo__verde : styles.iconoTipo__azul,
-      ]}
-    >
-      {tipo === 'medicina' && <IconoMedicina />}
-      {tipo === 'inyeccion' && <IconoInyeccion />}
-      {tipo === 'cita' && <IconoCalendario color="#3B82F6" />}
-    </View>
-  );
+const generarIniciales = (nombre: string): string => {
+  const partes = nombre.trim().split(' ');
+  if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
+  return nombre.length >= 2 ? nombre.substring(0, 2).toUpperCase() : 'NP';
 };
 
-// Subtítulo con estado y color
+const COLORES_AVATAR = [
+  { bg: '#E2E8F0', texto: '#475569' },
+  { bg: '#818CF8', texto: '#FFFFFF' },
+  { bg: '#F472B6', texto: '#FFFFFF' },
+  { bg: '#34D399', texto: '#FFFFFF' },
+];
+
+const obtenerPeriodo = (hora: string): Periodo => {
+  const h = parseInt(hora.split(':')[0], 10);
+  if (h < 12) return 'mañana';
+  if (h < 18) return 'tarde';
+  return 'noche';
+};
+
+const formatearHora = (horaCruda: string): string => {
+  const [hStr, mStr] = horaCruda.split(':');
+  let horas = parseInt(hStr, 10);
+  const ampm = horas >= 12 ? 'PM' : 'AM';
+  horas = horas % 12 || 12;
+  return `${horas}:${mStr} ${ampm}`;
+};
+
+// Icono de tipo
+const IconoTipo = () => (
+  <View style={[styles.iconoTipo, styles.iconoTipo__verde]}>
+    <IconoMedicina />
+  </View>
+);
+
+// Subtítulo con estado
 const SubtituloEstado = ({ item }: { item: ItemAgenda }) => {
   if (item.estado === 'tomada') {
     return (
@@ -100,71 +79,118 @@ const SubtituloEstado = ({ item }: { item: ItemAgenda }) => {
       </View>
     );
   }
-  if (item.estado === 'noRegistrada') {
-    return (
-      <Text style={styles.itemContenido__subtituloRojo}>
-        {item.hora} • No registrada
-      </Text>
-    );
-  }
   return (
-    <View style={styles.itemContenido__subtituloRow}>
-      <IconoUbicacion />
-      <Text style={styles.itemContenido__subtituloGris}>
-        {item.hora} • {item.subtitulo}
-      </Text>
-    </View>
+    <Text style={styles.itemContenido__subtituloRojo}>
+      {item.hora} • Pendiente
+    </Text>
   );
 };
 
-// Tarjeta individual de recordatorio
+// Tarjeta de recordatorio
 const TarjetaRecordatorio = ({ item }: { item: ItemAgenda }) => (
-  <TouchableOpacity
-    style={styles.tarjetaRecordatorio}
-    activeOpacity={0.85}
-    accessible={true}
-    accessibilityLabel={`${item.titulo}, ${item.hora}`}
-  >
-    <IconoTipo tipo={item.tipo} />
-
+  <TouchableOpacity style={styles.tarjetaRecordatorio} activeOpacity={0.85}>
+    <IconoTipo />
     <View style={styles.itemContenido}>
       <Text
-        style={
-          item.estado === 'noRegistrada'
-            ? styles.itemContenido__tituloAlerta
-            : styles.itemContenido__titulo
-        }
+        style={item.estado === 'pendiente' ? styles.itemContenido__tituloAlerta : styles.itemContenido__titulo}
       >
         {item.titulo}
       </Text>
       <SubtituloEstado item={item} />
     </View>
-
-    <View
-      style={[styles.avatarBadge, { backgroundColor: item.personaColor }]}
-    >
-      <Text
-        style={[
-          styles.avatarBadge__texto,
-          { color: item.personaTextoColor },
-        ]}
-      >
+    <View style={[styles.avatarBadge, { backgroundColor: item.personaColor }]}>
+      <Text style={[styles.avatarBadge__texto, { color: item.personaTextoColor }]}>
         {item.personaIniciales}
       </Text>
     </View>
-
     <IconoFlechaDerecha />
   </TouchableOpacity>
 );
 
-// Pantalla principal de Recordatorio/Agenda
 export const Recordatorio = () => {
+  const [items, setItems] = useState<ItemAgenda[]>([]);
+  const [filtros, setFiltros] = useState<string[]>(['Todos']);
   const [filtroActivo, setFiltroActivo] = useState('Todos');
+  const [cargando, setCargando] = useState(true);
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
+
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+
+      // 1. Obtener vinculaciones
+      const resVinc = await httpClient.get('/vinculacion/mis-vinculaciones');
+      const vinculaciones: VinculacionInfo[] = resVinc.data;
+
+      if (vinculaciones.length === 0) {
+        setItems([]);
+        setFiltros(['Todos']);
+        return;
+      }
+
+      const nombresUnicos = ['Todos'];
+      const todosItems: ItemAgenda[] = [];
+
+      for (let i = 0; i < vinculaciones.length; i++) {
+        const vinc = vinculaciones[i];
+        const nombre = vinc.Nombre_Adulto_Mayor || 'Adulto Mayor';
+        const iniciales = generarIniciales(nombre);
+        const color = COLORES_AVATAR[i % COLORES_AVATAR.length];
+        nombresUnicos.push(nombre);
+
+        // 2. Obtener medicamentos de cada senior
+        try {
+          const resMeds = await fetch(`${apiUrl}/medicamentos/usuario/${vinc.Id_Adulto_Mayor}`);
+          if (resMeds.ok) {
+            const meds = await resMeds.json();
+
+            for (const med of meds) {
+              const tomado = med.tomado_hoy === true;
+              const horarios = med.horarios || [];
+
+              for (const horario of horarios) {
+                const horaCruda = horario.Hora_Toma || '08:00';
+                todosItems.push({
+                  id: `${vinc.Id_Adulto_Mayor}-${med.Id_Medicamento}-${horario.Id_Horario}`,
+                  titulo: med.Nombre,
+                  hora: formatearHora(horaCruda),
+                  horaCruda,
+                  estado: tomado ? 'tomada' : 'pendiente',
+                  personaIniciales: iniciales,
+                  personaColor: color.bg,
+                  personaTextoColor: color.texto,
+                  personaNombre: nombre,
+                  periodo: obtenerPeriodo(horaCruda),
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.log('Error cargando medicamentos del senior:', err);
+        }
+      }
+
+      // Ordenar por hora
+      todosItems.sort((a, b) => a.horaCruda.localeCompare(b.horaCruda));
+
+      setFiltros(nombresUnicos);
+      setItems(todosItems);
+    } catch (error) {
+      console.log('Error cargando agenda:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      cargarDatos();
+    }, [])
+  );
 
   const itemsFiltrados =
-    filtroActivo === 'Todos'
-      ? DATOS_AGENDA
-      : DATOS_AGENDA.filter((r) => r.personaNombre === filtroActivo);
+    filtroActivo === 'Todos' ? items : items.filter((r) => r.personaNombre === filtroActivo);
 
   const itemsManana = itemsFiltrados.filter((r) => r.periodo === 'mañana');
   const itemsTarde = itemsFiltrados.filter((r) => r.periodo === 'tarde');
@@ -172,38 +198,24 @@ export const Recordatorio = () => {
 
   return (
     <View style={styles.contenedor}>
-      {/* Encabezado */}
       <View style={styles.encabezado}>
         <Text style={styles.encabezado__titulo}>Agenda</Text>
       </View>
 
-      {/* Filtros horizontales */}
       <View style={styles.contenedorFiltros}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollFiltros}
         >
-          {FILTROS.map((filtro) => (
+          {filtros.map((filtro) => (
             <TouchableOpacity
               key={filtro}
-              style={[
-                styles.filtro,
-                filtroActivo === filtro && styles.filtro__activo,
-              ]}
+              style={[styles.filtro, filtroActivo === filtro && styles.filtro__activo]}
               onPress={() => setFiltroActivo(filtro)}
               activeOpacity={0.8}
-              accessible={true}
-              accessibilityLabel={`Filtrar por ${filtro}`}
-              accessibilityRole="button"
             >
-              <Text
-                style={
-                  filtroActivo === filtro
-                    ? styles.filtro__textoActivo
-                    : styles.filtro__texto
-                }
-              >
+              <Text style={filtroActivo === filtro ? styles.filtro__textoActivo : styles.filtro__texto}>
                 {filtro}
               </Text>
             </TouchableOpacity>
@@ -211,55 +223,53 @@ export const Recordatorio = () => {
         </ScrollView>
       </View>
 
-      {/* Contenido de agenda */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.areaContenido}
-      >
-        {itemsManana.length > 0 && (
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.areaContenido}>
+        {cargando ? (
+          <ActivityIndicator size="large" color="#00E676" style={{ marginTop: 50 }} />
+        ) : itemsFiltrados.length === 0 ? (
+          <View style={{ alignItems: 'center', marginTop: 50 }}>
+            <Icon name="calendar-blank-outline" size={64} color="#CBD5E1" />
+            <Text style={{ color: '#94A3B8', fontSize: 15, marginTop: 16, textAlign: 'center' }}>
+              No hay recordatorios para hoy
+            </Text>
+          </View>
+        ) : (
           <>
-            <View style={styles.periodoPerfil}>
-              <Text style={styles.periodoPerfil__texto}>MAÑANA</Text>
-            </View>
-            {itemsManana.map((item) => (
-              <TarjetaRecordatorio key={item.id} item={item} />
-            ))}
-          </>
-        )}
+            {itemsManana.length > 0 && (
+              <>
+                <View style={styles.periodoPerfil}>
+                  <Text style={styles.periodoPerfil__texto}>MAÑANA</Text>
+                </View>
+                {itemsManana.map((item) => (
+                  <TarjetaRecordatorio key={item.id} item={item} />
+                ))}
+              </>
+            )}
 
-        {itemsTarde.length > 0 && (
-          <>
-            <View style={styles.periodoPerfil}>
-              <Text style={styles.periodoPerfil__texto}>TARDE</Text>
-            </View>
-            {itemsTarde.map((item) => (
-              <TarjetaRecordatorio key={item.id} item={item} />
-            ))}
-          </>
-        )}
+            {itemsTarde.length > 0 && (
+              <>
+                <View style={styles.periodoPerfil}>
+                  <Text style={styles.periodoPerfil__texto}>TARDE</Text>
+                </View>
+                {itemsTarde.map((item) => (
+                  <TarjetaRecordatorio key={item.id} item={item} />
+                ))}
+              </>
+            )}
 
-        {itemsNoche.length > 0 && (
-          <>
-            <View style={styles.periodoPerfil}>
-              <Text style={styles.periodoPerfil__texto}>NOCHE</Text>
-            </View>
-            {itemsNoche.map((item) => (
-              <TarjetaRecordatorio key={item.id} item={item} />
-            ))}
+            {itemsNoche.length > 0 && (
+              <>
+                <View style={styles.periodoPerfil}>
+                  <Text style={styles.periodoPerfil__texto}>NOCHE</Text>
+                </View>
+                {itemsNoche.map((item) => (
+                  <TarjetaRecordatorio key={item.id} item={item} />
+                ))}
+              </>
+            )}
           </>
         )}
       </ScrollView>
-
-      {/* FAB - Botón flotante agregar */}
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.8}
-        accessible={true}
-        accessibilityLabel="Agregar nuevo recordatorio"
-        accessibilityRole="button"
-      >
-        <Icon name="plus" size={21} color="#FFFFFF" />
-      </TouchableOpacity>
     </View>
   );
 };

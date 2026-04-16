@@ -5,6 +5,7 @@ import { styles } from './styles';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
+import { SuccessModal } from '../../../../components/ui/success-modal';
 
 const generarSemana = () => {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -38,6 +39,8 @@ export const Inicio = () => {
     const [medicamentos, setMedicamentos] = useState<any[]>([]);
     const [cargando, setCargando] = useState(true);
     const [tieneVinculacion, setTieneVinculacion] = useState<boolean | null>(null);
+    const [modalExito, setModalExito] = useState(false);
+    const [mensajeExito, setMensajeExito] = useState('');
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
@@ -122,7 +125,8 @@ export const Inicio = () => {
         try {
             const respuesta = await fetch(`${apiUrl}/medicamentos/${id_medicamento}`, { method: 'DELETE' });
             if (respuesta.ok) {
-                Alert.alert("Eliminado", "El medicamento fue borrado.");
+                setMensajeExito('Medicamento eliminado con éxito');
+                setModalExito(true);
                 cargarMedicamentos();
             } else {
                 Alert.alert("Error", "No se pudo eliminar el medicamento.");
@@ -142,9 +146,10 @@ export const Inicio = () => {
             });
 
             if (respuesta.ok) {
-                Alert.alert("¡Excelente!", `Has registrado ${med.nombre} como tomado.`);
-                
-                setMedicamentos(prev => prev.map(item => 
+                setMensajeExito(`${med.nombre} registrado como tomado`);
+                setModalExito(true);
+
+                setMedicamentos(prev => prev.map(item =>
                     item.id_unico === med.id_unico 
                         ? { ...item, estado: 'tomado', colorPunto: '#00E676' }
                         : item
@@ -279,6 +284,12 @@ export const Inicio = () => {
                     <Ionicons name="add" size={32} color="#FFFFFF" />
                 </TouchableOpacity>
             </View>
+
+            <SuccessModal
+                esVisible={modalExito}
+                mensaje={mensajeExito}
+                alTerminar={() => setModalExito(false)}
+            />
         </View>
     );
 };

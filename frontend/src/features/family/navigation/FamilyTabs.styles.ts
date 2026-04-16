@@ -1,18 +1,13 @@
 import { StyleSheet } from 'react-native';
 import { theme } from '../../../theme';
 
-const ALTURA_TAB_BAR_BASE = 70;
-const PADDING_TOP_TAB_BAR = 10;
-
 export const styles = StyleSheet.create({
     tabBarLabel: {
         fontSize: 12,
         fontWeight: '600',
-        marginBottom: 5,
     },
     tabBarBase: {
-        height: ALTURA_TAB_BAR_BASE,
-        paddingTop: PADDING_TOP_TAB_BAR,
+        paddingTop: 10,
         backgroundColor: theme.colors.surface,
         borderTopColor: theme.colors.border,
         borderTopWidth: 1,
@@ -22,11 +17,13 @@ export const styles = StyleSheet.create({
 });
 
 export const crearEstiloTabBar = (espacioInferior: number) => {
-    const espacioSeguro = Math.max(0, espacioInferior);
+    const tieneGestos = espacioInferior > 0;
+    const alturaBarra = tieneGestos ? 60 + espacioInferior : 70;
+    const paddingInferior = tieneGestos ? espacioInferior : 10;
 
     return {
         ...styles.tabBarBase,
-        height: ALTURA_TAB_BAR_BASE + espacioSeguro,
-        paddingBottom: espacioSeguro,
+        height: alturaBarra,
+        paddingBottom: paddingInferior,
     };
 };
