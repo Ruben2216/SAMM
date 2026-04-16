@@ -83,7 +83,10 @@ export const VinculacionSenior: React.FC = () => {
 
   const manejarOmitir = () => {
     console.log('[VinculacionSenior] Omitir — navegando a SeniorTabs');
-    (navegacion as any).navigate('SeniorTabs');
+    (navegacion as any).reset({
+      index: 0,
+      routes: [{ name: 'SeniorTabs' }],
+    });
   };
 
   const manejarRetroceder = () => {

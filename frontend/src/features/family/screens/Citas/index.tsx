@@ -17,7 +17,7 @@ type RootStackParamList = {
 export default function CitasFamiliarScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [activeTab, setActiveTab] = useState<'proximas' | 'historial'>('proximas');
-  
+
   // Estados para los datos reales
   const [citasProximas, setCitasProximas] = useState<any[]>([]);
   const [citasHistorial, setCitasHistorial] = useState<any[]>([]);
@@ -29,14 +29,14 @@ export default function CitasFamiliarScreen() {
       setCargando(true);
       // TEMP: Buscamos las citas del ID 2
       const data = await obtenerCitasUsuario(2);
-      
+
       // Separamos en Próximas y el Historial usando el campo "estado"
       const proximas = data.filter((cita: any) => cita.estado === 'programada');
       const historial = data.filter((cita: any) => cita.estado !== 'programada');
-      
+
       // Ordenamos las próximas por fecha (la más cercana primero)
       proximas.sort((a: any, b: any) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
-      
+
       setCitasProximas(proximas);
       setCitasHistorial(historial);
     } catch (error) {
@@ -60,8 +60,8 @@ export default function CitasFamiliarScreen() {
   return (
     <SafeAreaView style={citasStyles.container}>
       <View style={citasStyles.header}>
-        <TouchableOpacity 
-          style={citasStyles.backButton} 
+        <TouchableOpacity
+          style={citasStyles.backButton}
           onPress={() => navigation.goBack()}
         >
           <MaterialCommunityIcons name="arrow-left" size={28} color={themeColors.textDark} />
@@ -71,7 +71,7 @@ export default function CitasFamiliarScreen() {
 
       <View style={{ flex: 1 }}>
         {cargando ? (
-           <ActivityIndicator size="large" color={themeColors.primary} style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color={themeColors.primary} style={{ marginTop: 50 }} />
         ) : (
           <FlatList
             data={currentData}
@@ -88,7 +88,7 @@ export default function CitasFamiliarScreen() {
             )}
           />
         )}
-        
+
         {/* BOTÓN NUEVA CITA */}
         {activeTab === 'proximas' && (
           <TouchableOpacity
@@ -103,26 +103,26 @@ export default function CitasFamiliarScreen() {
 
       {/* TABS INFERIORES */}
       <View style={citasStyles.bottomTabBar}>
-        <TouchableOpacity 
-          style={citasStyles.tabItem} 
+        <TouchableOpacity
+          style={citasStyles.tabItem}
           onPress={() => setActiveTab('proximas')}
         >
-          <MaterialCommunityIcons 
-            name={activeTab === 'proximas' ? 'calendar-month' : 'calendar-month-outline'} 
-            size={28} 
-            color={activeTab === 'proximas' ? themeColors.primary : themeColors.textMuted} 
+          <MaterialCommunityIcons
+            name={activeTab === 'proximas' ? 'calendar-month' : 'calendar-month-outline'}
+            size={28}
+            color={activeTab === 'proximas' ? themeColors.primary : themeColors.textMuted}
           />
           <Text style={[citasStyles.tabText, { color: activeTab === 'proximas' ? themeColors.primary : themeColors.textMuted }]}>Próximas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={citasStyles.tabItem} 
+        <TouchableOpacity
+          style={citasStyles.tabItem}
           onPress={() => setActiveTab('historial')}
         >
-          <MaterialCommunityIcons 
-            name="history" 
-            size={28} 
-            color={activeTab === 'historial' ? themeColors.primary : themeColors.textMuted} 
+          <MaterialCommunityIcons
+            name="history"
+            size={28}
+            color={activeTab === 'historial' ? themeColors.primary : themeColors.textMuted}
           />
           <Text style={[citasStyles.tabText, { color: activeTab === 'historial' ? themeColors.primary : themeColors.textMuted }]}>Historial</Text>
         </TouchableOpacity>

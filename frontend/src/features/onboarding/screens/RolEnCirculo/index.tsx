@@ -37,7 +37,10 @@ export const RolEnCirculo: React.FC = () => {
         rol_adulto_mayor: rolSeleccionado,
       });
       console.log('[RolEnCirculo] Rol guardado:', rolSeleccionado);
-      (navegacion as any).navigate('SeniorTabs');
+      (navegacion as any).reset({
+        index: 0,
+        routes: [{ name: 'SeniorTabs' }],
+      });
     } catch (err: any) {
       const mensaje = err.response?.data?.detail || 'Error al guardar el rol';
       console.error('[RolEnCirculo] Error:', mensaje);

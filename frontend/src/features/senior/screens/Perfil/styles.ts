@@ -61,6 +61,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 2,
   },
+  tarjetaPerfil__contenedorAvatar: {
+    position: 'relative',
+    marginBottom: 8,
+  },
   tarjetaPerfil__avatar: {
     width: 90,
     height: 90,
@@ -70,8 +74,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.surface,
-    position: 'relative',
-    marginBottom: 8,
+    overflow: 'hidden',
   },
   tarjetaPerfil__bordeAvatar: {
     ...StyleSheet.absoluteFillObject,
@@ -79,10 +82,25 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.primary,
   },
+  tarjetaPerfil__imagenAvatar: {
+    ...StyleSheet.absoluteFillObject,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+  },
   tarjetaPerfil__textoAvatar: {
     fontSize: 32,
     fontWeight: '800',
     color: theme.colors.text,
+  },
+  tarjetaPerfil__botonEditar: {
+    position: 'absolute',
+    right: -6,
+    bottom: 6,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tarjetaPerfil__nombre: {
     fontSize: 20,
@@ -147,6 +165,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
   },
   filaFamilia__avatar: {
     width: 40,
@@ -156,6 +175,13 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  filaFamilia__imagenAvatar: {
+    ...StyleSheet.absoluteFillObject,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   filaFamilia__textoAvatarYo: {
     fontSize: 14,

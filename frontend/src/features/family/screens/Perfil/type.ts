@@ -2,6 +2,7 @@ export interface Familiar {
   id: string;
   nombre: string;
   rol: string;
+  urlAvatar?: string | null;
   esPrincipal?: boolean;
 }
 

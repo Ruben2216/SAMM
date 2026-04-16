@@ -47,10 +47,16 @@ export const IniciarSesion: React.FC = () => {
 
                 if (usuario?.Rol === 'adulto_mayor') {
                     console.log('[IniciarSesion] Navegando a SeniorTabs');
-                    (navigation as any).navigate('SeniorTabs');
+                    (navigation as any).reset({
+                        index: 0,
+                        routes: [{ name: 'SeniorTabs' }],
+                    });
                 } else if (usuario?.Rol === 'familiar') {
                     console.log('[IniciarSesion] Navegando a FamilyTabs');
-                    (navigation as any).navigate('FamilyTabs');
+                    (navigation as any).reset({
+                        index: 0,
+                        routes: [{ name: 'FamilyTabs' }],
+                    });
                 } else {
                     console.log('[IniciarSesion] Sin rol asignado — navegando a Welcome');
                     (navigation as any).navigate('Welcome');
@@ -88,10 +94,16 @@ export const IniciarSesion: React.FC = () => {
 
             if (usuario?.Rol === 'adulto_mayor') {
                 console.log('[IniciarSesion] Navegando a SeniorTabs');
-                (navigation as any).navigate('SeniorTabs');
+                (navigation as any).reset({
+                    index: 0,
+                    routes: [{ name: 'SeniorTabs' }],
+                });
             } else if (usuario?.Rol === 'familiar') {
                 console.log('[IniciarSesion] Navegando a FamilyTabs');
-                (navigation as any).navigate('FamilyTabs');
+                (navigation as any).reset({
+                    index: 0,
+                    routes: [{ name: 'FamilyTabs' }],
+                });
             } else {
                 console.log('[IniciarSesion] Sin rol — navegando a Welcome');
                 (navigation as any).navigate('Welcome');

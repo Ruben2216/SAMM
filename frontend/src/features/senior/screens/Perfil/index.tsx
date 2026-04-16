@@ -17,6 +17,7 @@ import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
+import * as ImagePicker from 'expo-image-picker';
 
 interface PerfilSaludData {
   Tipo_Sangre: string;
@@ -30,6 +31,8 @@ interface PerfilSaludData {
 export const Perfil = () => {
   const navigation = useNavigation<any>();
   const usuario = useAuthStore((s) => s.usuario);
+  const actualizarAvatar = useAuthStore((s) => s.actualizarAvatar);
+  const eliminarAvatar = useAuthStore((s) => s.eliminarAvatar);
   const cerrarSesion = useAuthStore((s) => s.cerrarSesion);
 
   const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
@@ -122,6 +125,77 @@ export const Perfil = () => {
     }
   };
 
+  const construirUriAvatar = (urlAvatar: string) => {
+    const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
+    const ruta = urlAvatar.trim();
+
+    if (!ruta) return '';
+    if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
+    if (!baseUrl) return ruta;
+
+    return `${baseUrl}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
+  };
+
+  const seleccionarImagenDeGaleria = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso requerido', 'Necesitamos acceso a tu galería para elegir una foto.');
+      return null;
+    }
+
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.55,
+      base64: true,
+    });
+
+    if (resultado.canceled) return null;
+    const activo = resultado.assets?.[0];
+    if (!activo?.base64) {
+      Alert.alert('Error', 'No se pudo obtener la imagen seleccionada.');
+      return null;
+    }
+
+    return {
+      base64: activo.base64,
+      mimeType: activo.mimeType ?? 'image/jpeg',
+    };
+  };
+
+  const manejarEditarAvatar = async () => {
+    const tieneAvatar = Boolean(usuario?.url_Avatar);
+
+    const subirNuevaFoto = async () => {
+      const seleccionado = await seleccionarImagenDeGaleria();
+      if (!seleccionado) return;
+
+      const resultado = await actualizarAvatar(seleccionado.base64, seleccionado.mimeType);
+      if (!resultado.exito) {
+        Alert.alert('No se pudo actualizar', resultado.mensaje ?? 'Intenta de nuevo.');
+      }
+    };
+
+    const eliminarFoto = async () => {
+      const resultado = await eliminarAvatar();
+      if (!resultado.exito) {
+        Alert.alert('No se pudo eliminar', resultado.mensaje ?? 'Intenta de nuevo.');
+      }
+    };
+
+    if (!tieneAvatar) {
+      await subirNuevaFoto();
+      return;
+    }
+
+    Alert.alert('Foto de perfil', '¿Qué deseas hacer?', [
+      { text: 'Cambiar foto', onPress: () => void subirNuevaFoto() },
+      { text: 'Eliminar foto', style: 'destructive', onPress: () => void eliminarFoto() },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
+  };
+
   const manejarCerrarSesion = async () => {
     try {
       await cerrarSesion();
@@ -132,8 +206,22 @@ export const Perfil = () => {
     }
   };
 
+  const obtenerInicialesNombre = (nombreCompleto: string) => {
+    const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+    const primera = partes[0]?.[0] ?? '';
+    const ultima = partes.length > 1 ? partes[partes.length - 1]?.[0] ?? '' : '';
+    return `${primera}${ultima}`.toUpperCase();
+  };
+
   const nombreUsuario = usuario?.Nombre || 'Usuario';
   const iniciales = nombreUsuario.split(' ').map((p) => p[0]).join('').toUpperCase().substring(0, 2);
+  const uriAvatar = usuario?.url_Avatar ? construirUriAvatar(usuario.url_Avatar) : '';
+  const tieneAvatar = Boolean(uriAvatar);
+
+  const uriAvatarCuidador = vinculacion?.url_Avatar_Familiar
+    ? construirUriAvatar(vinculacion.url_Avatar_Familiar)
+    : '';
+  const tieneAvatarCuidador = Boolean(uriAvatarCuidador);
 
   if (cargando) {
     return (
@@ -160,10 +248,36 @@ export const Perfil = () => {
       <View style={styles.contenido}>
         {/* --- TARJETA PERFIL --- */}
         <View style={styles.tarjetaPerfil}>
-          <View style={styles.tarjetaPerfil__avatar}>
-            <Text style={styles.tarjetaPerfil__textoAvatar}>{iniciales}</Text>
-            <View style={styles.tarjetaPerfil__bordeAvatar} />
+          <View style={styles.tarjetaPerfil__contenedorAvatar}>
+            <View
+              style={styles.tarjetaPerfil__avatar}
+              accessibilityLabel={`Avatar de ${nombreUsuario}`}
+              accessibilityRole="image"
+            >
+              {tieneAvatar && (
+                <Image
+                  source={{ uri: uriAvatar }}
+                  style={styles.tarjetaPerfil__imagenAvatar}
+                  accessibilityIgnoresInvertColors
+                />
+              )}
+              <View style={styles.tarjetaPerfil__bordeAvatar} />
+              {!tieneAvatar && (
+                <Text style={styles.tarjetaPerfil__textoAvatar}>{iniciales}</Text>
+              )}
+            </View>
+
+            <TouchableOpacity
+              onPress={manejarEditarAvatar}
+              style={styles.tarjetaPerfil__botonEditar}
+              accessibilityLabel="Editar foto de perfil"
+              accessibilityRole="button"
+              activeOpacity={0.7}
+            >
+              <Icon name="pencil-box-outline" size={22} color={theme.colors.text} />
+            </TouchableOpacity>
           </View>
+
           <Text style={styles.tarjetaPerfil__nombre}>{nombreUsuario}</Text>
           <Text style={styles.tarjetaPerfil__correo}>{usuario?.Correo}</Text>
           <View style={styles.tarjetaPerfil__badge}>
@@ -198,10 +312,22 @@ export const Perfil = () => {
           {vinculacion && (
             <View style={styles.filaFamilia}>
               <View style={styles.filaFamilia__izquierda}>
-                <View style={styles.filaFamilia__avatar}>
-                  <Text style={styles.filaFamilia__textoAvatar}>
-                    {vinculacion.Nombre_Familiar?.substring(0, 1).toUpperCase()}
-                  </Text>
+                <View
+                  style={styles.filaFamilia__avatar}
+                  accessibilityRole="image"
+                  accessibilityLabel={`Avatar de ${vinculacion.Nombre_Familiar ?? 'Familiar'}`}
+                >
+                  {tieneAvatarCuidador ? (
+                    <Image
+                      source={{ uri: uriAvatarCuidador }}
+                      style={styles.filaFamilia__imagenAvatar}
+                      accessibilityIgnoresInvertColors
+                    />
+                  ) : (
+                    <Text style={styles.filaFamilia__textoAvatar}>
+                      {obtenerInicialesNombre(vinculacion.Nombre_Familiar ?? '')}
+                    </Text>
+                  )}
                 </View>
                 <View style={styles.filaFamilia__texto}>
                   <Text style={styles.filaFamilia__nombre}>{vinculacion.Nombre_Familiar}</Text>

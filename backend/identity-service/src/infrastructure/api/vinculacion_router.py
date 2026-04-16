@@ -61,6 +61,8 @@ class MiVinculacionResponse(BaseModel):
     Id_Adulto_Mayor: int
     Nombre_Familiar: Optional[str] = None
     Nombre_Adulto_Mayor: Optional[str] = None
+    url_Avatar_Familiar: Optional[str] = None
+    url_Avatar_Adulto_Mayor: Optional[str] = None
     Nombre_Circulo: Optional[str] = None
     Rol_Adulto_Mayor: Optional[str] = None
     Rol_Familiar: Optional[str] = None
@@ -189,6 +191,8 @@ def mis_vinculaciones(
             Id_Adulto_Mayor=v.Id_Adulto_Mayor,
             Nombre_Familiar=familiar.Nombre if familiar else None,
             Nombre_Adulto_Mayor=adulto.Nombre if adulto else None,
+            url_Avatar_Familiar=familiar.url_Avatar if familiar else None,
+            url_Avatar_Adulto_Mayor=adulto.url_Avatar if adulto else None,
             Nombre_Circulo=v.Nombre_Circulo,
             Rol_Adulto_Mayor=v.Rol_Adulto_Mayor,
             Rol_Familiar=rol_familiar,

@@ -27,6 +27,8 @@ interface VinculacionInfo {
   Id_Adulto_Mayor: number;
   Nombre_Familiar: string | null;
   Nombre_Adulto_Mayor: string | null;
+  url_Avatar_Familiar?: string | null;
+  url_Avatar_Adulto_Mayor?: string | null;
   Nombre_Circulo: string | null;
   Rol_Adulto_Mayor: string | null;
   Rol_Familiar?: string | null;
@@ -126,6 +128,7 @@ export const MiPerfilFamiliar: React.FC = () => {
             id: String(usuarioAutenticado?.Id_Usuario || '0'),
             nombre: usuarioAutenticado?.Nombre || 'Yo',
             rol: 'Familiar',
+            urlAvatar: usuarioAutenticado?.url_Avatar ?? null,
             esPrincipal: true,
           });
           // Add linked seniors
@@ -137,6 +140,7 @@ export const MiPerfilFamiliar: React.FC = () => {
                 v.Rol_Familiar ||
                 obtenerParentescoDelAdultoParaFamiliar(v.Rol_Adulto_Mayor) ||
                 'Adulto Mayor',
+              urlAvatar: v.url_Avatar_Adulto_Mayor ?? null,
             });
           }
           setState(prev => ({ ...prev, familiares: miembros }));
@@ -464,6 +468,11 @@ export const MiPerfilFamiliar: React.FC = () => {
               ? styles.filaFamilia__textoAvatarYo
               : styles.filaFamilia__textoAvatar;
 
+            const uriAvatarMiembro = familiar.urlAvatar
+              ? construirUriAvatar(familiar.urlAvatar)
+              : '';
+            const tieneAvatarMiembro = Boolean(uriAvatarMiembro);
+
             return (
               <View
                 key={familiar.id}
@@ -478,7 +487,15 @@ export const MiPerfilFamiliar: React.FC = () => {
                     accessibilityRole="image"
                     accessibilityLabel={`Avatar de ${familiar.nombre}`}
                   >
-                    <Text style={estiloTextoAvatar}>{textoAvatar}</Text>
+                    {tieneAvatarMiembro ? (
+                      <Image
+                        source={{ uri: uriAvatarMiembro }}
+                        style={styles.filaFamilia__imagenAvatar}
+                        accessibilityIgnoresInvertColors
+                      />
+                    ) : (
+                      <Text style={estiloTextoAvatar}>{textoAvatar}</Text>
+                    )}
                   </View>
 
                   <View style={styles.filaFamilia__texto}>

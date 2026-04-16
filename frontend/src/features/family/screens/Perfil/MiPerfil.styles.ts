@@ -190,6 +190,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
   },
 
   filaFamilia__avatarYo: {
@@ -200,6 +201,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+
+  filaFamilia__imagenAvatar: {
+    ...StyleSheet.absoluteFillObject,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 
   filaFamilia__textoAvatar: {

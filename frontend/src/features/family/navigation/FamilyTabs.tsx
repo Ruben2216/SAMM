@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
+import { BackHandler, Platform, ToastAndroid } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '../../../theme';
@@ -15,12 +17,53 @@ const Tab = createBottomTabNavigator();
 
 const SAFE_AREA_INSETS = { bottom: 0 };
 
+const TAB_INICIO = 'Inicio';
+const TIEMPO_DOBLE_ATRAS_MS = 2000;
+
 export const FamilyTabs = () => {
+  const navegacion = useNavigation<any>();
+  const ruta = useRoute<any>();
+  const ultimaPulsacionAtrasMs = useRef<number>(0);
+
   const insets = useSafeAreaInsets();
   const estiloTabBar = crearEstiloTabBar(insets.bottom);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') return;
+
+      const manejarAtras = () => {
+        const estadoTabs = (ruta as any)?.state;
+        const nombreTabActual =
+          estadoTabs?.routes?.[estadoTabs.index ?? 0]?.name ?? TAB_INICIO;
+
+        const ahora = Date.now();
+
+        if (ahora - ultimaPulsacionAtrasMs.current < TIEMPO_DOBLE_ATRAS_MS) {
+          BackHandler.exitApp();
+          return true;
+        }
+
+        // Primer atrás: siempre regresa a Inicio y avisa que el siguiente sale
+        ultimaPulsacionAtrasMs.current = ahora;
+
+        if (nombreTabActual !== TAB_INICIO) {
+          navegacion.navigate('FamilyTabs', { screen: TAB_INICIO });
+        }
+
+        ToastAndroid.show('Presiona atrás otra vez para salir', ToastAndroid.SHORT);
+        return true;
+      };
+
+      const suscripcion = BackHandler.addEventListener('hardwareBackPress', manejarAtras);
+      return () => suscripcion.remove();
+    }, [navegacion, ruta])
+  );
+
   return (
     <Tab.Navigator
+        initialRouteName={TAB_INICIO}
+        backBehavior="initialRoute"
         safeAreaInsets={SAFE_AREA_INSETS}
         screenOptions={({ route }: { route: any }) => ({
           tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => {

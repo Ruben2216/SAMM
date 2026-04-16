@@ -59,7 +59,10 @@ export const VinculacionFamiliar: React.FC = () => {
 
   const manejarOmitir = () => {
     console.log('[VinculacionFamiliar] Omitir — navegando a FamilyTabs');
-    (navegacion as any).navigate('FamilyTabs');
+    (navegacion as any).reset({
+      index: 0,
+      routes: [{ name: 'FamilyTabs' }],
+    });
   };
 
   const codigoArray = codigoVinculacion ? codigoVinculacion.split('') : [];
