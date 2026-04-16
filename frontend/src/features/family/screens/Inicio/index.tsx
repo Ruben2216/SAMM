@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
@@ -13,6 +13,7 @@ interface VinculacionInfo {
     Id_Adulto_Mayor: number;
     Nombre_Familiar: string | null;
     Nombre_Adulto_Mayor: string | null;
+    url_Avatar_Adulto_Mayor?: string | null;
     Nombre_Circulo: string | null;
     Rol_Adulto_Mayor: string | null;
     Rol_Familiar?: string | null;
@@ -32,6 +33,24 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
     const [cargando, setCargando] = useState(true);
 
     const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
+
+    const construirUriAvatar = (urlAvatar: string) => {
+        const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
+        const ruta = urlAvatar.trim();
+
+        if (!ruta) return '';
+        if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
+        if (!baseUrl) return ruta;
+
+        return `${baseUrl}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
+    };
+
+    const obtenerInicialesNombre = (nombreCompleto: string) => {
+        const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+        const primera = partes[0]?.[0] ?? '';
+        const ultima = partes.length > 1 ? partes[partes.length - 1]?.[0] ?? '' : '';
+        return `${primera}${ultima}`.toUpperCase();
+    };
 
     const cargarDatos = async () => {
         try {
@@ -76,8 +95,13 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
         obtenerParentescoDelAdultoParaFamiliar(vinculacion?.Rol_Adulto_Mayor) ||
         'Adulto Mayor';
     const iniciales = nombreSenior !== 'Sin vincular'
-        ? nombreSenior.split(' ').map((p: string) => p[0]).join('').toUpperCase().substring(0, 2)
+        ? obtenerInicialesNombre(nombreSenior)
         : '??';
+
+    const uriAvatarSenior = vinculacion?.url_Avatar_Adulto_Mayor
+        ? construirUriAvatar(vinculacion.url_Avatar_Adulto_Mayor)
+        : '';
+    const tieneAvatarSenior = Boolean(uriAvatarSenior);
 
     const totalMeds = medicamentos.length;
     const tomados = medicamentos.filter((m) => m.tomado_hoy).length;
@@ -119,8 +143,20 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                         <View style={styles.tarjetaSenior}>
                             <View style={styles.tarjetaSeniorTop}>
                                 <View style={styles.perfilSeniorRow}>
-                                    <View style={styles.avatarSenior}>
-                                        <Text style={styles.avatarTexto}>{iniciales}</Text>
+                                    <View
+                                        style={styles.avatarSenior}
+                                        accessibilityRole="image"
+                                        accessibilityLabel={`Avatar de ${nombreSenior}`}
+                                    >
+                                        {tieneAvatarSenior ? (
+                                            <Image
+                                                source={{ uri: uriAvatarSenior }}
+                                                style={styles.avatarSenior__imagen}
+                                                accessibilityIgnoresInvertColors
+                                            />
+                                        ) : (
+                                            <Text style={styles.avatarTexto}>{iniciales}</Text>
+                                        )}
                                     </View>
                                     <View>
                                         <Text style={styles.nombreSenior}>{nombreSenior}</Text>

@@ -93,6 +93,13 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  tarjetaPerfil__avatarImagen: {
+    ...StyleSheet.absoluteFillObject,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   tarjetaPerfil__avatarTexto: {
     fontSize: 16,

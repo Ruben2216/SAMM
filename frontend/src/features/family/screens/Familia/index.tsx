@@ -10,6 +10,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Image,
 } from "react-native";
 import { styles } from "./styles";
 import {
@@ -38,6 +39,7 @@ interface VinculacionInfo {
   Id_Adulto_Mayor: number;
   Nombre_Familiar: string | null;
   Nombre_Adulto_Mayor: string | null;
+  url_Avatar_Adulto_Mayor?: string | null;
   Nombre_Circulo: string | null;
   Rol_Adulto_Mayor: string | null;
   Rol_Familiar?: string | null;
@@ -47,15 +49,34 @@ interface PerfilCuidado {
   id: string;
   nombre: string;
   iniciales: string;
+  urlAvatar?: string | null;
   rolEnCirculo: string;
   nombreCirculo: string;
   idAdultoMayor: number;
 }
 
-const generarIniciales = (nombre: string): string => {
-  const partes = nombre.trim().split(" ");
-  if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
-  return nombre.length >= 2 ? nombre.substring(0, 2).toUpperCase() : "NP";
+const construirUriAvatar = (urlAvatar: string) => {
+  const baseUrl = (httpClient.defaults.baseURL ?? "").replace(/\/$/, "");
+  const ruta = urlAvatar.trim();
+
+  if (!ruta) return "";
+  if (ruta.startsWith("http://") || ruta.startsWith("https://")) return ruta;
+  if (!baseUrl) return ruta;
+
+  return `${baseUrl}${ruta.startsWith("/") ? "" : "/"}${ruta}`;
+};
+
+const generarIniciales = (nombreCompleto: string): string => {
+  const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+
+  if (partes.length === 0) return "NP";
+  if (partes.length === 1) return (partes[0]?.[0] ?? "").toUpperCase();
+  if (partes.length === 2) {
+    return `${partes[0]?.[0] ?? ""}${partes[1]?.[0] ?? ""}`.toUpperCase();
+  }
+
+  // Regla: 2 nombres + 2 apellidos -> inicial del primer nombre y del primer apellido.
+  return `${partes[0]?.[0] ?? ""}${partes[2]?.[0] ?? ""}`.toUpperCase();
 };
 
 const realizarLlamada = (telefono: string) => {
@@ -78,6 +99,9 @@ const ItemPerfil = ({
   estaExpandido: boolean;
   onPresionar: () => void;
 }) => {
+  const uriAvatar = perfil.urlAvatar ? construirUriAvatar(perfil.urlAvatar) : "";
+  const tieneAvatar = Boolean(uriAvatar);
+
   return (
     <View style={styles.tarjetaPerfil}>
       <TouchableOpacity
@@ -85,10 +109,23 @@ const ItemPerfil = ({
         onPress={onPresionar}
         activeOpacity={0.8}
       >
-        <View style={styles.tarjetaPerfil__avatar}>
-          <Text style={styles.tarjetaPerfil__avatarTexto}>
-            {perfil.iniciales}
-          </Text>
+        <View
+          style={styles.tarjetaPerfil__avatar}
+          accessibilityRole="image"
+          accessibilityLabel={`Avatar de ${perfil.nombre}`}
+        >
+          {tieneAvatar ? (
+            <Image
+              source={{ uri: uriAvatar }}
+              style={styles.tarjetaPerfil__avatarImagen}
+              resizeMode="cover"
+              accessibilityIgnoresInvertColors
+            />
+          ) : (
+            <Text style={styles.tarjetaPerfil__avatarTexto}>
+              {perfil.iniciales}
+            </Text>
+          )}
         </View>
 
         <View style={styles.tarjetaPerfil__info}>
@@ -146,6 +183,7 @@ export const Familia = () => {
         id: String(v.Id_Vinculacion),
         nombre: v.Nombre_Adulto_Mayor || "Sin nombre",
         iniciales: generarIniciales(v.Nombre_Adulto_Mayor || "NP"),
+        urlAvatar: v.url_Avatar_Adulto_Mayor?.trim() ? v.url_Avatar_Adulto_Mayor : null,
         rolEnCirculo:
           v.Rol_Familiar || obtenerParentescoDelAdultoParaFamiliar(v.Rol_Adulto_Mayor),
         nombreCirculo: v.Nombre_Circulo || "",

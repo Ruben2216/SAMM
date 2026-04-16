@@ -72,6 +72,13 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
+        overflow: 'hidden',
+    },
+    avatarSenior__imagen: {
+        ...StyleSheet.absoluteFillObject,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
     },
     avatarTexto: {
         color: '#00E676',
