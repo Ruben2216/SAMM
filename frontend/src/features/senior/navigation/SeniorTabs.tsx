@@ -6,7 +6,6 @@ import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/nativ
 // Subimos 3 niveles: navigation -> senior -> features -> src -> theme
 import { theme } from '../../../theme';
 
-// Importamos las vistas desde la carpeta screens vecina
 import { Inicio } from '../screens/Inicio';
 import { Historial } from '../screens/Historial';
 import Citas from '../screens/Citas';
@@ -81,7 +80,7 @@ export const SeniorTabs = () => {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
-          marginBottom: 5,
+          marginBottom:  5,
         },
         tabBarStyle: {
           height: 120 ,

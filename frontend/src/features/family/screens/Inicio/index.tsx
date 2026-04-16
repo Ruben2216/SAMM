@@ -169,7 +169,11 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                         <Text style={styles.tituloSeccion}>Gestionar Salud</Text>
 
                         <View style={styles.gridContainer}>
-                            <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}>
+                            <TouchableOpacity
+                                style={styles.cardGrid}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate('MedicamentosFamiliar', { idAdultoMayor: vinculacion.Id_Adulto_Mayor, nombreAdulto: nombreSenior })}
+                            >
                                 <View style={styles.iconoFondoRosa}>
                                     <Ionicons name="flask" size={24} color="#10B981" />
                                 </View>
@@ -186,15 +190,19 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                             <TouchableOpacity
                                 style={styles.cardGrid}
                                 activeOpacity={0.8}
-                                onPress={() => navigation.navigate('Citas')}
+                                onPress={() => navigation.navigate('CitasFamiliar', { idAdultoMayor: vinculacion.Id_Adulto_Mayor })}
                             >
                                 <View style={styles.iconoFondoRosa}>
                                     <Ionicons name="calendar-outline" size={24} color="#10B981" />
                                 </View>
-                                <Text style={styles.textoCardGrid}>Citas Medicas</Text>
+                                <Text style={styles.textoCardGrid}>Citas Médicas</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}>
+                            <TouchableOpacity
+                                style={styles.cardGrid}
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate('HistorialFamiliar', { idAdultoMayor: vinculacion.Id_Adulto_Mayor, nombreAdulto: nombreSenior })}
+                            >
                                 <View style={styles.iconoFondoRosa}>
                                     <Ionicons name="time-outline" size={24} color="#10B981" />
                                 </View>

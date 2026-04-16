@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
+import { SuccessModal } from '../../../../components/ui/success-modal';
 
 const ITEM_HEIGHT = 60; 
 const HORAS = Array.from({ length: 12 }, (_, i) => (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`));
@@ -17,6 +18,8 @@ export const EstablecerHora = () => {
     const esModoEditar = !!datos.id_medicamento;
 
     const [repetir, setRepetir] = useState(true);
+    const [modalExito, setModalExito] = useState(false);
+    const [mensajeExito, setMensajeExito] = useState('');
 
     const [hora, setHora] = useState(() => {
         if (datos.horaCruda) {
@@ -69,15 +72,14 @@ export const EstablecerHora = () => {
             const resultado = await respuesta.json();
 
             if (respuesta.ok) {
-                Alert.alert("¡Éxito!", `El medicamento se ${esModoEditar ? 'actualizó' : 'guardó'} en la BD.`, [
-                    { text: "Excelente", onPress: () => navigation.navigate('Inicio') }
-                ]);
+                setMensajeExito(esModoEditar ? 'Medicamento actualizado con éxito' : 'Medicamento guardado con éxito');
+                setModalExito(true);
             } else {
                 Alert.alert("Error del Servidor", resultado.detail || "No se pudo procesar la solicitud.");
             }
         } catch (error) {
             console.error("Error de conexión:", error);
-            Alert.alert("Error de Red", "Revisa que tu backend de Python esté encendido (puerto 8000).");
+            Alert.alert("Error de Red", "Revisa que el servicio de medicamentos esté encendido (puerto 8001).");
         }
     };
 
@@ -146,6 +148,15 @@ export const EstablecerHora = () => {
                     <Text style={styles.textoBoton}>{esModoEditar ? "Actualizar" : "Confirmar hora"}</Text>
                 </TouchableOpacity>
             </View>
+
+            <SuccessModal
+                esVisible={modalExito}
+                mensaje={mensajeExito}
+                alTerminar={() => {
+                    setModalExito(false);
+                    navigation.navigate('Inicio');
+                }}
+            />
         </View>
     );
 };
