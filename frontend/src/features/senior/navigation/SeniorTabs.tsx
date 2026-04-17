@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import * as Battery from 'expo-battery';
 import * as Notifications from 'expo-notifications';
-// Subimos 3 niveles: navigation -> senior -> features -> src -> theme
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../../../theme';
 
 import { useAuthStore } from '../../auth/authStore';
@@ -25,6 +25,10 @@ export const SeniorTabs = () => {
   const navegacion = useNavigation<any>();
   const ruta = useRoute<any>();
   const ultimaPulsacionAtrasMs = useRef<number>(0);
+  const insets = useSafeAreaInsets();
+  const tieneGestos = insets.bottom > 0;
+  const alturaBarra = tieneGestos ? 60 + insets.bottom : 70;
+  const paddingInferior = tieneGestos ? insets.bottom : 10;
 
   const idUsuario = useAuthStore((s) => s.usuario?.Id_Usuario ?? null);
   const rolUsuario = useAuthStore((s) => s.usuario?.Rol ?? null);
@@ -164,6 +168,7 @@ export const SeniorTabs = () => {
     <Tab.Navigator
       initialRouteName={TAB_INICIO}
       backBehavior="initialRoute"
+      safeAreaInsets={{ bottom: 0 }}
       screenOptions={({ route }: { route: any }) => ({
         tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => {
           let iconName: keyof typeof Ionicons.glyphMap;
@@ -187,11 +192,12 @@ export const SeniorTabs = () => {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
-          marginBottom:  5,
+          marginBottom: tieneGestos ? 0 : 5,
         },
         tabBarStyle: {
-          height: 120 ,
-          paddingBottom: 50,
+          height: alturaBarra,
+          paddingTop: 10,
+          paddingBottom: paddingInferior,
           backgroundColor: '#FFFFFF',
           borderTopColor: '#E2E8F0',
           borderTopWidth: 1,

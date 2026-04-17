@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { NativeModules, Platform, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from './src/theme';
+import { registrarParaNotificaciones } from './src/services/notificationService';
+import { useAuthStore } from './src/features/auth/authStore';
 import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
@@ -32,31 +34,42 @@ import { FamilyTabs } from './src/features/family/navigation/FamilyTabs';
 import { CodigoVinculacion } from './src/features/family/screens/CodigoVinculacion';
 import { MedicamentosFamiliar } from './src/features/family/screens/MedicamentosFamiliar';
 import { HistorialFamiliar } from './src/features/family/screens/HistorialFamiliar';
+import { RecordatorioMedicamento } from './src/features/senior/screens/RecordatorioMedicamento';
+import { AlertaMedicamento } from './src/features/family/screens/AlertaMedicamento';
 
 
 const Stack = createStackNavigator();
+
+const moduloDispositivo = NativeModules.SAMMDeviceToken;
 
 /**
  * Componente raíz de la aplicación SAMM
  * Configura proveedores globales y navegación
  */
 export default function App() {
+  const usuario = useAuthStore((s) => s.usuario);
+  const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
+
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-    const moduloDispositivo = NativeModules.SAMMDeviceToken;
+    if (!apiUrl) return;
 
-    if (apiUrl && moduloDispositivo?.guardarApiUrl) {
-      moduloDispositivo.guardarApiUrl(apiUrl);
+    if (moduloDispositivo?.guardarApiUrl) {
+      void moduloDispositivo.guardarApiUrl(apiUrl);
     }
   }, []);
+
+  useEffect(() => {
+    void registrarParaNotificaciones(usuario?.Id_Usuario);
+  }, [usuario?.Id_Usuario]);
 
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
           //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
            // initialRouteName="MiPerfilFamiliar"
@@ -98,6 +111,10 @@ export default function App() {
             <Stack.Screen name="CodigoVinculacion" component={CodigoVinculacion} />
             <Stack.Screen name="MedicamentosFamiliar" component={MedicamentosFamiliar} />
             <Stack.Screen name="HistorialFamiliar" component={HistorialFamiliar} />
+
+            {/* Pantallas de notificaciones */}
+            <Stack.Screen name="RecordatorioMedicamento" component={RecordatorioMedicamento} />
+            <Stack.Screen name="AlertaMedicamento" component={AlertaMedicamento} />
 
           </Stack.Navigator>
         </NavigationContainer>

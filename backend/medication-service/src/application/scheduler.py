@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from src.infrastructure.database import SessionLocal
 from src.domain import models
+from src.application.notifier import notificar_familiares
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,19 +40,30 @@ def verificar_incumplimientos():
                 # Si NO hay registro, significa que se le olvidó por completo
                 if not registro:
                     logger.warning(f"¡ALERTA! Se olvidó la medicina ID {horario.Id_Medicamento} de las {horario.Hora_Toma}")
-                    
+
                     nuevo_incumplimiento = models.HistorialToma(
                         Id_Medicamento=horario.Id_Medicamento,
                         Fecha_Asignada=hoy,
                         Hora_Asignada=horario.Hora_Toma,
-                        Estado="incumplido", 
+                        Estado="incumplido",
                         Fecha_Hora_Real_Toma=None,
-                        Alerta_Enviada_Familiar=True 
+                        Alerta_Enviada_Familiar=True
                     )
                     db.add(nuevo_incumplimiento)
                     db.commit()
-                    
-                    # NOTA: Aquí más adelante conectaremos el código de RabbitMQ/Pika para mandar el push al familiar.
+
+                    # Notificar a los familiares via notification-service
+                    notificar_familiares(
+                        id_adulto_mayor=horario.medicamento.Id_Usuario,
+                        titulo="Medicación olvidada",
+                        cuerpo=f"No se registró la toma de {horario.medicamento.Nombre}",
+                        datos={
+                            "tipo": "alerta_familiar",
+                            "tipoAlerta": "olvidado",
+                            "nombreMedicamento": horario.medicamento.Nombre,
+                            "horaToma": horario.Hora_Toma.strftime("%H:%M"),
+                        },
+                    )
                     
     except Exception as e:
         logger.error(f"Error en Cron Job: {e}")

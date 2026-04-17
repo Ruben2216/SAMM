@@ -130,9 +130,7 @@ export const MiPerfilFamiliar: React.FC = () => {
           const vincs: VinculacionInfo[] = res.data;
           setVinculaciones(vincs);
 
-          // Build familiares list from real data
           const miembros: Familiar[] = [];
-          // Add myself (the familiar)
           miembros.push({
             id: String(usuarioAutenticado?.Id_Usuario || '0'),
             nombre: usuarioAutenticado?.Nombre || 'Yo',
@@ -140,7 +138,6 @@ export const MiPerfilFamiliar: React.FC = () => {
             urlAvatar: usuarioAutenticado?.url_Avatar ?? null,
             esPrincipal: true,
           });
-          // Add linked seniors
           for (const v of vincs) {
             miembros.push({
               id: String(v.Id_Adulto_Mayor),

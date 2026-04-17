@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/logoapp.png",
     "platforms": [
       "android"
     ],
@@ -19,13 +20,15 @@
     ],
     "android": {
       "package": "com.samm.app",
+      "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#14EC5C"
+        "foregroundImage": "./assets/logoapp.png",
+        "backgroundColor": "#1A1D21"
       }
     },
     "plugins": [
@@ -55,8 +58,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "da300fd0-81f2-476b-91d5-75baccced994"
+        "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
       }
-    }
+    },
+    "owner": "fernandovargas15"
   }
 }
