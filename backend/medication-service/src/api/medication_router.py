@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime, date  
+from datetime import datetime, date
 from src.infrastructure.database import get_db
 from src.domain import models, schemas
+from src.application.notifier import notificar_familiares
 from zoneinfo import ZoneInfo
 
 router = APIRouter(prefix="/medicamentos", tags=["Medicamentos"])
@@ -127,7 +128,20 @@ def marcar_como_tomado(id_medicamento: int, toma: schemas.TomaConfirmar, db: Ses
     
     db.add(nueva_toma)
     db.commit()
-    
+
+    # Notificar a los familiares vinculados (via notification-service)
+    notificar_familiares(
+        id_adulto_mayor=medicamento.Id_Usuario,
+        titulo="Medicamento tomado",
+        cuerpo=f"Se ha registrado la toma de {medicamento.Nombre}",
+        datos={
+            "tipo": "alerta_familiar",
+            "tipoAlerta": "tomado",
+            "nombreMedicamento": medicamento.Nombre,
+            "horaToma": toma.hora_asignada.strftime("%H:%M"),
+        },
+    )
+
     return {"mensaje": f"El medicamento ha sido registrado como tomado hoy."}
 
 # 7. READ - Obtener el historial de tomas de un usuario

@@ -57,8 +57,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "da300fd0-81f2-476b-91d5-75baccced994"
+        "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
       }
-    }
+    },
+    "owner": "fernandovargas15"
   }
 }

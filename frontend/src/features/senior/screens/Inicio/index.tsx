@@ -6,6 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { SuccessModal } from '../../../../components/ui/success-modal';
+import { programarRecordatorioMedicamento, cancelarTodasLasNotificaciones } from '../../../../services/notificationService';
 
 const generarSemana = () => {
     const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -92,6 +93,21 @@ export const Inicio = () => {
 
             medicamentosFormateados.sort((a: any, b: any) => a.horaCruda.localeCompare(b.horaCruda));
             setMedicamentos(medicamentosFormateados);
+
+            // Programar notificaciones locales para cada medicamento pendiente
+            await cancelarTodasLasNotificaciones();
+            for (const med of medicamentosFormateados) {
+                if (med.estado === 'pendiente') {
+                    await programarRecordatorioMedicamento({
+                        idMedicamento: med.id_medicamento,
+                        idHorario: parseInt(med.id_unico.split('-')[1], 10),
+                        nombreMedicamento: med.nombre,
+                        dosis: med.rawDosis,
+                        notas: med.notas || '',
+                        horaToma: med.horaCruda,
+                    });
+                }
+            }
         } catch (error) {
             console.error("Error obteniendo medicamentos:", error);
         } finally {

@@ -165,4 +165,13 @@ CREATE TABLE citas (
 EXPO_PUBLIC_API_URL_CITAS=http://TU_IP_LAPTOP:8004
 ---
 
- 
+
+### Notificaciones
+1. cd backend/notification-service
+2. python3 -m venv venv
+3. source venv/bin/activate
+4. pip install -r requirements.txt
+5. uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+
+Agregar esto al .env de frontend 
+EXPO_PUBLIC_API_URL_NOTIFICACIONES=http://TU_IP_LAPTOP:8002
