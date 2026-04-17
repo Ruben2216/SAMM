@@ -5,9 +5,11 @@ y para configurar el círculo (nombre y rol).
 """
 import logging
 from typing import Optional
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from src.domain.models.user import Usuario
 from src.application.vinculacion_utils import calcular_parentesco_reciproco
@@ -16,6 +18,8 @@ from src.application.validar_codigo_use_case import ValidarCodigoUseCase
 from src.application.actualizar_circulo_use_case import ActualizarCirculoUseCase
 from src.infrastructure.persistence.postgres_vinculacion_repository import PostgresVinculacionRepository
 from src.infrastructure.persistence.postgres_repository import PostgresUserRepository
+from src.infrastructure.persistence.database import obtener_sesion
+from src.infrastructure.persistence.sqlalchemy_models import EstadoDispositivoModel
 from src.infrastructure.api.dependencies import (
     obtener_generar_codigo_uc,
     obtener_validar_codigo_uc,
@@ -63,6 +67,9 @@ class MiVinculacionResponse(BaseModel):
     Nombre_Adulto_Mayor: Optional[str] = None
     url_Avatar_Familiar: Optional[str] = None
     url_Avatar_Adulto_Mayor: Optional[str] = None
+    Bateria_Porcentaje_Adulto_Mayor: Optional[int] = None
+    Bateria_Cargando_Adulto_Mayor: Optional[bool] = None
+    Bateria_Actualizado_En_Adulto_Mayor: Optional[datetime] = None
     Nombre_Circulo: Optional[str] = None
     Rol_Adulto_Mayor: Optional[str] = None
     Rol_Familiar: Optional[str] = None
@@ -163,6 +170,7 @@ def mis_vinculaciones(
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
     repo_vinculacion: PostgresVinculacionRepository = Depends(obtener_repositorio_vinculacion),
     repo_usuarios: PostgresUserRepository = Depends(obtener_repositorio),
+    db: Session = Depends(obtener_sesion),
 ):
     """
     Retorna las vinculaciones del usuario autenticado con los nombres
@@ -180,6 +188,8 @@ def mis_vinculaciones(
         familiar = repo_usuarios.buscar_por_id(v.Id_Familiar)
         adulto = repo_usuarios.buscar_por_id(v.Id_Adulto_Mayor)
 
+        estado = db.query(EstadoDispositivoModel).filter_by(Id_Usuario=v.Id_Adulto_Mayor).first()
+
         rol_familiar = getattr(v, "Rol_Familiar", None)
         if not rol_familiar and v.Rol_Adulto_Mayor:
             sexo_adulto = getattr(adulto, "sexo", "Otro") if adulto else "Otro"
@@ -193,6 +203,9 @@ def mis_vinculaciones(
             Nombre_Adulto_Mayor=adulto.Nombre if adulto else None,
             url_Avatar_Familiar=familiar.url_Avatar if familiar else None,
             url_Avatar_Adulto_Mayor=adulto.url_Avatar if adulto else None,
+            Bateria_Porcentaje_Adulto_Mayor=getattr(estado, "Bateria_Porcentaje", None),
+            Bateria_Cargando_Adulto_Mayor=getattr(estado, "Bateria_Cargando", None),
+            Bateria_Actualizado_En_Adulto_Mayor=getattr(estado, "Actualizado_En", None),
             Nombre_Circulo=v.Nombre_Circulo,
             Rol_Adulto_Mayor=v.Rol_Adulto_Mayor,
             Rol_Familiar=rol_familiar,

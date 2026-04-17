@@ -84,6 +84,63 @@ BEGIN
     END IF;
 END $$;
 
+-- === Estado del dispositivo (batería) — Normalización (3FN)
+-- Tabla 1:1 con Usuarios para guardar el último estado reportado del dispositivo.
+CREATE TABLE IF NOT EXISTS "Estados_Dispositivo" (
+    "Id_Usuario" INT PRIMARY KEY,
+    "Bateria_Porcentaje" INT NOT NULL,
+    "Bateria_Cargando" BOOLEAN NOT NULL DEFAULT FALSE,
+    "Actualizado_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Constraints (idempotentes)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_estado_dispositivo_usuario') THEN
+        ALTER TABLE "Estados_Dispositivo"
+        ADD CONSTRAINT fk_estado_dispositivo_usuario
+            FOREIGN KEY ("Id_Usuario") REFERENCES "Usuarios"("Id_Usuario")
+            ON DELETE CASCADE;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_estado_dispositivo_bateria') THEN
+        ALTER TABLE "Estados_Dispositivo"
+        ADD CONSTRAINT ck_estado_dispositivo_bateria
+            CHECK ("Bateria_Porcentaje" >= 0 AND "Bateria_Porcentaje" <= 100);
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_estados_dispositivo_actualizado_en
+ON "Estados_Dispositivo" ("Actualizado_En");
+
+-- === Dispositivos (token de dispositivo para reportes en background) — Normalización / seguridad
+-- Guardamos el token en el cliente, en BD solo se persiste el hash.
+CREATE TABLE IF NOT EXISTS "Dispositivos" (
+    "Id_Dispositivo" SERIAL PRIMARY KEY,
+    "Id_Usuario" INT NOT NULL,
+    "Token_Hash" CHAR(64) NOT NULL,
+    "Activo" BOOLEAN NOT NULL DEFAULT TRUE,
+    "Creado_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "Ultimo_Uso_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_dispositivos_usuario') THEN
+        ALTER TABLE "Dispositivos"
+        ADD CONSTRAINT fk_dispositivos_usuario
+            FOREIGN KEY ("Id_Usuario") REFERENCES "Usuarios"("Id_Usuario")
+            ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- Unicidad del hash (idempotente)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dispositivos_token_hash
+ON "Dispositivos" ("Token_Hash");
+
+CREATE INDEX IF NOT EXISTS idx_dispositivos_usuario
+ON "Dispositivos" ("Id_Usuario");
+
 -- 6. Crear índices para búsquedas frecuentes
 CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON "Usuarios" ("Correo");
 CREATE INDEX IF NOT EXISTS idx_usuarios_google_id ON "Usuarios" ("Google_Id");

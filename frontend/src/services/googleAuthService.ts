@@ -62,6 +62,14 @@ export async function signInWithGoogleNative(): Promise<string | null> {
         await GoogleSignin.hasPlayServices();
         console.log('[GoogleAuth] Google Play Services disponible');
 
+        // Forzar selector de cuenta: si existe una sesión previa, Android puede reutilizarla
+        // y saltarse el picker.
+        try {
+            await GoogleSignin.signOut();
+        } catch {
+            // Silencioso
+        }
+
         const userInfo = await GoogleSignin.signIn();
         const idToken = userInfo.data?.idToken || null;
 

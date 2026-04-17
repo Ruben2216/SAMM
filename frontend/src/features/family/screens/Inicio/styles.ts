@@ -96,6 +96,9 @@ export const styles = StyleSheet.create({
         fontWeight: '500',
         opacity: 0.9,
     },
+    estadoSenior: {
+        alignItems: 'flex-end',
+    },
     badgeEstable: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -109,6 +112,23 @@ export const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 12,
         marginLeft: 4,
+    },
+    estadoSenior__bateriaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        marginTop: 8,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 15,
+        minWidth: 74,
+    },
+    estadoSenior__bateriaTexto: {
+        color: '#334155',
+        fontWeight: '800',
+        fontSize: 12,
     },
     ubicacionRow: {
         flexDirection: 'row',

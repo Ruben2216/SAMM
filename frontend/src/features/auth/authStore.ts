@@ -5,7 +5,9 @@
  */
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import { NativeModules, Platform } from 'react-native';
 import httpClient, { setAuthToken } from '../../services/httpService';
+import { signOutGoogle } from '../../services/googleAuthService';
 
 // ===================== Tipos =====================
 
@@ -55,6 +57,36 @@ interface AuthState {
 const TOKEN_KEY = 'samm_auth_token';
 const USUARIO_KEY = 'samm_auth_usuario';
 
+const moduloDispositivo = NativeModules.SAMMDeviceToken;
+
+async function prepararReporteBackgroundDeBateria(rolUsuario: string | null): Promise<void> {
+    if (Platform.OS !== 'android') return;
+    if (rolUsuario !== 'adulto_mayor') return;
+    if (!moduloDispositivo?.obtenerTokenDispositivo || !moduloDispositivo?.guardarTokenDispositivo) return;
+
+    try {
+        const tokenExistente = (await moduloDispositivo.obtenerTokenDispositivo()) as string | null;
+        if (tokenExistente) {
+            if (moduloDispositivo?.iniciarServicioBateria) {
+                await moduloDispositivo.iniciarServicioBateria();
+            }
+            return;
+        }
+
+        const response = await httpClient.post('/devices/registro');
+        const tokenDispositivo = response.data?.token_dispositivo as string | undefined;
+        if (!tokenDispositivo) return;
+
+        await moduloDispositivo.guardarTokenDispositivo(tokenDispositivo);
+
+        if (moduloDispositivo?.iniciarServicioBateria) {
+            await moduloDispositivo.iniciarServicioBateria();
+        }
+    } catch (e: any) {
+        console.error('[AuthStore] Error preparando reporte background de batería:', e?.message || e);
+    }
+}
+
 // ===================== Store =====================
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -83,6 +115,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await SecureStore.setItemAsync(TOKEN_KEY, token_sesion);
             await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
             setAuthToken(token_sesion);
+            await prepararReporteBackgroundDeBateria(usuario.Rol);
 
             set({
                 usuario,
@@ -123,6 +156,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await SecureStore.setItemAsync(TOKEN_KEY, token_sesion);
             await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
             setAuthToken(token_sesion);
+            await prepararReporteBackgroundDeBateria(usuario.Rol);
 
             set({
                 usuario,
@@ -158,6 +192,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await SecureStore.setItemAsync(TOKEN_KEY, token_sesion);
             await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
             setAuthToken(token_sesion);
+            await prepararReporteBackgroundDeBateria(usuario.Rol);
 
             set({
                 usuario,
@@ -193,6 +228,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await SecureStore.setItemAsync(TOKEN_KEY, token_sesion);
             await SecureStore.setItemAsync(USUARIO_KEY, JSON.stringify(usuario));
             setAuthToken(token_sesion);
+            await prepararReporteBackgroundDeBateria(usuario.Rol);
 
             set({
                 usuario,
@@ -265,9 +301,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     cerrarSesion: async (): Promise<void> => {
         console.log('[AuthStore] Cerrando sesión...');
 
+        const usuarioActual = get().usuario;
+
         await SecureStore.deleteItemAsync(TOKEN_KEY);
         await SecureStore.deleteItemAsync(USUARIO_KEY);
         setAuthToken(null);
+
+        if (usuarioActual?.Proveedor_Auth === 'google') {
+            try {
+                await signOutGoogle();
+            } catch {
+                // Silencioso
+            }
+        }
+
+        if (Platform.OS === 'android' && moduloDispositivo) {
+            try {
+                if (moduloDispositivo?.detenerServicioBateria) {
+                    await moduloDispositivo.detenerServicioBateria();
+                }
+                if (moduloDispositivo?.limpiarTokenDispositivo) {
+                    await moduloDispositivo.limpiarTokenDispositivo();
+                }
+            } catch (e: any) {
+                console.error('[AuthStore] Error deteniendo servicio de batería:', e?.message || e);
+            }
+        }
 
         set({
             usuario: null,
@@ -294,6 +353,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 const usuario = JSON.parse(usuarioGuardado) as Usuario;
                 
                 setAuthToken(tokenGuardado);
+                await prepararReporteBackgroundDeBateria(usuario.Rol);
 
                 console.log(`[AuthStore] Sesión restaurada — Id_Usuario: ${usuario.Id_Usuario}, Rol: ${usuario.Rol}`);
 

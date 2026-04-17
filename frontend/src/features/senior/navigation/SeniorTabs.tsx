@@ -1,10 +1,15 @@
-import React, { useCallback, useRef } from 'react';
-import { BackHandler, Platform, ToastAndroid } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { BackHandler, NativeModules, Platform, ToastAndroid } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import * as Battery from 'expo-battery';
+import * as Notifications from 'expo-notifications';
 // Subimos 3 niveles: navigation -> senior -> features -> src -> theme
 import { theme } from '../../../theme';
+
+import { useAuthStore } from '../../auth/authStore';
+import httpClient from '../../../services/httpService';
 
 import { Inicio } from '../screens/Inicio';
 import { Historial } from '../screens/Historial';
@@ -20,6 +25,108 @@ export const SeniorTabs = () => {
   const navegacion = useNavigation<any>();
   const ruta = useRoute<any>();
   const ultimaPulsacionAtrasMs = useRef<number>(0);
+
+  const idUsuario = useAuthStore((s) => s.usuario?.Id_Usuario ?? null);
+  const rolUsuario = useAuthStore((s) => s.usuario?.Rol ?? null);
+
+  const ultimoEnvioMsRef = useRef<number>(0);
+  const ultimoEstadoEnviadoRef = useRef<{ porcentaje: number; cargando: boolean } | null>(null);
+  const porcentajeActualRef = useRef<number | null>(null);
+  const cargandoActualRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || rolUsuario !== 'adulto_mayor') return;
+
+    const prepararNotificacionesYServicio = async () => {
+      try {
+        const permisos = await Notifications.getPermissionsAsync();
+        if (permisos.status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+
+        // Reintento: si al loguear el servicio falló por falta de permisos, lo levantamos acá.
+        const moduloDispositivo = NativeModules.SAMMDeviceToken;
+        if (moduloDispositivo?.iniciarServicioBateria) {
+          await moduloDispositivo.iniciarServicioBateria();
+        }
+      } catch {
+        // Silencioso
+      }
+    };
+
+    prepararNotificacionesYServicio();
+  }, [rolUsuario]);
+
+  useEffect(() => {
+    if (!idUsuario || rolUsuario !== 'adulto_mayor') return;
+
+    let subNivel: Battery.Subscription | null = null;
+    let subEstado: Battery.Subscription | null = null;
+
+    const enviarEstado = async (porcentaje: number, cargando: boolean) => {
+      const ahora = Date.now();
+
+      // Throttle defensivo para no saturar al backend.
+      if (ahora - ultimoEnvioMsRef.current < 15000) return;
+
+      const ultimo = ultimoEstadoEnviadoRef.current;
+      if (ultimo && ultimo.porcentaje === porcentaje && ultimo.cargando === cargando) {
+        // Si no cambió nada, limitar aún más el envío.
+        if (ahora - ultimoEnvioMsRef.current < 60000) return;
+      }
+
+      try {
+        await httpClient.put('/users/me/bateria', {
+          porcentaje,
+          esta_cargando: cargando,
+        });
+
+        ultimoEnvioMsRef.current = ahora;
+        ultimoEstadoEnviadoRef.current = { porcentaje, cargando };
+      } catch {
+        // Silencioso: el estado se reintentará cuando haya cambios o en el próximo envío.
+      }
+    };
+
+    const leerYEnviar = async () => {
+      try {
+        const nivel = await Battery.getBatteryLevelAsync();
+        const estado = await Battery.getBatteryStateAsync();
+
+        const porcentaje = Math.round(nivel * 100);
+        const cargando =
+          estado === Battery.BatteryState.CHARGING || estado === Battery.BatteryState.FULL;
+
+        porcentajeActualRef.current = porcentaje;
+        cargandoActualRef.current = cargando;
+
+        await enviarEstado(porcentaje, cargando);
+      } catch {
+        // Si falla (dispositivo/permiso), no bloquea navegación.
+      }
+    };
+
+    leerYEnviar();
+
+    subNivel = Battery.addBatteryLevelListener(({ batteryLevel }) => {
+      const porcentaje = Math.round((batteryLevel ?? 0) * 100);
+      porcentajeActualRef.current = porcentaje;
+      enviarEstado(porcentaje, cargandoActualRef.current);
+    });
+
+    subEstado = Battery.addBatteryStateListener(({ batteryState }) => {
+      const cargando =
+        batteryState === Battery.BatteryState.CHARGING ||
+        batteryState === Battery.BatteryState.FULL;
+      cargandoActualRef.current = cargando;
+      enviarEstado(porcentajeActualRef.current ?? 0, cargando);
+    });
+
+    return () => {
+      subNivel?.remove();
+      subEstado?.remove();
+    };
+  }, [idUsuario, rolUsuario]);
 
   useFocusEffect(
     useCallback(() => {

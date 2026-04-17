@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -51,9 +51,17 @@ export const Perfil = () => {
   const [guardando, setGuardando] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const cargarDatos = async () => {
+  const ultimaCargaMsRef = useRef<number>(0);
+  const TIEMPO_CACHE_MS = 20000;
+  const yaCargoUnaVezRef = useRef(false);
+
+  const cargarDatos = useCallback(async () => {
+    const esPrimerCarga = !yaCargoUnaVezRef.current;
+
     try {
-      setCargando(true);
+      if (esPrimerCarga) {
+        setCargando(true);
+      }
       const userId = usuario?.Id_Usuario;
       if (!userId) return;
 
@@ -83,14 +91,23 @@ export const Perfil = () => {
         console.log('Sin vinculación');
       }
     } finally {
-      setCargando(false);
+      if (esPrimerCarga) {
+        setCargando(false);
+      }
+      yaCargoUnaVezRef.current = true;
     }
-  };
+  }, [apiMedicamentos, usuario?.Id_Usuario]);
 
   useFocusEffect(
     useCallback(() => {
+      const ahora = Date.now();
+      if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+        return;
+      }
+      ultimaCargaMsRef.current = ahora;
+
       cargarDatos();
-    }, [])
+    }, [cargarDatos])
   );
 
   const guardarPerfil = async () => {

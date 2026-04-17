@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
@@ -14,6 +15,9 @@ interface VinculacionInfo {
     Nombre_Familiar: string | null;
     Nombre_Adulto_Mayor: string | null;
     url_Avatar_Adulto_Mayor?: string | null;
+    Bateria_Porcentaje_Adulto_Mayor?: number | null;
+    Bateria_Cargando_Adulto_Mayor?: boolean | null;
+    Bateria_Actualizado_En_Adulto_Mayor?: string | null;
     Nombre_Circulo: string | null;
     Rol_Adulto_Mayor: string | null;
     Rol_Familiar?: string | null;
@@ -26,11 +30,18 @@ interface MedicamentoInfo {
     tomado_hoy: boolean;
 }
 
+const COLOR_ICONO_BATERIA = '#334155';
+const TAMANO_ICONO_BATERIA = 18;
+const TIEMPO_CACHE_MS = 20000;
+
 export const Inicio = ({ navigation }: { navigation: any }) => {
     const usuario = useAuthStore((s) => s.usuario);
     const [vinculacion, setVinculacion] = useState<VinculacionInfo | null>(null);
     const [medicamentos, setMedicamentos] = useState<MedicamentoInfo[]>([]);
     const [cargando, setCargando] = useState(true);
+
+    const ultimaCargaMsRef = useRef<number>(0);
+    const yaCargoUnaVezRef = useRef(false);
 
     const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
 
@@ -52,9 +63,13 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
         return `${primera}${ultima}`.toUpperCase();
     };
 
-    const cargarDatos = async () => {
+    const cargarDatos = useCallback(async () => {
+        const esPrimerCarga = !yaCargoUnaVezRef.current;
+
         try {
-            setCargando(true);
+            if (esPrimerCarga) {
+                setCargando(true);
+            }
 
             // 1. Obtener vinculaciones
             const resVinc = await httpClient.get('/vinculacion/mis-vinculaciones');
@@ -78,14 +93,23 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
         } catch (error) {
             console.log('No hay vinculaciones:', error);
         } finally {
-            setCargando(false);
+            if (esPrimerCarga) {
+                setCargando(false);
+            }
+            yaCargoUnaVezRef.current = true;
         }
-    };
+    }, [apiMedicamentos]);
 
     useFocusEffect(
         useCallback(() => {
+            const ahora = Date.now();
+            if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+                return;
+            }
+            ultimaCargaMsRef.current = ahora;
+
             cargarDatos();
-        }, [])
+        }, [cargarDatos])
     );
 
     const nombreFamiliar = usuario?.Nombre?.split(' ')[0] || 'Familiar';
@@ -102,6 +126,20 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
         ? construirUriAvatar(vinculacion.url_Avatar_Adulto_Mayor)
         : '';
     const tieneAvatarSenior = Boolean(uriAvatarSenior);
+
+    const porcentajeBateriaSenior =
+        typeof vinculacion?.Bateria_Porcentaje_Adulto_Mayor === 'number'
+            ? vinculacion.Bateria_Porcentaje_Adulto_Mayor
+            : null;
+    const estaCargandoSenior = Boolean(vinculacion?.Bateria_Cargando_Adulto_Mayor);
+
+    const iconoBateria = estaCargandoSenior
+        ? 'battery-charging-100'
+        : porcentajeBateriaSenior !== null && porcentajeBateriaSenior < 20
+            ? 'battery-alert'
+            : 'battery';
+
+    const textoBateria = porcentajeBateriaSenior !== null ? `${porcentajeBateriaSenior}%` : '--%';
 
     const totalMeds = medicamentos.length;
     const tomados = medicamentos.filter((m) => m.tomado_hoy).length;
@@ -164,9 +202,23 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                     </View>
                                 </View>
 
-                                <View style={styles.badgeEstable}>
-                                    <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
-                                    <Text style={styles.textoEstable}>Vinculado</Text>
+                                <View style={styles.estadoSenior}>
+                                    <View style={styles.badgeEstable}>
+                                        <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+                                        <Text style={styles.textoEstable}>Vinculado</Text>
+                                    </View>
+
+                                    <View
+                                        style={styles.estadoSenior__bateriaRow}
+                                        accessibilityLabel={`Batería del adulto mayor: ${textoBateria}`}
+                                    >
+                                        <Icon
+                                            name={iconoBateria}
+                                            size={TAMANO_ICONO_BATERIA}
+                                            color={COLOR_ICONO_BATERIA}
+                                        />
+                                        <Text style={styles.estadoSenior__bateriaTexto}>{textoBateria}</Text>
+                                    </View>
                                 </View>
                             </View>
 

@@ -37,3 +37,29 @@ class VinculacionModel(Base):
     Rol_Adulto_Mayor = Column(String(50), nullable=True)
     Rol_Familiar = Column(String(50), nullable=True)
     Fecha_Vinculacion = Column(DateTime, server_default=func.now())
+
+
+class EstadoDispositivoModel(Base):
+    """Modelo de persistencia para el último estado del dispositivo (batería)."""
+    __tablename__ = "Estados_Dispositivo"
+
+    Id_Usuario = Column(Integer, ForeignKey("Usuarios.Id_Usuario", ondelete="CASCADE"), primary_key=True)
+    Bateria_Porcentaje = Column(Integer, nullable=False)
+    Bateria_Cargando = Column(Boolean, nullable=False, default=False)
+    Actualizado_En = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+
+class DispositivoModel(Base):
+    """Modelo de persistencia para tokens de dispositivo (para reportes en background)."""
+    __tablename__ = "Dispositivos"
+
+    Id_Dispositivo = Column(Integer, primary_key=True, autoincrement=True)
+    Id_Usuario = Column(Integer, ForeignKey("Usuarios.Id_Usuario", ondelete="CASCADE"), nullable=False, index=True)
+
+    # Guardamos solo el hash para que el token no quede expuesto en BD.
+    Token_Hash = Column(String(64), unique=True, nullable=False, index=True)
+
+    Activo = Column(Boolean, nullable=False, default=True)
+
+    Creado_En = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    Ultimo_Uso_En = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())

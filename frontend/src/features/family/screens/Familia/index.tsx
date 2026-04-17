@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -173,9 +173,17 @@ export const Familia = () => {
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
-  const cargarVinculaciones = async () => {
+  const ultimaCargaMsRef = useRef<number>(0);
+  const TIEMPO_CACHE_MS = 20000;
+  const yaCargoUnaVezRef = useRef(false);
+
+  const cargarVinculaciones = useCallback(async () => {
+    const esPrimerCarga = !yaCargoUnaVezRef.current;
+
     try {
-      setCargando(true);
+      if (esPrimerCarga) {
+        setCargando(true);
+      }
       const response = await httpClient.get("/vinculacion/mis-vinculaciones");
       const vinculaciones: VinculacionInfo[] = response.data;
 
@@ -194,14 +202,23 @@ export const Familia = () => {
     } catch (error) {
       console.log("Error cargando vinculaciones:", error);
     } finally {
-      setCargando(false);
+      if (esPrimerCarga) {
+        setCargando(false);
+      }
+      yaCargoUnaVezRef.current = true;
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
+      const ahora = Date.now();
+      if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+        return;
+      }
+      ultimaCargaMsRef.current = ahora;
+
       cargarVinculaciones();
-    }, [])
+    }, [cargarVinculaciones])
   );
 
   const toggleExpandir = useCallback((id: string) => {

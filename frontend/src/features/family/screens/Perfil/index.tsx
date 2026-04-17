@@ -87,6 +87,9 @@ export const MiPerfilFamiliar: React.FC = () => {
   const [modalCerrarSesionVisible, setModalCerrarSesionVisible] = useState(false);
   const [vinculaciones, setVinculaciones] = useState<VinculacionInfo[]>([]);
 
+  const ultimaCargaMsRef = useRef<number>(0);
+  const TIEMPO_CACHE_MS = 20000;
+
   const [state, setState] = useState<PerfilFamiliarState>({
     nombre: '',
     correo: '',
@@ -110,6 +113,12 @@ export const MiPerfilFamiliar: React.FC = () => {
       if (!usuarioAutenticado?.Id_Usuario) {
         return;
       }
+
+      const ahora = Date.now();
+      if (vinculaciones.length > 0 && ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+        return;
+      }
+      ultimaCargaMsRef.current = ahora;
 
       const abortController = new AbortController();
 
@@ -152,7 +161,7 @@ export const MiPerfilFamiliar: React.FC = () => {
       return () => {
         abortController.abort();
       };
-    }, [usuarioAutenticado])
+    }, [usuarioAutenticado?.Id_Usuario, usuarioAutenticado?.Nombre, usuarioAutenticado?.url_Avatar, vinculaciones.length])
   );
 
   const toggleNotificacion = (key: keyof typeof state.notificaciones) => {

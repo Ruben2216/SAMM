@@ -13,6 +13,7 @@ from src.infrastructure.persistence.database import engine, Base, aplicar_migrac
 from src.infrastructure.api.auth_router import router as auth_router
 from src.infrastructure.api.profile_router import router as profile_router
 from src.infrastructure.api.vinculacion_router import router as vinculacion_router
+from src.infrastructure.api.device_router import router as device_router
 
 # Configurar logging
 logging.basicConfig(
@@ -41,6 +42,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(vinculacion_router)
+app.include_router(device_router)
 
 
 def _configurar_static_media() -> None:

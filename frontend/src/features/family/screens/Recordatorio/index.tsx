@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { styles } from './styles';
@@ -113,11 +113,19 @@ export const Recordatorio = () => {
   const [filtroActivo, setFiltroActivo] = useState('Todos');
   const [cargando, setCargando] = useState(true);
 
+  const ultimaCargaMsRef = useRef<number>(0);
+  const TIEMPO_CACHE_MS = 20000;
+  const yaCargoUnaVezRef = useRef(false);
+
   const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
 
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
+    const esPrimerCarga = !yaCargoUnaVezRef.current;
+
     try {
-      setCargando(true);
+      if (esPrimerCarga) {
+        setCargando(true);
+      }
 
       // 1. Obtener vinculaciones
       const resVinc = await httpClient.get('/vinculacion/mis-vinculaciones');
@@ -129,19 +137,20 @@ export const Recordatorio = () => {
         return;
       }
 
-      const nombresUnicos = ['Todos'];
-      const todosItems: ItemAgenda[] = [];
-
-      for (let i = 0; i < vinculaciones.length; i++) {
-        const vinc = vinculaciones[i];
+      const promesas = vinculaciones.map(async (vinc, i) => {
         const nombre = vinc.Nombre_Adulto_Mayor || 'Adulto Mayor';
         const iniciales = generarIniciales(nombre);
         const color = COLORES_AVATAR[i % COLORES_AVATAR.length];
-        nombresUnicos.push(nombre);
 
-        // 2. Obtener medicamentos de cada senior
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const itemsSenior: ItemAgenda[] = [];
         try {
-          const resMeds = await fetch(`${apiUrl}/medicamentos/usuario/${vinc.Id_Adulto_Mayor}`);
+          const resMeds = await fetch(`${apiUrl}/medicamentos/usuario/${vinc.Id_Adulto_Mayor}`, {
+            signal: controller.signal,
+          });
+
           if (resMeds.ok) {
             const meds = await resMeds.json();
 
@@ -151,7 +160,7 @@ export const Recordatorio = () => {
 
               for (const horario of horarios) {
                 const horaCruda = horario.Hora_Toma || '08:00';
-                todosItems.push({
+                itemsSenior.push({
                   id: `${vinc.Id_Adulto_Mayor}-${med.Id_Medicamento}-${horario.Id_Horario}`,
                   titulo: med.Nombre,
                   hora: formatearHora(horaCruda),
@@ -168,8 +177,16 @@ export const Recordatorio = () => {
           }
         } catch (err) {
           console.log('Error cargando medicamentos del senior:', err);
+        } finally {
+          clearTimeout(timeoutId);
         }
-      }
+
+        return { nombre, itemsSenior };
+      });
+
+      const resultados = await Promise.all(promesas);
+      const nombresUnicos = ['Todos', ...resultados.map((r) => r.nombre)];
+      const todosItems: ItemAgenda[] = resultados.flatMap((r) => r.itemsSenior);
 
       // Ordenar por hora
       todosItems.sort((a, b) => a.horaCruda.localeCompare(b.horaCruda));
@@ -179,14 +196,23 @@ export const Recordatorio = () => {
     } catch (error) {
       console.log('Error cargando agenda:', error);
     } finally {
-      setCargando(false);
+      if (esPrimerCarga) {
+        setCargando(false);
+      }
+      yaCargoUnaVezRef.current = true;
     }
-  };
+  }, [apiUrl]);
 
   useFocusEffect(
     useCallback(() => {
+      const ahora = Date.now();
+      if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+        return;
+      }
+      ultimaCargaMsRef.current = ahora;
+
       cargarDatos();
-    }, [])
+    }, [cargarDatos])
   );
 
   const itemsFiltrados =

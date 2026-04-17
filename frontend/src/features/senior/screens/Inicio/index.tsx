@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
@@ -44,20 +44,33 @@ export const Inicio = () => {
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
-    const cargarVinculacion = async () => {
+    const ultimaCargaMsRef = useRef<number>(0);
+    const TIEMPO_CACHE_MS = 20000;
+    const yaCargoMedicamentosUnaVezRef = useRef(false);
+
+    const cargarVinculacion = useCallback(async () => {
         try {
             const res = await httpClient.get('/vinculacion/mis-vinculaciones');
             setTieneVinculacion(res.data.length > 0);
         } catch {
             setTieneVinculacion(false);
         }
-    };
+    }, []);
 
-    const cargarMedicamentos = async () => {
+    const cargarMedicamentos = useCallback(async () => {
+        const esPrimerCarga = !yaCargoMedicamentosUnaVezRef.current;
+
         try {
-            setCargando(true);
+            if (esPrimerCarga) {
+                setCargando(true);
+            }
             const userId = usuario?.Id_Usuario;
-            if (!userId) { setCargando(false); return; }
+            if (!userId) {
+                if (esPrimerCarga) {
+                    setCargando(false);
+                }
+                return;
+            }
             const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/${userId}`);
             if (!respuesta.ok) throw new Error("Error al cargar los datos");
             const datosDB = await respuesta.json();
@@ -95,15 +108,24 @@ export const Inicio = () => {
         } catch (error) {
             console.error("Error obteniendo medicamentos:", error);
         } finally {
-            setCargando(false);
+            if (esPrimerCarga) {
+                setCargando(false);
+            }
+            yaCargoMedicamentosUnaVezRef.current = true;
         }
-    };
+    }, [apiUrl, usuario?.Id_Usuario]);
 
     useFocusEffect(
         useCallback(() => {
+            const ahora = Date.now();
+            if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
+                return;
+            }
+            ultimaCargaMsRef.current = ahora;
+
             cargarMedicamentos();
             cargarVinculacion();
-        }, [])
+        }, [cargarMedicamentos, cargarVinculacion])
     );
 
     const presionarEditar = (med: any) => {

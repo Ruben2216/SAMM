@@ -1,5 +1,5 @@
-import React from 'react';
-import { StatusBar } from 'react-native';
+import React, { useEffect } from 'react';
+import { NativeModules, Platform, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -41,6 +41,17 @@ const Stack = createStackNavigator();
  * Configura proveedores globales y navegación
  */
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+    const moduloDispositivo = NativeModules.SAMMDeviceToken;
+
+    if (apiUrl && moduloDispositivo?.guardarApiUrl) {
+      moduloDispositivo.guardarApiUrl(apiUrl);
+    }
+  }, []);
+
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>

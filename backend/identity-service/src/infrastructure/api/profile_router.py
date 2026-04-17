@@ -5,9 +5,11 @@ CRUD del avatar del usuario autenticado.
 
 import logging
 from typing import Optional
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from src.domain.models.user import Usuario
 from src.application.update_avatar_use_case import UpdateAvatarUseCase
@@ -17,6 +19,8 @@ from src.infrastructure.api.dependencies import (
     obtener_actualizar_avatar_uc,
     obtener_eliminar_avatar_uc,
 )
+from src.infrastructure.persistence.database import obtener_sesion
+from src.infrastructure.persistence.sqlalchemy_models import EstadoDispositivoModel
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +43,18 @@ class UsuarioPerfilResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ActualizarBateriaRequest(BaseModel):
+    porcentaje: int
+    esta_cargando: bool
+
+
+class EstadoBateriaResponse(BaseModel):
+    Id_Usuario: int
+    Bateria_Porcentaje: int
+    Bateria_Cargando: bool
+    Actualizado_En: datetime
 
 
 @router.put("/me/avatar", response_model=UsuarioPerfilResponse)
@@ -92,3 +108,45 @@ def eliminar_avatar(
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.put("/me/bateria", response_model=EstadoBateriaResponse)
+def actualizar_bateria(
+    body: ActualizarBateriaRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_sesion),
+):
+    logger.info(f"[API] PUT /users/me/bateria — Id_Usuario: {usuario_actual.Id_Usuario}")
+
+    porcentaje = int(body.porcentaje)
+    if porcentaje < 0 or porcentaje > 100:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El porcentaje de batería debe estar entre 0 y 100",
+        )
+
+    ahora = datetime.now(timezone.utc)
+
+    modelo = db.query(EstadoDispositivoModel).filter_by(Id_Usuario=usuario_actual.Id_Usuario).first()
+    if not modelo:
+        modelo = EstadoDispositivoModel(
+            Id_Usuario=usuario_actual.Id_Usuario,
+            Bateria_Porcentaje=porcentaje,
+            Bateria_Cargando=bool(body.esta_cargando),
+            Actualizado_En=ahora,
+        )
+        db.add(modelo)
+    else:
+        modelo.Bateria_Porcentaje = porcentaje
+        modelo.Bateria_Cargando = bool(body.esta_cargando)
+        modelo.Actualizado_En = ahora
+
+    db.commit()
+    db.refresh(modelo)
+
+    return EstadoBateriaResponse(
+        Id_Usuario=usuario_actual.Id_Usuario,
+        Bateria_Porcentaje=modelo.Bateria_Porcentaje,
+        Bateria_Cargando=modelo.Bateria_Cargando,
+        Actualizado_En=modelo.Actualizado_En,
+    )

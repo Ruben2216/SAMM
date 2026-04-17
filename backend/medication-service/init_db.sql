@@ -5,7 +5,9 @@
 -- Nota: Asegúrense de crear una base de datos 
 -- llamada 'samm_medicamentos_db' antes de correr este script.
 
--- 1. Tabla principal de Medicamentos (RF-06)
+-- 1. Tabla principal de Medicamentos (RF-06)4
+create database samm_medicamentos_db;
+\c samm_medicamentos_db
 CREATE TABLE IF NOT EXISTS "Medicamentos" (
     "Id_Medicamento" SERIAL PRIMARY KEY,
     "Id_Usuario" INTEGER NOT NULL, -- Enlace lógico con identity-service
