@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/logoapp.png",
     "platforms": [
       "android"
     ],
@@ -28,7 +29,8 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#14EC5C"
+        "foregroundImage": "./assets/logoapp.png",
+        "backgroundColor": "#1A1D21"
       }
     },
     "plugins": [
