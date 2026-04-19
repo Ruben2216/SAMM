@@ -342,7 +342,8 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                 <Text style={styles.textoCardGrid}>Medicinas</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}>
+                            <TouchableOpacity style={styles.cardGrid} activeOpacity={0.8}
+                                onPress={() => navigation.navigate('Mapa')} >
                                 <View style={styles.iconoFondoRosa}>
                                     <Ionicons name="map" size={24} color="#10B981" />
                                 </View>
