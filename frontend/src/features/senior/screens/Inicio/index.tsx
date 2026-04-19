@@ -45,8 +45,6 @@ export const Inicio = () => {
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
-    const ultimaCargaMsRef = useRef<number>(0);
-    const TIEMPO_CACHE_MS = 20000;
     const yaCargoMedicamentosUnaVezRef = useRef(false);
 
     const cargarVinculacion = useCallback(async () => {
@@ -107,19 +105,20 @@ export const Inicio = () => {
             medicamentosFormateados.sort((a: any, b: any) => a.horaCruda.localeCompare(b.horaCruda));
             setMedicamentos(medicamentosFormateados);
 
-            // Programar notificaciones locales para cada medicamento pendiente
+            // Reprogramamos las alarmas locales de TODOS los medicamentos (tomados o no).
+            // La notificación es diaria: aunque hoy ya se haya tomado, debe quedar
+            // programada para que dispare mañana a la misma hora.
             await cancelarTodasLasNotificaciones();
+            console.log(`[Inicio] Programando ${medicamentosFormateados.length} recordatorio(s) diario(s)...`);
             for (const med of medicamentosFormateados) {
-                if (med.estado === 'pendiente') {
-                    await programarRecordatorioMedicamento({
-                        idMedicamento: med.id_medicamento,
-                        idHorario: parseInt(med.id_unico.split('-')[1], 10),
-                        nombreMedicamento: med.nombre,
-                        dosis: med.rawDosis,
-                        notas: med.notas || '',
-                        horaToma: med.horaCruda,
-                    });
-                }
+                await programarRecordatorioMedicamento({
+                    idMedicamento: med.id_medicamento,
+                    idHorario: parseInt(med.id_unico.split('-')[1], 10),
+                    nombreMedicamento: med.nombre,
+                    dosis: med.rawDosis,
+                    notas: med.notas || '',
+                    horaToma: med.horaCruda,
+                });
             }
         } catch (error) {
             console.error("Error obteniendo medicamentos:", error);
@@ -131,14 +130,11 @@ export const Inicio = () => {
         }
     }, [apiUrl, usuario?.Id_Usuario]);
 
+    // Se recarga cada vez que el adulto mayor vuelve a Inicio (p. ej. después de
+    // editar/crear un medicamento) para que las notificaciones locales queden
+    // reprogramadas con las horas actualizadas.
     useFocusEffect(
         useCallback(() => {
-            const ahora = Date.now();
-            if (ahora - ultimaCargaMsRef.current < TIEMPO_CACHE_MS) {
-                return;
-            }
-            ultimaCargaMsRef.current = ahora;
-
             cargarMedicamentos();
             cargarVinculacion();
         }, [cargarMedicamentos, cargarVinculacion])

@@ -9,15 +9,20 @@ import {
   Alert,
   Switch,
   Image,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 import * as ImagePicker from 'expo-image-picker';
+import {
+  registrarParaNotificaciones,
+} from '../../../../services/notificationService';
 
 interface PerfilSaludData {
   Tipo_Sangre: string;
@@ -50,6 +55,8 @@ export const Perfil = () => {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [notificacionesActivas, setNotificacionesActivas] = useState(false);
+  const [cargandoNotif, setCargandoNotif] = useState(false);
 
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
@@ -105,10 +112,49 @@ export const Perfil = () => {
         return;
       }
       ultimaCargaMsRef.current = ahora;
-
       cargarDatos();
     }, [cargarDatos])
   );
+
+  // Sincroniza el Switch con el permiso real del SO al entrar y al volver de Ajustes.
+  useFocusEffect(
+    useCallback(() => {
+      Notifications.getPermissionsAsync().then(({ status }) => {
+        setNotificacionesActivas(status === 'granted');
+      });
+    }, [])
+  );
+
+  const manejarToggleNotificaciones = async (valor: boolean) => {
+    setCargandoNotif(true);
+    try {
+      if (valor) {
+        const token = await registrarParaNotificaciones(usuario?.Id_Usuario);
+        setNotificacionesActivas(Boolean(token));
+        if (!token) {
+          Alert.alert(
+            'Permiso denegado',
+            'Ve a Ajustes del sistema > SAMM > Notificaciones para activarlas.',
+            [
+              { text: 'Ir a Ajustes', onPress: () => Linking.openSettings() },
+              { text: 'Cancelar', style: 'cancel' },
+            ],
+          );
+        }
+      } else {
+        Alert.alert(
+          'Desactivar notificaciones',
+          'Para desactivarlas, ve a Ajustes del sistema > SAMM > Notificaciones.',
+          [
+            { text: 'Ir a Ajustes', onPress: () => Linking.openSettings() },
+            { text: 'Cancelar', style: 'cancel' },
+          ],
+        );
+      }
+    } finally {
+      setCargandoNotif(false);
+    }
+  };
 
   const guardarPerfil = async () => {
     try {
@@ -445,7 +491,32 @@ export const Perfil = () => {
           )}
         </View>
 
-        {/* --- CONTACTO Y SEGURIDAD --- */}
+        {/* --- NOTIFICACIONES --- */}
+        <Text style={styles.tituloSeccion}>NOTIFICACIONES</Text>
+        <View style={styles.tarjetaSeccion}>
+          <View style={[styles.filaSupervision, { paddingVertical: 14 }]}>
+            <View style={styles.filaSupervision__texto}>
+              <Text style={styles.filaSupervision__titulo}>Recordatorios de medicamentos</Text>
+              <Text style={styles.filaSupervision__descripcion}>
+                {notificacionesActivas
+                  ? 'Recibirás alarmas a la hora de cada medicamento.'
+                  : 'Activa para recibir alarmas en tu dispositivo.'}
+              </Text>
+            </View>
+            {cargandoNotif ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Switch
+                value={notificacionesActivas}
+                onValueChange={manejarToggleNotificaciones}
+                trackColor={{ false: theme.colors.disabled, true: theme.colors.primary }}
+                thumbColor={theme.colors.surface}
+              />
+            )}
+          </View>
+        </View>
+
+        {/* --- SEGURIDAD --- */}
         <Text style={styles.tituloSeccion}>SEGURIDAD</Text>
         <View style={styles.tarjetaSeccion}>
           <TouchableOpacity

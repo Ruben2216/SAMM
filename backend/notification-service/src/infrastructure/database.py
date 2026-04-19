@@ -49,11 +49,44 @@ def _asegurar_bd_existe(nombre_bd: str) -> None:
 
 
 def aplicar_migraciones() -> None:
-    """Asegura que la BD exista. Las tablas las crea SQLAlchemy."""
+    """Asegura que la BD exista y aplica migraciones de esquema."""
     try:
         _asegurar_bd_existe("samm_notifications_db")
     except Exception as exc:
         logger.error(f"[Migraciones] No se pudo asegurar la BD: {exc}")
+        return
+
+    # Migración: múltiples tokens por usuario.
+    # Mueve la constraint UNIQUE de Id_Usuario a Push_Token.
+    sql_migracion = """
+    DO $$
+    BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Push_Tokens') THEN
+            -- Quitar UNIQUE de Id_Usuario si existe
+            IF EXISTS (
+                SELECT 1 FROM pg_constraint
+                WHERE conname = 'Push_Tokens_Id_Usuario_key'
+            ) THEN
+                ALTER TABLE "Push_Tokens" DROP CONSTRAINT "Push_Tokens_Id_Usuario_key";
+            END IF;
+
+            -- Añadir UNIQUE a Push_Token si no existe
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint
+                WHERE conname = 'Push_Tokens_Push_Token_key'
+            ) THEN
+                ALTER TABLE "Push_Tokens" ADD CONSTRAINT "Push_Tokens_Push_Token_key" UNIQUE ("Push_Token");
+            END IF;
+        END IF;
+    END$$;
+    """
+    try:
+        with engine.connect() as conn:
+            with conn.begin():
+                conn.exec_driver_sql(sql_migracion)
+        logger.info("[Migraciones] Constraint de Push_Tokens actualizada")
+    except Exception as exc:
+        logger.warning(f"[Migraciones] No se pudo migrar Push_Tokens: {exc}")
 
 
 def obtener_sesion():

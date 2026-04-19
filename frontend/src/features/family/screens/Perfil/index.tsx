@@ -1,14 +1,17 @@
 import React, { useRef, useState, useCallback } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   Dimensions,
   Image,
+  Linking,
   ScrollView,
   View,
   Text,
   TouchableOpacity,
   Switch,
 } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Menu } from 'react-native-paper';
@@ -20,6 +23,9 @@ import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
+import {
+  registrarParaNotificaciones,
+} from '../../../../services/notificationService';
 
 interface VinculacionInfo {
   Id_Vinculacion: number;
@@ -86,6 +92,8 @@ export const MiPerfilFamiliar: React.FC = () => {
 
   const [modalCerrarSesionVisible, setModalCerrarSesionVisible] = useState(false);
   const [vinculaciones, setVinculaciones] = useState<VinculacionInfo[]>([]);
+  const [notificacionesActivas, setNotificacionesActivas] = useState(false);
+  const [cargandoNotif, setCargandoNotif] = useState(false);
 
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
@@ -160,6 +168,46 @@ export const MiPerfilFamiliar: React.FC = () => {
       };
     }, [usuarioAutenticado?.Id_Usuario, usuarioAutenticado?.Nombre, usuarioAutenticado?.url_Avatar, vinculaciones.length])
   );
+
+  // Sincroniza el Switch con el permiso real del SO al entrar y al volver de Ajustes.
+  useFocusEffect(
+    useCallback(() => {
+      Notifications.getPermissionsAsync().then(({ status }) => {
+        setNotificacionesActivas(status === 'granted');
+      });
+    }, [])
+  );
+
+  const manejarToggleNotificaciones = async (valor: boolean) => {
+    setCargandoNotif(true);
+    try {
+      if (valor) {
+        const token = await registrarParaNotificaciones(usuarioAutenticado?.Id_Usuario ?? undefined);
+        setNotificacionesActivas(Boolean(token));
+        if (!token) {
+          Alert.alert(
+            'Permiso denegado',
+            'Ve a Ajustes del sistema > SAMM > Notificaciones para activarlas.',
+            [
+              { text: 'Ir a Ajustes', onPress: () => Linking.openSettings() },
+              { text: 'Cancelar', style: 'cancel' },
+            ],
+          );
+        }
+      } else {
+        Alert.alert(
+          'Desactivar notificaciones',
+          'Para desactivarlas, ve a Ajustes del sistema > SAMM > Notificaciones.',
+          [
+            { text: 'Ir a Ajustes', onPress: () => Linking.openSettings() },
+            { text: 'Cancelar', style: 'cancel' },
+          ],
+        );
+      }
+    } finally {
+      setCargandoNotif(false);
+    }
+  };
 
   const toggleNotificacion = (key: keyof typeof state.notificaciones) => {
     setState(prev => ({
@@ -536,7 +584,31 @@ export const MiPerfilFamiliar: React.FC = () => {
 
         <Text style={styles.tituloSeccion}>ALERTAS Y NOTIFICACIONES</Text>
         <View style={styles.tarjetaSeccion} accessibilityLabel="Alertas y notificaciones">
-          {opcionesNotificaciones.map((opcion, indice) => (
+          {/* Toggle maestro: activa/desactiva notificaciones push en este dispositivo */}
+          <View style={[styles.filaNotificacion, styles.fila__separador]}>
+            <View style={styles.filaNotificacion__texto}>
+              <Text style={styles.filaNotificacion__titulo}>Notificaciones en este dispositivo</Text>
+              <Text style={styles.filaNotificacion__descripcion}>
+                {notificacionesActivas
+                  ? 'Recibirás alertas de medicamentos de tu familiar.'
+                  : 'Activa para recibir alertas en este dispositivo.'}
+              </Text>
+            </View>
+            {cargandoNotif ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Switch
+                value={notificacionesActivas}
+                onValueChange={manejarToggleNotificaciones}
+                trackColor={pistaSwitch}
+                thumbColor={colorThumbSwitch}
+                accessibilityLabel="Activar notificaciones push"
+              />
+            )}
+          </View>
+
+          {/* Tipos de alerta (solo visibles cuando las notificaciones están activas) */}
+          {notificacionesActivas && opcionesNotificaciones.map((opcion, indice) => (
             <View
               key={opcion.clave}
               style={[

@@ -20,11 +20,15 @@
     ],
     "android": {
       "package": "com.samm.app",
+      "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "USE_FULL_SCREEN_INTENT",
+        "VIBRATE",
+        "WAKE_LOCK"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logoapp.png",
@@ -51,7 +55,9 @@
       [
         "expo-notifications",
         {
-          "color": "#14EC5C"
+          "icon": "./assets/logoapp.png",
+          "color": "#14EC5C",
+          "sounds": ["./assets/SonidoAlarma.mp3"]
         }
       ],
       "@react-native-community/datetimepicker"

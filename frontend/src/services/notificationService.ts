@@ -5,6 +5,12 @@ import { Platform } from 'react-native';
 const NOTIFICATION_API_URL =
   process.env.EXPO_PUBLIC_API_URL_NOTIFICACIONES || 'http://192.168.0.17:8002';
 
+// Canal Android para alarmas de medicamentos del adulto mayor.
+// Si se cambian las propiedades (sonido, importancia) hay que BUMPEAR este ID,
+// porque Android no permite modificar canales ya creados.
+const CANAL_ALARMA_ADULTO = 'medicamentos_alarma_v3';
+const CANAL_ALERTA_FAMILIAR = 'alertas_familiar';
+
 // Configurar cómo se muestran las notificaciones cuando la app está en primer plano
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -20,16 +26,20 @@ Notifications.setNotificationHandler({
  * Registrar permisos, obtener el Expo Push Token y guardarlo en notification-service
  */
 export async function registrarParaNotificaciones(idUsuario?: number): Promise<string | null> {
+  console.log(`[Notificaciones] >>> registrarParaNotificaciones(idUsuario=${idUsuario})`);
+
   if (!Device.isDevice) {
     console.log('[Notificaciones] Debe usar un dispositivo físico para push notifications');
     return null;
   }
 
   const { status: permisoExistente } = await Notifications.getPermissionsAsync();
+  console.log(`[Notificaciones] Permiso existente: ${permisoExistente}`);
   let permisoFinal = permisoExistente;
 
   if (permisoExistente !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
+    console.log(`[Notificaciones] Permiso solicitado, respuesta: ${status}`);
     permisoFinal = status;
   }
 
@@ -38,12 +48,16 @@ export async function registrarParaNotificaciones(idUsuario?: number): Promise<s
     return null;
   }
 
-  // Canal de alta prioridad para notificaciones tipo alarma
+  // Canales Android: separamos alarma del adulto vs. push informativo del familiar.
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('medicamentos', {
+    // Canal del adulto mayor: tipo alarma — máxima prioridad, vibración larga, bypassDnd.
+    // Sonido 'default' (del sistema) porque el sonido de alarma personalizado
+    // (SonidoAlarma.mp3) lo reproduce la pantalla RecordatorioMedicamento con expo-av.
+    await Notifications.setNotificationChannelAsync(CANAL_ALARMA_ADULTO, {
       name: 'Recordatorio de medicamentos',
+      description: 'Alarma para que el adulto mayor tome sus medicinas',
       importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 500, 250, 500, 250, 500],
+      vibrationPattern: [0, 800, 400, 800, 400, 800, 400, 800],
       lightColor: '#00E676',
       sound: 'default',
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
@@ -52,13 +66,38 @@ export async function registrarParaNotificaciones(idUsuario?: number): Promise<s
       enableLights: true,
       showBadge: true,
     });
+
+    // Canal del familiar: push informativo estándar, vibración corta.
+    await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
+      name: 'Alertas del familiar',
+      description: 'Avisos sobre la medicación de tu adulto mayor',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 150, 250],
+      lightColor: '#2563EB',
+      sound: 'default',
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      enableVibrate: true,
+      enableLights: true,
+      showBadge: true,
+    });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  console.log('[Notificaciones] Push Token:', tokenData.data);
+  console.log('[Notificaciones] Solicitando Expo Push Token...');
+  let tokenData;
+  try {
+    tokenData = await Notifications.getExpoPushTokenAsync();
+  } catch (error: any) {
+    console.error('[Notificaciones] ERROR obteniendo Expo Push Token:', error?.message || error);
+    return null;
+  }
+
+  console.log('[Notificaciones] Push Token obtenido:', tokenData.data);
 
   if (idUsuario) {
+    console.log(`[Notificaciones] Guardando token en backend para usuario ${idUsuario}...`);
     await guardarTokenEnBackend(idUsuario, tokenData.data);
+  } else {
+    console.log('[Notificaciones] Sin idUsuario — no se guarda token en backend');
   }
 
   return tokenData.data;
@@ -68,8 +107,10 @@ export async function registrarParaNotificaciones(idUsuario?: number): Promise<s
  * Guardar el token en el notification-service (persistencia en BD)
  */
 export async function guardarTokenEnBackend(idUsuario: number, pushToken: string): Promise<void> {
+  const url = `${NOTIFICATION_API_URL}/push-tokens`;
+  console.log(`[Notificaciones] PUT ${url}`);
   try {
-    const respuesta = await fetch(`${NOTIFICATION_API_URL}/push-tokens`, {
+    const respuesta = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -78,13 +119,14 @@ export async function guardarTokenEnBackend(idUsuario: number, pushToken: string
         plataforma: Platform.OS,
       }),
     });
+    const textoRespuesta = await respuesta.text();
     if (respuesta.ok) {
-      console.log(`[Notificaciones] Token guardado en backend para usuario ${idUsuario}`);
+      console.log(`[Notificaciones] Token guardado OK (${respuesta.status}) usuario=${idUsuario}`);
     } else {
-      console.warn('[Notificaciones] No se pudo guardar token:', respuesta.status);
+      console.warn(`[Notificaciones] Backend respondió ${respuesta.status}: ${textoRespuesta}`);
     }
-  } catch (error) {
-    console.error('[Notificaciones] Error guardando token:', error);
+  } catch (error: any) {
+    console.error('[Notificaciones] Fallo de red guardando token:', error?.message || error);
   }
 }
 
@@ -120,12 +162,13 @@ export async function programarRecordatorioMedicamento(params: {
       },
       sound: 'default',
       priority: Notifications.AndroidNotificationPriority.MAX,
-      ...(Platform.OS === 'android' && { channelId: 'medicamentos' }),
     },
+    // En expo-notifications el channelId va en el trigger, no en content.
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: horas,
       minute: minutos,
+      channelId: CANAL_ALARMA_ADULTO,
     },
   });
 
@@ -134,9 +177,11 @@ export async function programarRecordatorioMedicamento(params: {
 }
 
 /**
- * Cancelar todas las notificaciones programadas
+ * Cancela todos los recordatorios LOCALES programados en este dispositivo.
+ * No afecta al Expo Push Token ni a las notificaciones push del backend.
+ * Se usa antes de reprogramar medicamentos para evitar duplicados con horas viejas.
  */
 export async function cancelarTodasLasNotificaciones(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
-  console.log('[Notificaciones] Todas las notificaciones canceladas');
+  console.log('[Notificaciones] Recordatorios locales limpiados (se reprograman a continuación)');
 }

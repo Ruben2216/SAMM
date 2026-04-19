@@ -157,6 +157,19 @@ def actualizar_bateria(
 # ===================== Internal (service-to-service) =====================
 
 
+@router.get("/internal/nombre/{id_usuario}")
+def obtener_nombre_interno(
+    id_usuario: int,
+    db: Session = Depends(obtener_sesion),
+):
+    """Endpoint interno: retorna el nombre del usuario para otros microservicios."""
+    from src.infrastructure.persistence.sqlalchemy_models import UsuarioModel
+    usuario = db.query(UsuarioModel).filter_by(Id_Usuario=id_usuario).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return {"nombre": usuario.Nombre}
+
+
 @router.get("/internal/vinculados/{id_usuario}")
 def obtener_vinculados(
     id_usuario: int,

@@ -8,6 +8,7 @@ import * as SecureStore from 'expo-secure-store';
 import { NativeModules, Platform } from 'react-native';
 import httpClient, { setAuthToken } from '../../services/httpService';
 import { signOutGoogle } from '../../services/googleAuthService';
+import { registrarParaNotificaciones } from '../../services/notificationService';
 
 // ===================== Tipos =====================
 
@@ -126,6 +127,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
             console.log(`[AuthStore] Login con Google exitoso — Id_Usuario: ${usuario.Id_Usuario}`);
 
+            void registrarParaNotificaciones(usuario.Id_Usuario);
+
             return { exito: true, es_nuevo };
         } catch (error: any) {
             const mensaje = error.response?.data?.detail || error.message || 'Error al iniciar sesión con Google';
@@ -165,6 +168,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 cargando: false,
             });
 
+            void registrarParaNotificaciones(usuario.Id_Usuario);
+
             return { exito: true, es_nuevo: false };
         } catch (error: any) {
             const mensaje = error.response?.data?.detail || error.message || 'Correo o contraseña incorrectos';
@@ -201,6 +206,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 cargando: false,
             });
 
+            void registrarParaNotificaciones(usuario.Id_Usuario);
+
             return { exito: true, es_nuevo: true };
         } catch (error: any) {
             const mensaje = error.response?.data?.detail || error.message || 'Error al registrar';
@@ -235,6 +242,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 token: token_sesion,
                 cargando: false,
             });
+
+            void registrarParaNotificaciones(usuario.Id_Usuario);
 
             return { exito: true, es_nuevo: false };
         } catch (error: any) {
@@ -307,6 +316,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await SecureStore.deleteItemAsync(USUARIO_KEY);
         setAuthToken(null);
 
+        // El push token NO se borra al cerrar sesión: pertenece al usuario en este dispositivo.
+        // Si otro usuario inicia sesión en este dispositivo, el upsert lo reasignará.
+
         if (usuarioActual?.Proveedor_Auth === 'google') {
             try {
                 await signOutGoogle();
@@ -351,7 +363,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
             if (tokenGuardado && usuarioGuardado) {
                 const usuario = JSON.parse(usuarioGuardado) as Usuario;
-                
+
                 setAuthToken(tokenGuardado);
                 await prepararReporteBackgroundDeBateria(usuario.Rol);
 
@@ -363,6 +375,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     autenticado: true,
                     cargando: false,
                 });
+
+                // Re-crea canales Android y refresca el push token por si cambió la config.
+                void registrarParaNotificaciones(usuario.Id_Usuario);
             } else {
                 console.log('[AuthStore] No hay sesión guardada');
                 set({ cargando: false });

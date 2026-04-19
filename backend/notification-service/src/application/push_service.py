@@ -16,9 +16,12 @@ def enviar_push_a_tokens(
     titulo: str,
     cuerpo: str,
     datos: dict | None = None,
+    channel_id: str = "alertas_familiar",
 ) -> dict:
     """
     Envía push notifications a una lista de Expo Push Tokens.
+    - channel_id: canal Android a usar. "medicamentos_alarma_v2" = alarma fuerte (adulto mayor),
+      "alertas_familiar" = push informativo normal (familiar).
     Retorna el resultado de Expo Push Service.
     """
     if not tokens:
@@ -32,7 +35,7 @@ def enviar_push_a_tokens(
             "body": cuerpo,
             "sound": "default",
             "priority": "high",
-            "channelId": "medicamentos",
+            "channelId": channel_id,
             "data": datos or {},
         }
         for token in tokens
@@ -49,11 +52,36 @@ def enviar_push_a_tokens(
             },
             timeout=10,
         )
-        logger.info(f"[Push] Enviado a {len(tokens)} token(s). Status: {respuesta.status_code}")
-        return {"status": "ok", "enviados": len(tokens), "respuesta": respuesta.json()}
+        cuerpo = respuesta.json()
+        logger.info(f"[Push] Enviado a {len(tokens)} token(s). HTTP {respuesta.status_code}. Respuesta: {cuerpo}")
+
+        # Inspecciona tickets: Expo devuelve status 'ok' o 'error' por cada token
+        tickets = cuerpo.get("data", []) if isinstance(cuerpo, dict) else []
+        for i, ticket in enumerate(tickets):
+            if isinstance(ticket, dict) and ticket.get("status") == "error":
+                token_fallido = tokens[i] if i < len(tokens) else "?"
+                logger.error(
+                    f"[Push] Token falló ({ticket.get('details', {}).get('error', 'UnknownError')}): "
+                    f"{token_fallido} — {ticket.get('message')}"
+                )
+
+        return {"status": "ok", "enviados": len(tokens), "respuesta": cuerpo}
     except Exception as e:
         logger.error(f"[Push] Error enviando push: {e}")
         return {"status": "error", "error": str(e)}
+
+
+def obtener_nombre_usuario(id_usuario: int) -> str | None:
+    """Consulta el nombre del usuario al identity-service."""
+    try:
+        url = f"{IDENTITY_SERVICE_URL}/users/internal/nombre/{id_usuario}"
+        respuesta = requests.get(url, timeout=5)
+        if respuesta.status_code == 200:
+            return respuesta.json().get("nombre")
+        return None
+    except Exception as e:
+        logger.error(f"[Nombre] Error consultando identity: {e}")
+        return None
 
 
 def obtener_vinculados(id_usuario: int) -> dict:

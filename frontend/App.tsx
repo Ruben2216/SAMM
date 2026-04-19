@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { NativeModules, Platform, StatusBar } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from './src/theme';
-import { registrarParaNotificaciones } from './src/services/notificationService';
-import { useAuthStore } from './src/features/auth/authStore';
 import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
@@ -47,7 +46,6 @@ const moduloDispositivo = NativeModules.SAMMDeviceToken;
  * Configura proveedores globales y navegación
  */
 export default function App() {
-  const usuario = useAuthStore((s) => s.usuario);
   const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
 
   useEffect(() => {
@@ -61,9 +59,40 @@ export default function App() {
     }
   }, []);
 
+  // El registro del token de notificaciones se hace en authStore (login/register/asignarRol).
+  // Al tocar la notificación, abrir la pantalla correspondiente.
   useEffect(() => {
-    void registrarParaNotificaciones(usuario?.Id_Usuario);
-  }, [usuario?.Id_Usuario]);
+    const manejarRespuesta = (response: Notifications.NotificationResponse) => {
+      const datos = response.notification.request.content.data as any;
+      if (!datos?.tipo || !navigationRef.current) return;
+
+      if (datos.tipo === 'recordatorio_medicamento') {
+        navigationRef.current.navigate('RecordatorioMedicamento', {
+          idMedicamento: datos.idMedicamento,
+          nombreMedicamento: datos.nombreMedicamento,
+          dosis: datos.dosis,
+          notas: datos.notas,
+          horaToma: datos.horaToma,
+        });
+      } else if (datos.tipo === 'alerta_familiar') {
+        navigationRef.current.navigate('AlertaMedicamento', {
+          nombreAdulto: datos.nombreAdulto,
+          rolAdulto: datos.rolAdulto || datos.rol_adulto_mayor,
+          nombreMedicamento: datos.nombreMedicamento,
+          horaToma: datos.horaToma,
+          tipo: datos.tipoAlerta,
+        });
+      }
+    };
+
+    const suscripcion = Notifications.addNotificationResponseReceivedListener(manejarRespuesta);
+
+    Notifications.getLastNotificationResponseAsync().then((ultima) => {
+      if (ultima) manejarRespuesta(ultima);
+    });
+
+    return () => suscripcion.remove();
+  }, []);
 
   return (
     <SafeAreaProvider>
