@@ -238,10 +238,6 @@ export const MiPerfilFamiliar: React.FC = () => {
     return `${partes[0]?.[0] ?? ''}${partes[2]?.[0] ?? ''}`.toUpperCase();
   };
 
-  const manejarGuardar = () => {
-    console.log('[PerfilFamiliar] Guardar cambios');
-  };
-
   const construirUriAvatar = (urlAvatar: string) => {
     const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
     const ruta = urlAvatar.trim();
@@ -452,14 +448,6 @@ export const MiPerfilFamiliar: React.FC = () => {
     >
       <View style={styles.encabezado} accessibilityRole="header">
         <Text style={styles.encabezado__titulo}>Mi Perfil</Text>
-        <TouchableOpacity
-          onPress={manejarGuardar}
-          accessibilityLabel="Guardar cambios del perfil"
-          accessibilityRole="button"
-          activeOpacity={0.7}
-        >
-          <Text style={styles.encabezado__accion}>Guardar</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.contenido}>
