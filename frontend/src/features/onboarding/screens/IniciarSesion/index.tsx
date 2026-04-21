@@ -161,6 +161,7 @@ export const IniciarSesion: React.FC = () => {
 
     const manejarOlvidoContrasena = () => {
         console.log('[IniciarSesion] Olvidé mi contraseña presionado');
+        (navigation as any).navigate('ForgotPassword');
     };
 
     const manejarRegistro = () => {

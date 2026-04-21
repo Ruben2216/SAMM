@@ -5,7 +5,7 @@ Endpoints para Google Auth, Login Manual, Registro y gestión de sesión.
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Literal
 
 from src.domain.models.user import Usuario
@@ -13,11 +13,15 @@ from src.application.google_login_use_case import GoogleLoginUseCase
 from src.application.login_user_use_case import LoginUserUseCase
 from src.application.register_user_use_case import RegisterUserUseCase
 from src.application.update_role_use_case import UpdateRoleUseCase
+from src.application.solicitar_recuperacion_use_case import SolicitarRecuperacionUseCase
+from src.application.restablecer_contrasena_use_case import RestablecerContrasenaUseCase
 from src.infrastructure.api.dependencies import (
     obtener_google_login_uc,
     obtener_login_uc,
     obtener_registro_uc,
     obtener_actualizar_rol_uc,
+    obtener_solicitar_recuperacion_uc,
+    obtener_restablecer_contrasena_uc,
     obtener_usuario_actual,
 )
 
@@ -74,6 +78,25 @@ class AuthResponse(BaseModel):
     token_sesion: str
     usuario: UsuarioResponse
     es_nuevo: bool = False
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Body para POST /auth/forgot-password"""
+
+    correo: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Body para POST /auth/reset-password"""
+
+    token: str
+    nueva_contrasena: str = Field(min_length=8)
+
+
+class MensajeResponse(BaseModel):
+    """Respuesta estándar de mensajes."""
+
+    mensaje: str
 
 
 # ===================== Endpoints =====================
@@ -262,3 +285,34 @@ def obtener_perfil(
         sexo=getattr(usuario_actual, "sexo", "Otro") or "Otro",
         Activo=usuario_actual.Activo,
     )
+
+
+@router.post("/forgot-password", response_model=MensajeResponse)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    caso_uso: SolicitarRecuperacionUseCase = Depends(obtener_solicitar_recuperacion_uc),
+):
+    """Solicita recuperación de contraseña.
+
+    Responde 200 siempre para evitar enumeración.
+    """
+    logger.info(f"[API] POST /auth/forgot-password — Correo: {body.correo}")
+    await caso_uso.ejecutar(str(body.correo))
+    return MensajeResponse(
+        mensaje="Si el correo existe y es local, recibirás un enlace válido por 10 minutos.",
+    )
+
+
+@router.post("/reset-password", response_model=MensajeResponse)
+def reset_password(
+    body: ResetPasswordRequest,
+    caso_uso: RestablecerContrasenaUseCase = Depends(obtener_restablecer_contrasena_uc),
+):
+    """Restablece la contraseña usando un token de recuperación."""
+    logger.info("[API] POST /auth/reset-password")
+
+    try:
+        caso_uso.ejecutar(body.token, body.nueva_contrasena)
+        return MensajeResponse(mensaje="Contraseña actualizada exitosamente.")
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

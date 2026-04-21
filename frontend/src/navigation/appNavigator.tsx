@@ -7,3 +7,12 @@ export type AuthStackParamList = {
 };
 
 const Stack = createNativeStackNavigator();
+
+export const linking = {
+  prefixes: ['samm://'],
+  config: {
+    screens: {
+      ResetPassword: 'reset-password',
+    },
+  },
+};

@@ -12,6 +12,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://192.168.100.7:8000",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "238255168182-s8m23a3fd1ldbhneijrq90q8r11lpj3h.apps.googleusercontent.com",
         "EXPO_PUBLIC_HABILITAR_LOGIN_PRUEBAS": "true"
       }
     },
@@ -23,12 +24,13 @@
       "env": {
         "EXPO_PUBLIC_MAPBOX_TOKEN": "pk.eyJ1Ijoiam9zZTIyMSIsImEiOiJjbW1hMWJiOHAwOXNkMndvb2RlNTB6ZjZhIn0.tLiiTYUFfb_FFgEyfE52Nw",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "238255168182-dkjje0f8j3cm26chkt6trd586rbtojng.apps.googleusercontent.com",
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.145:8000",
-        "EXPO_PUBLIC_API_URL_MEDICAMENTOS": "http://192.168.1.145:8001",
-        "EXPO_PUBLIC_API_URL_CITAS": "http://192.168.1.145:8004",
-        "EXPO_PUBLIC_API_URL_NOTIFICACIONES": "http://192.168.1.145:8002",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "238255168182-s8m23a3fd1ldbhneijrq90q8r11lpj3h.apps.googleusercontent.com",
+        "EXPO_PUBLIC_API_URL": "http://192.168.100.7:8000",
+        "EXPO_PUBLIC_API_URL_MEDICAMENTOS": "http://192.168.100.7:8001",
+        "EXPO_PUBLIC_API_URL_CITAS": "http://192.168.100.7:8004",
+        "EXPO_PUBLIC_API_URL_NOTIFICACIONES": "http://192.168.100.7:8002",
         "EXPO_PUBLIC_HABILITAR_LOGIN_PRUEBAS": "true"
+        
       }
     },
     "production": {

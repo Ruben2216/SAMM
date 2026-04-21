@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "samm-secret-key-cambiar-en-produccion")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+JWT_RECUPERACION_EXPIRATION_MINUTES = int(os.getenv("JWT_RECUPERACION_EXPIRATION_MINUTES", "10"))
 
 
 class JWTService(TokenServicePort):
@@ -48,3 +49,34 @@ class JWTService(TokenServicePort):
         except JWTError as e:
             logger.error(f"[JWT] Token inválido: {str(e)}")
             raise ValueError(f"Token de sesión inválido: {str(e)}")
+
+    def crear_token_recuperacion(self, id_usuario: int, pwd_frag: str) -> str:
+        """Genera un JWT de recuperación de contraseña con mitigación de un solo uso."""
+        logger.info(f"[JWT] Generando token de recuperación — Id_Usuario: {id_usuario}")
+
+        payload = {
+            "sub": str(id_usuario),
+            "pwd_frag": pwd_frag,
+            "tipo": "recuperacion",
+            "exp": datetime.utcnow() + timedelta(minutes=JWT_RECUPERACION_EXPIRATION_MINUTES),
+            "iat": datetime.utcnow(),
+        }
+
+        token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+        logger.info(f"[JWT] Token de recuperación generado (expira en {JWT_RECUPERACION_EXPIRATION_MINUTES}m)")
+        return token
+
+    def verificar_token_recuperacion(self, token: str) -> dict:
+        """Verifica y decodifica un JWT de recuperación. Retorna el payload."""
+        logger.info("[JWT] Verificando token de recuperación...")
+
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+            if payload.get("tipo") != "recuperacion":
+                raise ValueError("Token inválido o expirado")
+            if not payload.get("sub") or not payload.get("pwd_frag"):
+                raise ValueError("Token inválido o expirado")
+            return payload
+        except (JWTError, ValueError) as e:
+            logger.error(f"[JWT] Token de recuperación inválido: {str(e)}")
+            raise ValueError("Token inválido o expirado")

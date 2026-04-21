@@ -36,8 +36,21 @@ import { HistorialFamiliar } from './src/features/family/screens/HistorialFamili
 import { RecordatorioMedicamento } from './src/features/senior/screens/RecordatorioMedicamento';
 import { AlertaMedicamento } from './src/features/family/screens/AlertaMedicamento';
 
+import { ForgotPasswordScreen } from './src/features/onboarding/screens/ForgotPasswordScreen';
+import { CheckEmailScreen } from './src/features/onboarding/screens/CheckEmailScreen';
+import { ResetPasswordScreen } from './src/features/onboarding/screens/ResetPasswordScreen';
+
 
 const Stack = createStackNavigator();
+
+const linking = {
+  prefixes: ['samm://'],
+  config: {
+    screens: {
+      ResetPassword: 'reset-password',
+    },
+  },
+};
 
 const moduloDispositivo = NativeModules.SAMMDeviceToken;
 
@@ -98,7 +111,7 @@ export default function App() {
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
-        <NavigationContainer ref={navigationRef}>
+        <NavigationContainer ref={navigationRef} linking={linking}>
           <Stack.Navigator
           //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
            // initialRouteName="MiPerfilFamiliar"
@@ -117,6 +130,11 @@ export default function App() {
             <Stack.Screen name="VinculacionSenior" component={VinculacionSenior} />
             <Stack.Screen name="CreateCircleScreen" component={CreateCircleScreen} />
             <Stack.Screen name="RolEnCirculo" component={RolEnCirculo} />
+
+            {/* Recuperación de contraseña */}
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="CheckEmail" component={CheckEmailScreen} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
 
 
             {/* Ruta Principal del Adulto Mayor */}

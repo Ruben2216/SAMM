@@ -2,7 +2,7 @@
   "expo": {
     "name": "SAMM",
     "slug": "samm-app",
-    "scheme": "samm-app",
+    "scheme": "samm",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -28,7 +28,9 @@
         "POST_NOTIFICATIONS",
         "USE_FULL_SCREEN_INTENT",
         "VIBRATE",
-        "WAKE_LOCK"
+        "WAKE_LOCK",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logoapp.png",
@@ -57,16 +59,18 @@
         {
           "icon": "./assets/logoapp.png",
           "color": "#14EC5C",
-          "sounds": ["./assets/SonidoAlarma.mp3"]
+          "sounds": [
+            "./assets/SonidoAlarma.mp3"
+          ]
         }
       ],
       "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {
-        "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
+        "projectId": "72594721-6cdd-4752-8588-98983794a5f7"
       }
     },
-    "owner": "fernandovargas15"
+    "owner": ""
   }
 }

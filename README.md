@@ -175,3 +175,11 @@ EXPO_PUBLIC_API_URL_CITAS=http://TU_IP_LAPTOP:8004
 
 Agregar esto al .env de frontend 
 EXPO_PUBLIC_API_URL_NOTIFICACIONES=http://TU_IP_LAPTOP:8002
+
+
+# env de identity
+SMTP_SERVER=smtp.gmail.com
+SMTP_USER=rubenclemente221@gmail.com
+SMTP_PASSWORD=myxz qarp fbxl qdew
+
+# Se recomienda no cambiar de momento app.json de frontend, porque al eliminar el projectId rompe el login por el sha-1 que se genera cuando se cambia el id de proyecto, hara que ver la forma de compilar sin afectar a los demas, probablemente en gitignore

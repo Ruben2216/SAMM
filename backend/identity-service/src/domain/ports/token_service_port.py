@@ -18,3 +18,13 @@ class TokenServicePort(ABC):
     def verificar_token(self, token: str) -> dict:
         """Verifica y decodifica un JWT. Retorna el payload."""
         ...
+
+    @abstractmethod
+    def crear_token_recuperacion(self, id_usuario: int, pwd_frag: str) -> str:
+        """Genera un JWT de recuperación de contraseña (expira en 10 minutos)."""
+        ...
+
+    @abstractmethod
+    def verificar_token_recuperacion(self, token: str) -> dict:
+        """Verifica y decodifica un JWT de recuperación. Retorna el payload."""
+        ...

@@ -18,6 +18,7 @@ from src.infrastructure.security.jwt_service import JWTService
 from src.infrastructure.security.bcrypt_hasher import BcryptHasher
 
 from src.infrastructure.services.local_avatar_storage import LocalAvatarStorage
+from src.infrastructure.services.smtp_email_service import SMTPEmailService
 
 from src.application.google_login_use_case import GoogleLoginUseCase
 from src.application.login_user_use_case import LoginUserUseCase
@@ -28,6 +29,8 @@ from src.application.delete_avatar_use_case import DeleteAvatarUseCase
 from src.application.generar_codigo_use_case import GenerarCodigoUseCase
 from src.application.validar_codigo_use_case import ValidarCodigoUseCase
 from src.application.actualizar_circulo_use_case import ActualizarCirculoUseCase
+from src.application.solicitar_recuperacion_use_case import SolicitarRecuperacionUseCase
+from src.application.restablecer_contrasena_use_case import RestablecerContrasenaUseCase
 
 from src.infrastructure.persistence.postgres_vinculacion_repository import PostgresVinculacionRepository
 
@@ -59,6 +62,10 @@ def obtener_storage_avatar() -> LocalAvatarStorage:
     # Directorio base para servir /media (ver main.py). Ajustable vía env.
     directorio_base = os.getenv("SAMM_MEDIA_DIR", "uploads")
     return LocalAvatarStorage(directorio_base)
+
+
+def obtener_servicio_email() -> SMTPEmailService:
+    return SMTPEmailService()
 
 
 # --- Casos de uso ---
@@ -130,6 +137,22 @@ def obtener_actualizar_circulo_uc(
     repo: PostgresUserRepository = Depends(obtener_repositorio),
 ) -> ActualizarCirculoUseCase:
     return ActualizarCirculoUseCase(repo_vinculacion, repo)
+
+
+def obtener_solicitar_recuperacion_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+    jwt_svc: JWTService = Depends(obtener_servicio_jwt),
+    email_svc: SMTPEmailService = Depends(obtener_servicio_email),
+) -> SolicitarRecuperacionUseCase:
+    return SolicitarRecuperacionUseCase(repo, jwt_svc, email_svc)
+
+
+def obtener_restablecer_contrasena_uc(
+    repo: PostgresUserRepository = Depends(obtener_repositorio),
+    hasher: BcryptHasher = Depends(obtener_hasher),
+    jwt_svc: JWTService = Depends(obtener_servicio_jwt),
+) -> RestablecerContrasenaUseCase:
+    return RestablecerContrasenaUseCase(repo, hasher, jwt_svc)
 
 
 # --- Autenticación del usuario actual ---
