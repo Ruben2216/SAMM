@@ -9,6 +9,7 @@ import { NativeModules, Platform } from 'react-native';
 import httpClient, { setAuthToken } from '../../services/httpService';
 import { signOutGoogle } from '../../services/googleAuthService';
 import { registrarParaNotificaciones } from '../../services/notificationService';
+import { useFamilyPreferencesStore } from '../../store/useFamilyPreferencesStore';
 
 // ===================== Tipos =====================
 
@@ -125,6 +126,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 cargando: false,
             });
 
+            useFamilyPreferencesStore.getState().setUsuarioActivo(usuario.Id_Usuario);
+
             console.log(`[AuthStore] Login con Google exitoso — Id_Usuario: ${usuario.Id_Usuario}`);
 
             void registrarParaNotificaciones(usuario.Id_Usuario);
@@ -168,6 +171,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 cargando: false,
             });
 
+            useFamilyPreferencesStore.getState().setUsuarioActivo(usuario.Id_Usuario);
+
             void registrarParaNotificaciones(usuario.Id_Usuario);
 
             return { exito: true, es_nuevo: false };
@@ -206,6 +211,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 cargando: false,
             });
 
+            useFamilyPreferencesStore.getState().setUsuarioActivo(usuario.Id_Usuario);
+
             void registrarParaNotificaciones(usuario.Id_Usuario);
 
             return { exito: true, es_nuevo: true };
@@ -242,6 +249,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 token: token_sesion,
                 cargando: false,
             });
+
+            useFamilyPreferencesStore.getState().setUsuarioActivo(usuario.Id_Usuario);
 
             void registrarParaNotificaciones(usuario.Id_Usuario);
 
@@ -347,6 +356,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             cargando: false,
         });
 
+        useFamilyPreferencesStore.getState().setUsuarioActivo(null);
+
         console.log('[AuthStore] Sesión cerrada exitosamente');
     },
 
@@ -376,14 +387,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     cargando: false,
                 });
 
+                useFamilyPreferencesStore.getState().setUsuarioActivo(usuario.Id_Usuario);
+
                 // Re-crea canales Android y refresca el push token por si cambió la config.
                 void registrarParaNotificaciones(usuario.Id_Usuario);
             } else {
                 console.log('[AuthStore] No hay sesión guardada');
+                useFamilyPreferencesStore.getState().setUsuarioActivo(null);
                 set({ cargando: false });
             }
         } catch (error: any) {
             console.error('[AuthStore] Error cargando sesión:', error.message);
+            useFamilyPreferencesStore.getState().setUsuarioActivo(null);
             set({ cargando: false });
         }
     },

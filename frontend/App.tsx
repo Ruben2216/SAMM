@@ -6,6 +6,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from './src/theme';
+import { useFamilyPreferencesStore } from './src/store/useFamilyPreferencesStore';
 import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
@@ -60,6 +61,10 @@ const moduloDispositivo = NativeModules.SAMMDeviceToken;
  */
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
+
+  useEffect(() => {
+    void useFamilyPreferencesStore.getState().rehidratar();
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;

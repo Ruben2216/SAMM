@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { type ConfiguracionFamiliar, useFamilyPreferencesStore } from '../store/useFamilyPreferencesStore';
 
 const NOTIFICATION_API_URL =
   process.env.EXPO_PUBLIC_API_URL_NOTIFICACIONES || 'http://192.168.0.17:8002';
@@ -11,15 +12,82 @@ const NOTIFICATION_API_URL =
 const CANAL_ALARMA_ADULTO = 'medicamentos_alarma_v3';
 const CANAL_ALERTA_FAMILIAR = 'alertas_familiar';
 
+const resolverClavePreferenciaPorTipoAlerta = (
+  tipoAlerta: string | undefined
+): keyof ConfiguracionFamiliar | null => {
+  if (!tipoAlerta) return null;
+
+  const tipoNormalizado = String(tipoAlerta).trim().toLowerCase();
+
+  if (tipoNormalizado === 'tomado' || tipoNormalizado === 'toma_correcta') {
+    return 'alertaTomaCorrecta';
+  }
+
+  if (tipoNormalizado === 'olvidado' || tipoNormalizado === 'olvido_critico') {
+    return 'alertaOlvidoCritico';
+  }
+
+  if (tipoNormalizado === 'salida_zona') {
+    return 'alertaSalidaZona';
+  }
+
+  if (tipoNormalizado === 'bateria_baja') {
+    return 'alertaBateriaBaja';
+  }
+
+  return null;
+};
+
 // Configurar cómo se muestran las notificaciones cuando la app está en primer plano
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: async (notificacion) => {
+    const datos = notificacion.request.content.data as any;
+
+    // Edge filtering: sólo aplicamos reglas al flujo de alertas del familiar.
+    if (datos?.tipo === 'alerta_familiar') {
+      const estado = useFamilyPreferencesStore.getState();
+
+      const idUsuarioDestino =
+        datos?.targetUserId ??
+        datos?.idUsuario ??
+        datos?.id_usuario ??
+        datos?.id_usuario_destino ??
+        null;
+
+      const preferencias = idUsuarioDestino
+        ? estado.obtenerConfiguracion(idUsuarioDestino)
+        : estado.obtenerConfiguracionActiva();
+
+      if (!preferencias.notificacionesGenerales) {
+        return {
+          shouldShowAlert: false,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+          shouldShowBanner: false,
+          shouldShowList: false,
+        };
+      }
+
+      const clavePreferencia = resolverClavePreferenciaPorTipoAlerta(datos?.tipoAlerta);
+      if (clavePreferencia && !preferencias[clavePreferencia]) {
+        return {
+          shouldShowAlert: false,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+          shouldShowBanner: false,
+          shouldShowList: false,
+        };
+      }
+    }
+
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    };
+  },
 });
 
 /**
