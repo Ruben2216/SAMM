@@ -1,135 +1,147 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { NavigationProp, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
-import { AppointmentCard } from './components/AppointmentCard';
+import { AppointmentCard, CitaDB } from './components/AppointmentCard';
 import { citasStyles, themeColors } from './styles';
-
-// Conexión al backend
 import { obtenerCitasUsuario } from '../../../../services/citasService';
+import { useAuthStore } from '../../../auth/authStore';
 
-type RootStackParamList = {
-  AgendarCita: undefined;
-};
+type TabKey = 'proximas' | 'historial';
 
-export default function CitasFamiliarScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+export default function CitasScreen() {
+  const navigation = useNavigation<any>();
   const route = useRoute();
-  const { idAdultoMayor } = (route.params as { idAdultoMayor?: number }) || {};
-  const [activeTab, setActiveTab] = useState<'proximas' | 'historial'>('proximas');
+  const usuario = useAuthStore((s) => s.usuario);
 
+  const params = (route.params as { idAdultoMayor?: number; nombreAdulto?: string }) || {};
+  const idAdultoMayor = params.idAdultoMayor ?? usuario?.Id_Usuario ?? 0;
+  const nombreAdulto = params.nombreAdulto ?? usuario?.Nombre ?? '';
 
-  // Estados para los datos reales
-  const [citasProximas, setCitasProximas] = useState<any[]>([]);
-  const [citasHistorial, setCitasHistorial] = useState<any[]>([]);
+  const [tabActivo, setTabActivo] = useState<TabKey>('proximas');
+  const [citasProximas, setCitasProximas] = useState<CitaDB[]>([]);
+  const [citasHistorial, setCitasHistorial] = useState<CitaDB[]>([]);
   const [cargando, setCargando] = useState(true);
 
-  // Función para traer datos del servidor
-  const cargarCitas = async () => {
+  const cargarCitas = useCallback(async () => {
+    if (!idAdultoMayor) {
+      setCargando(false);
+      return;
+    }
     try {
       setCargando(true);
-      // TEMP: Buscamos las citas del ID 2
-      const data = await obtenerCitasUsuario(2);
-      
-      // Separamos en Próximas y el Historial usando el campo "estado"
-      const proximas = data.filter((cita: any) => cita.estado === 'programada');
-      const historial = data.filter((cita: any) => cita.estado !== 'programada');
+      const data: CitaDB[] = await obtenerCitasUsuario(idAdultoMayor);
 
-      // Ordenamos las próximas por fecha (la más cercana primero)
-      proximas.sort((a: any, b: any) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+      const proximas = data
+        .filter((c) => c.estado === 'programada')
+        .sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+
+      const historial = data
+        .filter((c) => c.estado !== 'programada')
+        .sort((a, b) => new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime());
 
       setCitasProximas(proximas);
       setCitasHistorial(historial);
     } catch (error) {
       console.log('Error al cargar citas:', error);
-      Alert.alert('Error', 'No pudimos cargar tus citas de la base de datos.');
     } finally {
       setCargando(false);
     }
-  };
+  }, [idAdultoMayor]);
 
-  // Recarga automáticamente al entrar a la pantalla
   useFocusEffect(
     useCallback(() => {
       cargarCitas();
-    }, [])
+    }, [cargarCitas]),
   );
 
-  const currentData = activeTab === 'proximas' ? citasProximas : citasHistorial;
-  const currentTitle = activeTab === 'proximas' ? 'Mis citas médicas' : 'Historial de citas';
+  const datos = tabActivo === 'proximas' ? citasProximas : citasHistorial;
+  const mensajeVacio =
+    tabActivo === 'proximas'
+      ? 'No hay citas médicas programadas.'
+      : 'Aún no hay citas en el historial.';
 
   return (
-    <SafeAreaView style={citasStyles.container}>
+    <View style={citasStyles.contenedor}>
       <View style={citasStyles.header}>
-        <TouchableOpacity
-          style={citasStyles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={28} color={themeColors.textDark} />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={citasStyles.botonAtras}>
+          <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={citasStyles.headerTitle}>{currentTitle}</Text>
+        <Text style={citasStyles.tituloHeader}>Citas médicas</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <View style={citasStyles.textosTop}>
+        <Text style={citasStyles.tituloSecundario}>Agenda médica</Text>
+        <Text style={citasStyles.descripcion}>
+          {nombreAdulto 
+            ? `Gestiona las próximas consultas y chequeos de ${nombreAdulto.split(' ')[0]}` 
+            : 'Revisa tus próximas consultas y tu historial médico'}
+        </Text>
+      </View>
+
+      <View style={citasStyles.tabsRow}>
+        <TouchableOpacity
+          style={[citasStyles.radioItem, tabActivo === 'proximas' && citasStyles.radioItemActivo]}
+          onPress={() => setTabActivo('proximas')}
+          activeOpacity={0.8}
+        >
+          <Text style={[citasStyles.radioTitulo, tabActivo === 'proximas' && citasStyles.textoActivo]}>
+            Próximas ({citasProximas.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[citasStyles.radioItem, tabActivo === 'historial' && citasStyles.radioItemActivo]}
+          onPress={() => setTabActivo('historial')}
+          activeOpacity={0.8}
+        >
+          <Text style={[citasStyles.radioTitulo, tabActivo === 'historial' && citasStyles.textoActivo]}>
+            Historial ({citasHistorial.length})
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{ flex: 1 }}>
         {cargando ? (
-          <ActivityIndicator size="large" color={themeColors.primary} style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color="#00E676" style={{ marginTop: 60 }} />
         ) : (
           <FlatList
-            data={currentData}
-            // Usamos el ID real de la base de datos como Key (convertido a string)
-            keyExtractor={(item) => item.id.toString()}
-            // Le pasamos a la tarjeta la función cargarCitas para que se actualice al borrar
-            renderItem={({ item }) => <AppointmentCard appointment={item} refreshData={cargarCitas} />}
+            data={datos}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <AppointmentCard
+                appointment={item}
+                refreshData={cargarCitas}
+                idAdultoMayor={idAdultoMayor}
+                nombreAdulto={nombreAdulto}
+              />
+            )}
             contentContainerStyle={citasStyles.listContainer}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={() => (
-              <Text style={{ textAlign: 'center', marginTop: 50, color: themeColors.textMuted }}>
-                No hay citas en esta sección.
-              </Text>
+              <View style={citasStyles.estadoVacio}>
+                <Ionicons name="calendar-outline" size={64} color="#CBD5E1" />
+                <Text style={citasStyles.estadoVacio__texto}>{mensajeVacio}</Text>
+              </View>
             )}
           />
         )}
+      </View>
 
-        {/* BOTÓN NUEVA CITA */}
-        {activeTab === 'proximas' && (
+      {tabActivo === 'proximas' && idAdultoMayor > 0 && (
+        <View style={citasStyles.footer}>
           <TouchableOpacity
-            style={citasStyles.fab}
-            onPress={() => navigation.navigate('AgendarCita')}
+            style={citasStyles.botonGuardar}
+            onPress={() => navigation.navigate('AgendarCita', { idAdultoMayor, nombreAdulto })}
+            activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="plus" size={24} color={themeColors.textDark} />
-            <Text style={citasStyles.fabText}>Nueva Cita</Text>
+            <Ionicons name="add" size={22} color="#0F172A" />
+            <Text style={citasStyles.textoBoton}>Agendar nueva cita</Text>
           </TouchableOpacity>
-        )}
-      </View>
-
-      {/* TABS INFERIORES */}
-      <View style={citasStyles.bottomTabBar}>
-        <TouchableOpacity
-          style={citasStyles.tabItem}
-          onPress={() => setActiveTab('proximas')}
-        >
-          <MaterialCommunityIcons
-            name={activeTab === 'proximas' ? 'calendar-month' : 'calendar-month-outline'}
-            size={28}
-            color={activeTab === 'proximas' ? themeColors.primary : themeColors.textMuted}
-          />
-          <Text style={[citasStyles.tabText, { color: activeTab === 'proximas' ? themeColors.primary : themeColors.textMuted }]}>Próximas</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={citasStyles.tabItem}
-          onPress={() => setActiveTab('historial')}
-        >
-          <MaterialCommunityIcons
-            name="history"
-            size={28}
-            color={activeTab === 'historial' ? themeColors.primary : themeColors.textMuted}
-          />
-          <Text style={[citasStyles.tabText, { color: activeTab === 'historial' ? themeColors.primary : themeColors.textMuted }]}>Historial</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        </View>
+      )}
+    </View>
   );
 }

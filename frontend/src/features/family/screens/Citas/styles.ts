@@ -1,146 +1,146 @@
-import { StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, Platform } from 'react-native';
+import { theme } from '../../../../theme';
 
 export const themeColors = {
-  primary: '#14EC5C', // Verde Neón SAMM
-  background: '#FFFFFF', // Fondo general blanco
-  cardBg: '#E8EEF2', // Fondo gris/azulado de las tarjetas y los inputs
-  textDark: '#1E293B',
-  text: '#1E293B',
+  primary: theme.colors.primary,
+  background: '#FFFFFF',
+  surface: theme.colors.surface,
+  cardBg: theme.colors.surface,
+  textDark: '#0F172A',
+  text: theme.colors.text,
   textGray: '#64748B',
-  textMuted: '#94A3B8', // Para el historial
+  textMuted: '#94A3B8',
+  border: '#E2E8F0',
+  error: theme.colors.error,
 };
 
 export const citasStyles = StyleSheet.create({
-  container: {
+  contenedor: {
     flex: 1,
-    backgroundColor: themeColors.background,
+    backgroundColor: '#FFFFFF',
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // <-- AÑADIDO: Centra el título
-    height: 60,               // <-- AÑADIDO: Altura fija para el header
-    paddingHorizontal: 16,
-    backgroundColor: themeColors.background,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
-  backButton: {
-    position: 'absolute',     // <-- AÑADIDO: Fija la flecha a la izquierda sin empujar el título
-    left: 16,
-    padding: 8,
-    zIndex: 10,
+
+  botonAtras: {
+    padding: 5,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: themeColors.textDark,
-  },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 120, // Espacio para el FAB
-  },
-  // --- TARJETAS ---
-  card: {
-    backgroundColor: themeColors.cardBg,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: themeColors.textDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  iconBoxHistory: {
-    borderColor: themeColors.textMuted,
-  },
-  specialtyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: themeColors.textDark,
-  },
-  doctorText: {
-    fontSize: 15,
-    color: themeColors.textGray,
-    marginTop: 2,
-  },
-  dateTimeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: themeColors.textDark,
-    marginBottom: 4,
-    marginTop: 8,
-  },
-  locationText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: themeColors.textGray,
-  },
-  textHistory: {
-    color: themeColors.textMuted,
-  },
-  // Textos apagados para el historial
-  textMuted: {
-    color: themeColors.textMuted,
-  },
-  iconBoxMuted: {
-    borderColor: themeColors.textMuted, // <-- CORREGIDO: Apaga el borde del icono en el historial
-  },
-  // --- BOTÓN FAB Y TABS ---
-  fab: {
-    position: 'absolute',
-    bottom: 100,           // <-- CAMBIADO: Flota sobre la barra inferior
-    right: 16,            // <-- CAMBIADO: Pegado a la derecha como en tu diseño
-    backgroundColor: themeColors.primary,
-    borderRadius: 30,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    zIndex: 999,
-  },
-  fabText: {
+
+  tituloHeader: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: themeColors.textDark,
-    marginLeft: 8,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  bottomTabBar: {
+
+  textosTop: {
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+
+  tituloSecundario: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+
+  descripcion: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+
+  tabsRow: {
     flexDirection: 'row',
-    height: 80,
+    paddingHorizontal: 24,
+    gap: 12,
+    marginBottom: 10,
+  },
+
+  radioItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 24,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+  },
+
+  radioItemActivo: {
+    borderColor: '#00E676',
+    backgroundColor: '#D1FAE5',
+  },
+
+  radioTitulo: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+
+  textoActivo: {
+    color: '#0F172A',
+    fontWeight: '700',
+  },
+
+  listContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+
+  estadoVacio: {
+    alignItems: 'center',
+    marginTop: 60,
+    paddingHorizontal: 32,
+  },
+
+  estadoVacio__texto: {
+    color: '#94A3B8',
+    fontSize: 15,
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 22,
+  },
+
+  footer: {
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingBottom: 20,
-    paddingTop: 10,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    borderTopColor: '#F8FAFC',
   },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
+
+  botonGuardar: {
+    height: 55,
+    borderRadius: 28,
+    backgroundColor: '#00E676',
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00E676',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  tabText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginTop: 4,
+
+  textoBoton: {
+    color: '#0F172A',
+    fontWeight: '800',
+    fontSize: 16,
+    marginLeft: 8,
   },
 });

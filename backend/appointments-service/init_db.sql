@@ -78,6 +78,14 @@ CREATE TABLE IF NOT EXISTS citas (
 -- Compatibilidad: si la tabla ya existía sin estas columnas, las agrega sin romper.
 ALTER TABLE citas ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE citas ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS id_usuario INTEGER;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS id_usuario_creador INTEGER;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS doctor_nombre VARCHAR(100);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS especialidad VARCHAR(100);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS fecha_hora TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS ubicacion VARCHAR(255);
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS notas TEXT;
+ALTER TABLE citas ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'programada';
 
 -- Mantener estado consistente: default y tipo (si es seguro por los datos existentes)
 DO $$
