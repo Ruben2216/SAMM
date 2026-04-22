@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import React, { useEffect, useRef } from 'react';
 import { NativeModules, Platform, StatusBar } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -17,6 +18,7 @@ import { CreateCircleScreen } from './src/features/onboarding/screens/CreateCirc
 import { RolEnCirculo } from './src/features/onboarding/screens/RolEnCirculo';
 //Es solo por ahora
 import {MiPerfilFamiliar} from './src/features/family/screens/Perfil';
+import {Mapa} from './src/features/family/screens/Mapa';
 
 import { SeniorTabs } from './src/features/senior/navigation/SeniorTabs';
 import { AgregarMedicamento } from './src/features/senior/screens/AgregarMedicamento';
@@ -154,6 +156,8 @@ export default function App() {
             <Stack.Screen name="AgregarContactos" component={AgregarContactos} />
             <Stack.Screen name="Asistencia" component={Asistencia} />
             <Stack.Screen name="NecesitaAyuda" component={NecesitaAyuda} />
+            <Stack.Screen name="Mapa" component={Mapa} />
+
 
             {/* Ruta Principal del Familiar */}
             <Stack.Screen name="FamilyTabs" component={FamilyTabs} />
