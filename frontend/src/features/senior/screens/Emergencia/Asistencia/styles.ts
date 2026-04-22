@@ -22,19 +22,34 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0F172A',
   },
+  espaciadorHeader: {
+    width: 24,
+  },
   centroContenido: {
     alignItems: 'center',
     paddingHorizontal: 24,
     marginTop: -20,
   },
   anillosContainer: {
+    width: 170,
+    height: 170,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
     marginBottom: 24,
+  },
+  pulsoRadar: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: '#FECACA',
   },
   anilloExterior: {
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#FEE2E2CC',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -118,6 +133,11 @@ export const styles = StyleSheet.create({
   },
   contactInfo: {
     flex: 1,
+  },
+  estadoContactoFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   contactName: {
     fontSize: 18,
