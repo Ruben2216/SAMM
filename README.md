@@ -182,4 +182,12 @@ SMTP_SERVER=smtp.gmail.com
 SMTP_USER=rubenclemente221@gmail.com
 SMTP_PASSWORD=myxz qarp fbxl qdew
 
+### 22/04/2026 pantalla de mapa. 
+para que no te de un error las targetas 
+cd frontend -> npm install (ya lo sabes) 
+npm install @gorhom/bottom-sheet
+npm install react-native-reanimated react-native-gesture-handler
+npx expo install react-native-reanimated react-native-gesture-handler
+y ya no deberia de dar ningun problema
+
 # Se recomienda no cambiar de momento app.json de frontend, porque al eliminar el projectId rompe el login por el sha-1 que se genera cuando se cambia el id de proyecto, hara que ver la forma de compilar sin afectar a los demas, probablemente en gitignore
