@@ -9,11 +9,6 @@ import { agendarCita, actualizarCita } from '../../../../../services/citasServic
 import { useAuthStore } from '../../../../auth/authStore';
 import { SuccessModal } from '../../../../../components/ui/success-modal';
 
-const ESPECIALIDADES = [
-  'Medicina General', 'Cardiología', 'Geriatría', 'Odontología', 'Oftalmología',
-  'Traumatología', 'Neurología', 'Endocrinología', 'Otro',
-];
-
 interface CampoTextoProps {
   etiqueta: string; placeholder?: string; icono?: string; multilinea?: boolean;
   valor: string; alCambiar: (texto: string) => void;
@@ -108,14 +103,22 @@ export default function AgendarCitaScreen() {
   const idAdultoMayor: number = route.params?.idAdultoMayor ?? citaToEdit?.id_usuario ?? usuario?.Id_Usuario ?? 0;
   const nombreAdulto: string = route.params?.nombreAdulto ?? '';
 
+  // Estado dinamico para las especialidades
+  const [catalogoEspecialidades, setCatalogoEspecialidades] = useState<string[]>([
+    'Medicina General', 'Cardiología', 'Geriatría', 'Odontología', 'Oftalmología',
+    'Traumatología', 'Neurología', 'Endocrinología', 'Otro'
+  ]);
+
   const [formData, setFormData] = useState({
     doctor: citaToEdit?.doctor_nombre || '',
     especialidad: citaToEdit?.especialidad || '',
+    especialidadManual: '',
     lugar: citaToEdit?.ubicacion || '',
     notas: citaToEdit?.notas || '',
     fecha: citaToEdit ? new Date(citaToEdit.fecha_hora) : new Date(),
     hora: citaToEdit ? new Date(citaToEdit.fecha_hora) : new Date(),
   });
+  
   const [erroresCampo, setErroresCampo] = useState<Record<string, string>>({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -128,6 +131,12 @@ export default function AgendarCitaScreen() {
     const errs: Record<string, string> = {};
     if (!formData.doctor.trim()) errs.doctor = 'Ingresa el nombre del doctor.';
     if (!formData.especialidad) errs.especialidad = 'Selecciona la especialidad.';
+    
+    // Si selecciona "Otro", debe escribir algo (nueva validación)
+    if (formData.especialidad === 'Otro' && !formData.especialidadManual.trim()) {
+        errs.especialidadManual = 'Escribe la especialidad manualmente.';
+    }
+    
     if (idAdultoMayor <= 0) errs.adulto = 'No se pudo identificar al adulto mayor.';
     setErroresCampo(errs);
     return Object.keys(errs).length === 0;
@@ -138,11 +147,16 @@ export default function AgendarCitaScreen() {
     const fechaFinal = new Date(formData.fecha);
     fechaFinal.setHours(formData.hora.getHours(), formData.hora.getMinutes(), 0, 0);
 
+    // Enviar el dato correcto al backend
+    const especialidadFinal = formData.especialidad === 'Otro' 
+        ? formData.especialidadManual.trim() 
+        : formData.especialidad;
+
     const payload = {
       id_usuario: idAdultoMayor,
       id_usuario_creador: usuario?.Id_Usuario ?? idAdultoMayor,
       doctor_nombre: formData.doctor.trim(),
-      especialidad: formData.especialidad,
+      especialidad: especialidadFinal,
       fecha_hora: fechaFinal.toISOString(),
       ubicacion: formData.lugar.trim(),
       notas: formData.notas.trim(),
@@ -182,8 +196,27 @@ export default function AgendarCitaScreen() {
           <CampoTexto etiqueta="Nombre del doctor" placeholder="Ej: Dr. Pérez" icono="medkit-outline" valor={formData.doctor} alCambiar={(v) => setFormData({ ...formData, doctor: v })} />
           {erroresCampo.doctor && <Text style={formStyles.textoError}>{erroresCampo.doctor}</Text>}
 
-          <Selector etiqueta="Especialidad" valor={formData.especialidad} opciones={ESPECIALIDADES} alSeleccionar={(v) => setFormData({ ...formData, especialidad: v })} />
+          <Selector 
+            etiqueta="Especialidad" 
+            valor={formData.especialidad} 
+            opciones={catalogoEspecialidades} 
+            alSeleccionar={(v) => setFormData({ ...formData, especialidad: v, especialidadManual: '' })} 
+          />
           {erroresCampo.especialidad && <Text style={formStyles.textoError}>{erroresCampo.especialidad}</Text>}
+
+          {/* Campo que aparece dinámicamente si elige "Otro" */}
+          {formData.especialidad === 'Otro' && (
+            <>
+              <CampoTexto 
+                etiqueta="Especifique la especialidad" 
+                placeholder="Ej: Reumatología, Urología..." 
+                icono="pencil-outline" 
+                valor={formData.especialidadManual} 
+                alCambiar={(v) => setFormData({ ...formData, especialidadManual: v })} 
+              />
+              {erroresCampo.especialidadManual && <Text style={formStyles.textoError}>{erroresCampo.especialidadManual}</Text>}
+            </>
+          )}
 
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 0 }}>
             <SelectorFechaHora etiqueta="Fecha" valor={formData.fecha} modo="date" icono="calendar-outline" alPresionar={() => setShowDatePicker(true)} />
