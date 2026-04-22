@@ -46,8 +46,8 @@ export const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   filtro__activo: {
-    backgroundColor: '#1E293B',
-    borderColor: '#1E293B',
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   filtro__texto: {
     fontSize: 13,
@@ -125,7 +125,7 @@ export const styles = StyleSheet.create({
   itemContenido__tituloAlerta: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#B91C1C',
+    color: theme.colors.error,
   },
   itemContenido__subtituloRow: {
     flexDirection: 'row',
@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
   itemContenido__subtituloVerde: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#13EC5B',
+    color: theme.colors.primary,
   },
   itemContenido__subtituloRojo: {
     fontSize: 13,

@@ -55,6 +55,15 @@ interface PerfilCuidado {
   idAdultoMayor: number;
 }
 
+interface PerfilSalud {
+  Tipo_Sangre?: string | null;
+  Alergias?: string | null;
+  Peso?: string | null;
+  Edad?: number | null;
+  Condicion_Medica?: string | null;
+  Telefono?: string | null;
+}
+
 const construirUriAvatar = (urlAvatar: string) => {
   const baseUrl = (httpClient.defaults.baseURL ?? "").replace(/\/$/, "");
   const ruta = urlAvatar.trim();
@@ -92,15 +101,35 @@ const realizarLlamada = (telefono: string) => {
 // Tarjeta de perfil
 const ItemPerfil = ({
   perfil,
+  perfilSalud,
   estaExpandido,
   onPresionar,
+  onVerAgenda,
+  onVerInfoMedica,
 }: {
   perfil: PerfilCuidado;
+  perfilSalud: PerfilSalud | null;
   estaExpandido: boolean;
   onPresionar: () => void;
+  onVerAgenda: () => void;
+  onVerInfoMedica: () => void;
 }) => {
   const uriAvatar = perfil.urlAvatar ? construirUriAvatar(perfil.urlAvatar) : "";
   const tieneAvatar = Boolean(uriAvatar);
+
+  const tipoSangre = perfilSalud?.Tipo_Sangre?.trim() || "—";
+  const pesoRaw = perfilSalud?.Peso?.trim() ?? "";
+  const pesoTexto = pesoRaw ? (/kg/i.test(pesoRaw) ? pesoRaw : `${pesoRaw} kg`) : "—";
+  const alergiasRaw = perfilSalud?.Alergias?.trim() ?? "";
+  const alergiasTexto = alergiasRaw || "Ninguna";
+  const tieneAlergias = alergiasRaw.length > 0;
+
+  const edad = perfilSalud?.Edad;
+  const condicion = perfilSalud?.Condicion_Medica?.trim() ?? "";
+  const partesSaludMeta: string[] = [];
+  if (typeof edad === "number" && edad > 0) partesSaludMeta.push(`${edad} años`);
+  if (condicion) partesSaludMeta.push(condicion);
+  const metaSalud = partesSaludMeta.join(" • ");
 
   return (
     <View style={styles.tarjetaPerfil}>
@@ -133,23 +162,60 @@ const ItemPerfil = ({
           <Text style={styles.tarjetaPerfil__meta}>
             {perfil.rolEnCirculo || "Adulto Mayor"}{perfil.nombreCirculo ? ` • ${perfil.nombreCirculo}` : ""}
           </Text>
+          {metaSalud.length > 0 && (
+            <Text style={styles.tarjetaPerfil__meta}>{metaSalud}</Text>
+          )}
         </View>
       </TouchableOpacity>
 
-      <View style={styles.indicadorExpandir}>
+      <TouchableOpacity
+        style={styles.indicadorExpandir}
+        onPress={onPresionar}
+        activeOpacity={0.6}
+        hitSlop={{ top: 8, bottom: 8, left: 40, right: 40 }}
+        accessibilityRole="button"
+        accessibilityLabel={estaExpandido ? "Contraer tarjeta" : "Expandir tarjeta"}
+      >
         <Icon
           name={estaExpandido ? "chevron-up" : "chevron-down"}
           size={20}
           color="#CBD5E1"
         />
-      </View>
+      </TouchableOpacity>
 
       {estaExpandido && (
         <View style={styles.seccionExpandida}>
+          <View style={styles.estadisticasSalud}>
+            <View style={styles.estadistica}>
+              <Text style={styles.estadistica__etiqueta}>SANGRE</Text>
+              <Text style={styles.estadistica__valorBold}>{tipoSangre}</Text>
+            </View>
+            <View style={styles.estadistica__divisor} />
+            <View style={styles.estadistica}>
+              <Text style={styles.estadistica__etiqueta}>PESO</Text>
+              <Text style={styles.estadistica__valorBold}>{pesoTexto}</Text>
+            </View>
+            <View style={styles.estadistica__divisor} />
+            <View style={styles.estadistica}>
+              <Text style={styles.estadistica__etiqueta}>ALERGIAS</Text>
+              <Text
+                style={
+                  tieneAlergias
+                    ? styles.estadistica__valorAlerta
+                    : styles.estadistica__valor
+                }
+                numberOfLines={1}
+              >
+                {alergiasTexto}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.botonesAccion}>
             <TouchableOpacity
               style={styles.botonPrimario}
               activeOpacity={0.8}
+              onPress={onVerAgenda}
             >
               <IconoCalendario />
               <Text style={styles.botonPrimario__texto}>Ver Agenda</Text>
@@ -157,6 +223,7 @@ const ItemPerfil = ({
             <TouchableOpacity
               style={styles.botonSecundario}
               activeOpacity={0.8}
+              onPress={onVerInfoMedica}
             >
               <IconoInfoMedica />
               <Text style={styles.botonSecundario__texto}>Info Medica</Text>
@@ -168,14 +235,20 @@ const ItemPerfil = ({
   );
 };
 
-export const Familia = () => {
+export const Familia = ({ navigation }: { navigation: any }) => {
   const [perfiles, setPerfiles] = useState<PerfilCuidado[]>([]);
+  const [perfilesSaludPorAdulto, setPerfilesSaludPorAdulto] = useState<
+    Record<number, PerfilSalud>
+  >({});
   const [expandidoId, setExpandidoId] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
   const yaCargoUnaVezRef = useRef(false);
+
+  const apiMedicamentos =
+    process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
   const cargarVinculaciones = useCallback(async () => {
     const esPrimerCarga = !yaCargoUnaVezRef.current;
@@ -199,6 +272,32 @@ export const Familia = () => {
       }));
 
       setPerfiles(perfilesMapeados);
+
+      if (vinculaciones.length > 0) {
+        const resultados = await Promise.all(
+          vinculaciones.map(async (v) => {
+            try {
+              const res = await fetch(
+                `${apiMedicamentos}/perfil-salud/usuario/${v.Id_Adulto_Mayor}`
+              );
+              if (res.ok) {
+                const datos: PerfilSalud = await res.json();
+                return { id: v.Id_Adulto_Mayor, datos };
+              }
+            } catch (err) {
+              console.log("Error cargando perfil de salud:", err);
+            }
+            return { id: v.Id_Adulto_Mayor, datos: {} as PerfilSalud };
+          })
+        );
+        const mapa: Record<number, PerfilSalud> = {};
+        resultados.forEach((r) => {
+          mapa[r.id] = r.datos;
+        });
+        setPerfilesSaludPorAdulto(mapa);
+      } else {
+        setPerfilesSaludPorAdulto({});
+      }
     } catch (error) {
       console.log("Error cargando vinculaciones:", error);
     } finally {
@@ -207,7 +306,7 @@ export const Familia = () => {
       }
       yaCargoUnaVezRef.current = true;
     }
-  }, []);
+  }, [apiMedicamentos]);
 
   useFocusEffect(
     useCallback(() => {
@@ -230,12 +329,6 @@ export const Familia = () => {
     <View style={styles.contenedor}>
       <View style={styles.encabezado}>
         <Text style={styles.encabezado__titulo}>Mis Familiares</Text>
-        <TouchableOpacity
-          style={styles.encabezado__botonAgregar}
-          activeOpacity={0.8}
-        >
-          <IconoAgregar />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -277,8 +370,21 @@ export const Familia = () => {
               <ItemPerfil
                 key={perfil.id}
                 perfil={perfil}
+                perfilSalud={perfilesSaludPorAdulto[perfil.idAdultoMayor] ?? null}
                 estaExpandido={expandidoId === perfil.id}
                 onPresionar={() => toggleExpandir(perfil.id)}
+                onVerAgenda={() =>
+                  navigation.navigate("CitasFamiliar", {
+                    idAdultoMayor: perfil.idAdultoMayor,
+                    nombreAdulto: perfil.nombre,
+                  })
+                }
+                onVerInfoMedica={() =>
+                  navigation.navigate("MedicamentosFamiliar", {
+                    idAdultoMayor: perfil.idAdultoMayor,
+                    nombreAdulto: perfil.nombre,
+                  })
+                }
               />
             ))}
           </View>

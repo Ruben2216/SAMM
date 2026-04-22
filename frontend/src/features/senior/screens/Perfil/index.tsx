@@ -12,6 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Menu } from 'react-native-paper';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { styles } from './styles';
@@ -19,6 +20,7 @@ import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
+import { SuccessModal } from '../../../../components/ui/success-modal';
 import * as ImagePicker from 'expo-image-picker';
 import {
   registrarParaNotificaciones,
@@ -55,8 +57,10 @@ export const Perfil = () => {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalExitoVisible, setModalExitoVisible] = useState(false);
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [cargandoNotif, setCargandoNotif] = useState(false);
+  const [menuSangreVisible, setMenuSangreVisible] = useState(false);
 
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
@@ -177,7 +181,7 @@ export const Perfil = () => {
 
       if (res.ok) {
         setEditando(false);
-        Alert.alert('Guardado', 'Tu perfil de salud se actualizó correctamente.');
+        setModalExitoVisible(true);
       } else {
         Alert.alert('Error', 'No se pudo guardar el perfil.');
       }
@@ -420,11 +424,38 @@ export const Perfil = () => {
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Tipo de Sangre</Text>
-                <TextInput
-                  style={styles.inputStyle}
-                  value={perfil.Tipo_Sangre}
-                  onChangeText={(v) => setPerfil(p => ({ ...p, Tipo_Sangre: v }))}
-                />
+                <Menu
+                  visible={menuSangreVisible}
+                  onDismiss={() => setMenuSangreVisible(false)}
+                  anchorPosition="bottom"
+                  contentStyle={{ backgroundColor: theme.colors.surface, borderRadius: 12, marginTop: 4 }}
+                  anchor={
+                    <TouchableOpacity
+                      style={[styles.inputStyle, { justifyContent: 'center', height: 48 }]}
+                      onPress={() => setMenuSangreVisible(true)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={{ color: perfil.Tipo_Sangre ? theme.colors.text : '#94A3B8', fontWeight: '600' }}>
+                          {perfil.Tipo_Sangre || 'Selecciona una opción'}
+                        </Text>
+                        <Icon name="chevron-down" size={20} color={theme.colors.textSecondary} />
+                      </View>
+                    </TouchableOpacity>
+                  }
+                >
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Desconocido'].map((tipo) => (
+                    <Menu.Item
+                      key={tipo}
+                      onPress={() => {
+                        setPerfil(p => ({ ...p, Tipo_Sangre: tipo === 'Desconocido' ? '' : tipo }));
+                        setMenuSangreVisible(false);
+                      }}
+                      title={tipo}
+                      titleStyle={{ color: theme.colors.text, fontWeight: '500' }}
+                    />
+                  ))}
+                </Menu>
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Alergias</Text>
@@ -540,6 +571,12 @@ export const Perfil = () => {
         textoConfirmar="Cerrar sesión"
         alCancelar={() => setModalVisible(false)}
         alConfirmar={() => void manejarCerrarSesion()}
+      />
+
+      <SuccessModal
+        esVisible={modalExitoVisible}
+        mensaje="Tu perfil de salud se actualizó correctamente."
+        alTerminar={() => setModalExitoVisible(false)}
       />
     </ScrollView>
   );

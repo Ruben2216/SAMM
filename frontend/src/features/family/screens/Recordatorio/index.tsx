@@ -9,6 +9,7 @@ import {
 } from '../../../../assets/iconos/iconos-recordatorio';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import httpClient from '../../../../services/httpService';
+import { theme } from '../../../../theme';
 
 type Periodo = 'mañana' | 'tarde' | 'noche';
 
@@ -251,7 +252,7 @@ export const Recordatorio = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.areaContenido}>
         {cargando ? (
-          <ActivityIndicator size="large" color="#00E676" style={{ marginTop: 50 }} />
+          <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 50 }} />
         ) : itemsFiltrados.length === 0 ? (
           <View style={{ alignItems: 'center', marginTop: 50 }}>
             <Icon name="calendar-blank-outline" size={64} color="#CBD5E1" />
