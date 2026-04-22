@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Switch, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
@@ -7,8 +7,10 @@ import { useAuthStore } from '../../../auth/authStore';
 import { SuccessModal } from '../../../../components/ui/success-modal';
 
 const ITEM_HEIGHT = 60; 
-const HORAS = Array.from({ length: 12 }, (_, i) => (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`));
+const HORAS_12 = Array.from({ length: 12 }, (_, i) => (i + 1 < 10 ? `0${i + 1}` : `${i + 1}`));
+const HORAS_24 = Array.from({ length: 24 }, (_, i) => (i < 10 ? `0${i}` : `${i}`));
 const MINUTOS = Array.from({ length: 60 }, (_, i) => (i < 10 ? `0${i}` : `${i}`));
+const AMPM_OPCIONES = ['AM', 'PM'];
 
 export const EstablecerHora = () => {
     const navigation = useNavigation<any>();
@@ -20,6 +22,7 @@ export const EstablecerHora = () => {
     const [repetir, setRepetir] = useState(true);
     const [modalExito, setModalExito] = useState(false);
     const [mensajeExito, setMensajeExito] = useState('');
+    const [guardando, setGuardando] = useState(false);
 
     const [hora, setHora] = useState(() => {
         if (datos.horaCruda) {
@@ -34,17 +37,41 @@ export const EstablecerHora = () => {
         return datos.horaCruda ? datos.horaCruda.split(':')[1] : '15';
     });
 
-    const [esPM, setEsPM] = useState(() => {
+    const [formato24h, setFormato24h] = useState(false);
+
+    const [amPm, setAmPm] = useState(() => {
         if (datos.horaCruda) {
-            return parseInt(datos.horaCruda.split(':')[0]) >= 12;
+            return parseInt(datos.horaCruda.split(':')[0]) >= 12 ? 'PM' : 'AM';
         }
-        return true;
+        return 'AM';
     });
 
+    // Convierte la hora visualmente al presionar el cambio de formato
+    const alternarFormato = () => {
+        let h = parseInt(hora);
+        if (formato24h) {
+            // De 24h a 12h
+            setAmPm(h >= 12 ? 'PM' : 'AM');
+            h = h % 12 || 12;
+        } else {
+            // De 12h a 24h
+            if (amPm === 'PM' && h !== 12) h += 12;
+            if (amPm === 'AM' && h === 12) h = 0;
+        }
+        setHora(h < 10 ? `0${h}` : `${h}`);
+        setFormato24h(!formato24h);
+    };
+
     const manejarConfirmacion = async () => {
+        if (guardando) return;
+        setGuardando(true); 
+
         let horaNumerica = parseInt(hora);
-        if (esPM && horaNumerica !== 12) horaNumerica += 12;
-        if (!esPM && horaNumerica === 12) horaNumerica = 0;
+        
+        if (!formato24h) {
+            if (amPm === 'PM' && horaNumerica !== 12) horaNumerica += 12;
+            if (amPm === 'AM' && horaNumerica === 12) horaNumerica = 0;
+        }
         
         const horaFormateada = `${horaNumerica.toString().padStart(2, '0')}:${minuto}:00`;
 
@@ -80,6 +107,8 @@ export const EstablecerHora = () => {
         } catch (error) {
             console.error("Error de conexión:", error);
             Alert.alert("Error de Red", "Revisa que el servicio de medicamentos esté encendido (puerto 8001).");
+        } finally {
+            setGuardando(false);
         }
     };
 
@@ -123,14 +152,29 @@ export const EstablecerHora = () => {
                 <Text style={styles.tituloSecundario}>¿A qué hora deberías{'\n'}tomar esto?</Text>
                 <Text style={styles.descripcion}>Desplace para seleccionar el{'\n'}horario de medicación</Text>
 
+                <TouchableOpacity onPress={alternarFormato} style={{ alignSelf: 'center', marginBottom: 15 }}>
+                    <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 13 }}>
+                        Cambiar a formato de {formato24h ? '12' : '24'} horas
+                    </Text>
+                </TouchableOpacity>
+
                 <View style={styles.selectorContainer}>
                     <View style={styles.pillFondo} pointerEvents="none" />
-                    <Ruleta datos={HORAS} valorActual={hora} alCambiar={setHora} />
+                    
+                    {/* (Se adapta al formato 12 o 24) */}
+                    <Ruleta datos={formato24h ? HORAS_24 : HORAS_12} valorActual={hora} alCambiar={setHora} />
+                    
                     <View style={styles.separadorContainer}><Text style={styles.separadorTexto}>:</Text></View>
+                    
+                    {/* Ruleta de Minutos */}
                     <Ruleta datos={MINUTOS} valorActual={minuto} alCambiar={setMinuto} />
-                    <TouchableOpacity style={styles.amPmSelector} onPress={() => setEsPM(!esPM)} activeOpacity={0.8}>
-                        <Text style={styles.amPmTexto}>{esPM ? 'PM' : 'AM'}</Text>
-                    </TouchableOpacity>
+                    
+                    {/* Ruleta Individual de AM/PM (Aparece solo en 12h) */}
+                    {!formato24h && (
+                        <View style={{ marginLeft: 10 }}>
+                            <Ruleta datos={AMPM_OPCIONES} valorActual={amPm} alCambiar={setAmPm} />
+                        </View>
+                    )}
                 </View>
 
                 <View style={styles.switchContainer}>
@@ -143,9 +187,20 @@ export const EstablecerHora = () => {
             </View>
 
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.botonConfirmar} onPress={manejarConfirmacion} activeOpacity={0.8}>
-                    <Ionicons name="checkmark" size={24} color="#0F172A" />
-                    <Text style={styles.textoBoton}>{esModoEditar ? "Actualizar" : "Confirmar hora"}</Text>
+                <TouchableOpacity 
+                    style={[styles.botonConfirmar, guardando && { opacity: 0.7 }]} 
+                    onPress={manejarConfirmacion} 
+                    activeOpacity={0.8}
+                    disabled={guardando}
+                >
+                    {guardando ? (
+                        <ActivityIndicator size="small" color="#0F172A" />
+                    ) : (
+                        <Ionicons name="checkmark" size={24} color="#0F172A" />
+                    )}
+                    <Text style={styles.textoBoton}>
+                        {guardando ? "Procesando..." : (esModoEditar ? "Actualizar" : "Confirmar hora")}
+                    </Text>
                 </TouchableOpacity>
             </View>
 

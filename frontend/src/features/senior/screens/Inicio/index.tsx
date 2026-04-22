@@ -42,6 +42,7 @@ export const Inicio = () => {
     const [tieneVinculacion, setTieneVinculacion] = useState<boolean | null>(null);
     const [modalExito, setModalExito] = useState(false);
     const [mensajeExito, setMensajeExito] = useState('');
+    const [procesandoTomaId, setProcesandoTomaId] = useState<string | null>(null);
 
     const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || "http://192.168.0.17:8001";
 
@@ -171,6 +172,9 @@ export const Inicio = () => {
     };
 
     const presionarTomarAhora = async (med: any) => {
+        if (procesandoTomaId === med.id_unico) return; 
+        setProcesandoTomaId(med.id_unico);
+
         try {
             const respuesta = await fetch(`${apiUrl}/medicamentos/${med.id_medicamento}/tomar`, {
                 method: 'POST',
@@ -194,6 +198,8 @@ export const Inicio = () => {
         } catch (error) {
             console.error("Error registrando toma:", error);
             Alert.alert("Error", "No se pudo conectar con el servidor.");
+        } finally {
+            setProcesandoTomaId(null);
         }
     };
 
@@ -288,9 +294,19 @@ export const Inicio = () => {
                                 {/* BOTONES DE ACCIÓN (Si está pendiente) */}
                                 {med.estado === 'pendiente' && (
                                     <View style={styles.estadoPendienteRow}>
-                                        <TouchableOpacity style={styles.botonTomarAhora} onPress={() => presionarTomarAhora(med)}>
-                                            <Ionicons name="checkmark" size={20} color="#0F172A" />
-                                            <Text style={styles.textoTomarAhora}>Tomar ahora</Text>
+                                        <TouchableOpacity 
+                                            style={[styles.botonTomarAhora, procesandoTomaId === med.id_unico && { opacity: 0.6 }]} 
+                                            onPress={() => presionarTomarAhora(med)}
+                                            disabled={procesandoTomaId === med.id_unico}
+                                        >
+                                            {procesandoTomaId === med.id_unico ? (
+                                                <ActivityIndicator size="small" color="#0F172A" />
+                                            ) : (
+                                                <Ionicons name="checkmark" size={20} color="#0F172A" />
+                                            )}
+                                            <Text style={styles.textoTomarAhora}>
+                                                {procesandoTomaId === med.id_unico ? 'Registrando...' : 'Tomar ahora'}
+                                            </Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.botonPosponer}>
                                             <Ionicons name="alarm-outline" size={22} color="#64748B" />

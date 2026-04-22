@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
 
 export const HistorialFamiliar: React.FC = () => {
@@ -13,7 +14,22 @@ export const HistorialFamiliar: React.FC = () => {
   const [historialAgrupado, setHistorialAgrupado] = useState<any>({});
   const [cargando, setCargando] = useState(true);
 
+  const [mostrarCalendario, setMostrarCalendario] = useState(false);
+  const [fechaFiltro, setFechaFiltro] = useState<string | null>(null);
+
   const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
+
+  const manejarCambioFecha = (event: any, fechaSeleccionada?: Date) => {
+    setMostrarCalendario(Platform.OS === 'ios');
+    if (fechaSeleccionada) {
+      // Ajuste de zona horaria para México/Local
+      const tzOffset = fechaSeleccionada.getTimezoneOffset() * 60000;
+      const fechaStr = new Date(fechaSeleccionada.getTime() - tzOffset).toISOString().split('T')[0];
+      setFechaFiltro(fechaStr);
+    } else {
+      setMostrarCalendario(false);
+    }
+  };
 
   const cargarHistorial = async () => {
     try {
@@ -23,9 +39,10 @@ export const HistorialFamiliar: React.FC = () => {
       const respuesta = await fetch(`${apiUrl}/medicamentos/usuario/${idAdultoMayor}/historial`);
       const datos = await respuesta.json();
 
+      const tzOffset = new Date().getTimezoneOffset() * 60000;
       const agrupado: any = {};
-      const hoy = new Date().toISOString().split('T')[0];
-      const ayer = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const hoy = new Date(Date.now() - tzOffset).toISOString().split('T')[0];
+      const ayer = new Date(Date.now() - 86400000 - tzOffset).toISOString().split('T')[0];
 
       datos.forEach((item: any) => {
         let etiquetaFecha = item.Fecha_Asignada;
@@ -66,8 +83,8 @@ export const HistorialFamiliar: React.FC = () => {
           <Ionicons name="arrow-back" size={24} color="#0F172A" />
         </TouchableOpacity>
         <Text style={styles.tituloHeader}>Historial</Text>
-        <TouchableOpacity style={styles.botonIcono}>
-          <Ionicons name="calendar-outline" size={20} color="#0F172A" />
+        <TouchableOpacity style={styles.botonIcono} onPress={() => setMostrarCalendario(true)}>
+          <Ionicons name={fechaFiltro ? "calendar" : "calendar-outline"} size={20} color={fechaFiltro ? "#10B981" : "#0F172A"} />
         </TouchableOpacity>
       </View>
 
@@ -88,6 +105,28 @@ export const HistorialFamiliar: React.FC = () => {
         ))}
       </View>
 
+      {/* Etiqueta de Filtro Activo */}
+      {fechaFiltro && (
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 10, marginBottom: 5 }}>
+          <TouchableOpacity 
+            style={{ backgroundColor: '#E2E8F0', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setFechaFiltro(null)}
+          >
+            <Text style={{ fontSize: 13, color: '#475569', fontWeight: '600', marginRight: 6 }}>Viendo: {fechaFiltro}</Text>
+            <Ionicons name="close-circle" size={16} color="#64748B" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {mostrarCalendario && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display="default"
+          onChange={manejarCambioFecha}
+        />
+      )}
+
       {/* Lista agrupada */}
       <ScrollView contentContainerStyle={styles.listaContainer} showsVerticalScrollIndicator={false}>
         {cargando ? (
@@ -100,7 +139,22 @@ export const HistorialFamiliar: React.FC = () => {
             </Text>
           </View>
         ) : (
-          Object.keys(historialAgrupado).map((fecha) => {
+          Object.keys(historialAgrupado)
+          .filter(fecha => {
+            if (!fechaFiltro) return true;
+            
+            const tzOffset = new Date().getTimezoneOffset() * 60000;
+            const hoyStr = new Date(Date.now() - tzOffset).toISOString().split('T')[0];
+            const ayerStr = new Date(Date.now() - 86400000 - tzOffset).toISOString().split('T')[0];
+            
+            let fechaReal = fecha;
+            if (fecha === 'Hoy') fechaReal = hoyStr;
+            if (fecha === 'Ayer') fechaReal = ayerStr;
+
+            return fechaReal === fechaFiltro;
+          })
+          .map((fecha) => {
+
             const itemsFiltrados = historialAgrupado[fecha].filter((item: any) => {
               if (filtro === 'Todos') return true;
               if (filtro === 'Tomada') return item.Estado === 'tomado';
