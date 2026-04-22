@@ -18,12 +18,9 @@ export interface SupervisionConfig {
   tiempoMaxSinReporte: string;
 }
 
-export interface PerfilFamiliarState {
+export interface PerfilFamiliarVisualState {
   nombre: string;
   correo: string;
   rol: string;
   familiares: Familiar[];
-  notificaciones: NotificacionConfig;
-  supervision: SupervisionConfig;
-  biometriaActiva: boolean;
 }

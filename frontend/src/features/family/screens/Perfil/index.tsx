@@ -17,12 +17,16 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { styles } from './MiPerfil.styles';
-import { Familiar, PerfilFamiliarState } from './type';
+import { Familiar, NotificacionConfig, PerfilFamiliarVisualState } from './type';
 import { theme } from '../../../../theme';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
+import {
+  type ConfiguracionFamiliar,
+  useFamilyPreferencesStore,
+} from '../../../../store/useFamilyPreferencesStore';
 import {
   registrarParaNotificaciones,
 } from '../../../../services/notificationService';
@@ -66,6 +70,17 @@ const ajusteMenuSupervisionY = 0;
 export const MiPerfilFamiliar: React.FC = () => {
   const navigation = useNavigation<any>();
   const usuarioAutenticado = useAuthStore(estado => estado.usuario);
+  const idUsuarioAutenticado = usuarioAutenticado?.Id_Usuario ?? null;
+
+  const preferencias = useFamilyPreferencesStore((estado) =>
+    idUsuarioAutenticado
+      ? estado.obtenerConfiguracion(idUsuarioAutenticado)
+      : estado.obtenerConfiguracionActiva()
+  );
+  const togglePreferencia = useFamilyPreferencesStore((estado) => estado.togglePreferencia);
+  const actualizarPreferencia = useFamilyPreferencesStore(
+    (estado) => estado.actualizarPreferencia
+  );
   const actualizarAvatar = useAuthStore(estado => estado.actualizarAvatar);
   const eliminarAvatar = useAuthStore(estado => estado.eliminarAvatar);
   const cerrarSesion = useAuthStore(estado => estado.cerrarSesion);
@@ -98,22 +113,11 @@ export const MiPerfilFamiliar: React.FC = () => {
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
 
-  const [state, setState] = useState<PerfilFamiliarState>({
+  const [state, setState] = useState<PerfilFamiliarVisualState>({
     nombre: '',
     correo: '',
     rol: 'Familiar',
     familiares: [],
-    notificaciones: {
-      tomaCorrecta: true,
-      olvidoCritico: true,
-      salidaZona: true,
-      bateriaBaja: true,
-    },
-    supervision: {
-      frecuenciaRastreo: '15 minutos',
-      tiempoMaxSinReporte: '1 hora',
-    },
-    biometriaActiva: true,
   });
 
   useFocusEffect(
@@ -209,14 +213,11 @@ export const MiPerfilFamiliar: React.FC = () => {
     }
   };
 
-  const toggleNotificacion = (key: keyof typeof state.notificaciones) => {
-    setState(prev => ({
-      ...prev,
-      notificaciones: {
-        ...prev.notificaciones,
-        [key]: !prev.notificaciones[key],
-      },
-    }));
+  const mapaClavesNotificacion: Record<keyof NotificacionConfig, keyof ConfiguracionFamiliar> = {
+    tomaCorrecta: 'alertaTomaCorrecta',
+    olvidoCritico: 'alertaOlvidoCritico',
+    salidaZona: 'alertaSalidaZona',
+    bateriaBaja: 'alertaBateriaBaja',
   };
 
   const obtenerInicialesFamiliar = (nombreCompleto: string) => {
@@ -342,8 +343,8 @@ export const MiPerfilFamiliar: React.FC = () => {
   const obtenerOpcionSupervision = (valor: string) =>
     opcionesSupervision.find(opcion => opcion.valor === valor) ?? opcionesSupervision[0];
 
-  const opcionFrecuencia = obtenerOpcionSupervision(state.supervision.frecuenciaRastreo);
-  const opcionTiempoMaximo = obtenerOpcionSupervision(state.supervision.tiempoMaxSinReporte);
+  const opcionFrecuencia = obtenerOpcionSupervision(preferencias.frecuenciaRastreo);
+  const opcionTiempoMaximo = obtenerOpcionSupervision(preferencias.tiempoMaxSinReporte);
 
   const unidadFrecuenciaFormateada =
     opcionFrecuencia.unidad === 'minutos' ? 'min' : 'Hora';
@@ -391,21 +392,22 @@ export const MiPerfilFamiliar: React.FC = () => {
   };
 
   const manejarSeleccionSupervision = (tipo: TipoSelectorSupervision, valor: string) => {
-    setState(previo => ({
-      ...previo,
-      supervision: {
-        ...previo.supervision,
-        ...(tipo === 'frecuencia'
-          ? { frecuenciaRastreo: valor }
-          : { tiempoMaxSinReporte: valor }),
-      },
-    }));
+    if (!idUsuarioAutenticado) {
+      setSelectorAbierto(null);
+      return;
+    }
+
+    if (tipo === 'frecuencia') {
+      actualizarPreferencia(idUsuarioAutenticado, 'frecuenciaRastreo', valor);
+    } else {
+      actualizarPreferencia(idUsuarioAutenticado, 'tiempoMaxSinReporte', valor);
+    }
 
     setSelectorAbierto(null);
   };
 
   const opcionesNotificaciones: Array<{
-    clave: keyof PerfilFamiliarState['notificaciones'];
+    clave: keyof NotificacionConfig;
     titulo: string;
     descripcion: string;
   }> = [
@@ -610,8 +612,11 @@ export const MiPerfilFamiliar: React.FC = () => {
               </View>
 
               <Switch
-                value={state.notificaciones[opcion.clave]}
-                onValueChange={() => toggleNotificacion(opcion.clave)}
+                value={Boolean(preferencias[mapaClavesNotificacion[opcion.clave]])}
+                onValueChange={() => {
+                  if (!idUsuarioAutenticado) return;
+                  togglePreferencia(idUsuarioAutenticado, mapaClavesNotificacion[opcion.clave]);
+                }}
                 trackColor={pistaSwitch}
                 thumbColor={colorThumbSwitch}
                 accessibilityLabel={`Activar notificación de ${opcion.titulo}`}
@@ -635,7 +640,7 @@ export const MiPerfilFamiliar: React.FC = () => {
                 style={styles.filaSupervision__selector}
                 onPress={() => manejarAlternarSelector('frecuencia')}
                 accessibilityRole="button"
-                accessibilityLabel={`Cambiar frecuencia de rastreo. Seleccionado: ${state.supervision.frecuenciaRastreo}`}
+                accessibilityLabel={`Cambiar frecuencia de rastreo. Seleccionado: ${preferencias.frecuenciaRastreo}`}
                 activeOpacity={0.7}
               >
                 <Text style={styles.filaSupervision__selectorTexto}>
@@ -667,7 +672,7 @@ export const MiPerfilFamiliar: React.FC = () => {
                 style={styles.filaSupervision__selector}
                 onPress={() => manejarAlternarSelector('tiempo')}
                 accessibilityRole="button"
-                accessibilityLabel={`Cambiar tiempo máximo sin reporte. Seleccionado: ${state.supervision.tiempoMaxSinReporte}`}
+                accessibilityLabel={`Cambiar tiempo máximo sin reporte. Seleccionado: ${preferencias.tiempoMaxSinReporte}`}
                 activeOpacity={0.7}
               >
                 <Text style={styles.filaSupervision__selectorTexto}>
@@ -736,13 +741,11 @@ export const MiPerfilFamiliar: React.FC = () => {
           <View style={[styles.filaSeguridad, styles.fila__separador]}>
             <Text style={styles.filaSeguridad__titulo}>Activar Biometría (FaceID)</Text>
             <Switch
-              value={state.biometriaActiva}
-              onValueChange={() =>
-                setState(prev => ({
-                  ...prev,
-                  biometriaActiva: !prev.biometriaActiva,
-                }))
-              }
+              value={Boolean(preferencias.biometriaFaceId)}
+              onValueChange={() => {
+                if (!idUsuarioAutenticado) return;
+                togglePreferencia(idUsuarioAutenticado, 'biometriaFaceId');
+              }}
               trackColor={pistaSwitch}
               thumbColor={colorThumbSwitch}
               accessibilityLabel="Activar Biometría FaceID"
