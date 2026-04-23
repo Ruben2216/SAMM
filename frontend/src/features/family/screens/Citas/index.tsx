@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
 import { AppointmentCard, CitaDB } from './components/AppointmentCard';
-import { citasStyles, themeColors } from './styles';
+import { citasStyles } from './styles';
 import { obtenerCitasUsuario } from '../../../../services/citasService';
 import { useAuthStore } from '../../../auth/authStore';
+import httpClient from '../../../../services/httpService';
 
 type TabKey = 'proximas' | 'historial';
 
@@ -16,13 +17,38 @@ export default function CitasScreen() {
   const usuario = useAuthStore((s) => s.usuario);
 
   const params = (route.params as { idAdultoMayor?: number; nombreAdulto?: string }) || {};
+  const esAdultoMismo = !params.idAdultoMayor;
   const idAdultoMayor = params.idAdultoMayor ?? usuario?.Id_Usuario ?? 0;
-  const nombreAdulto = params.nombreAdulto ?? usuario?.Nombre ?? '';
+  const nombreInicial =
+    (params.nombreAdulto && params.nombreAdulto.trim()) ||
+    (esAdultoMismo ? usuario?.Nombre ?? '' : '');
 
+  const [nombreAdulto, setNombreAdulto] = useState<string>(nombreInicial);
   const [tabActivo, setTabActivo] = useState<TabKey>('proximas');
   const [citasProximas, setCitasProximas] = useState<CitaDB[]>([]);
   const [citasHistorial, setCitasHistorial] = useState<CitaDB[]>([]);
   const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    if (nombreAdulto || !idAdultoMayor || esAdultoMismo) return;
+    let cancelado = false;
+    (async () => {
+      try {
+        const res = await httpClient.get('/vinculacion/mis-vinculaciones');
+        const vincs: Array<{ Id_Adulto_Mayor: number; Nombre_Adulto_Mayor: string | null }> =
+          res.data || [];
+        const encontrado = vincs.find((v) => v.Id_Adulto_Mayor === idAdultoMayor);
+        if (!cancelado && encontrado?.Nombre_Adulto_Mayor) {
+          setNombreAdulto(encontrado.Nombre_Adulto_Mayor);
+        }
+      } catch (err) {
+        console.log('Error obteniendo nombre del adulto:', err);
+      }
+    })();
+    return () => {
+      cancelado = true;
+    };
+  }, [nombreAdulto, idAdultoMayor, esAdultoMismo]);
 
   const cargarCitas = useCallback(async () => {
     if (!idAdultoMayor) {
