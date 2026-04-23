@@ -14,7 +14,8 @@
         "EXPO_PUBLIC_API_URL": "http://192.168.100.7:8000",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "238255168182-s8m23a3fd1ldbhneijrq90q8r11lpj3h.apps.googleusercontent.com",
         "EXPO_PUBLIC_HABILITAR_LOGIN_PRUEBAS": "true"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -30,11 +31,12 @@
         "EXPO_PUBLIC_API_URL_CITAS": "http://192.168.100.7:8004",
         "EXPO_PUBLIC_API_URL_NOTIFICACIONES": "http://192.168.100.7:8002",
         "EXPO_PUBLIC_HABILITAR_LOGIN_PRUEBAS": "true"
-        
-      }
+      },
+      "channel": "preview"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "channel": "production"
     }
   },
   "submit": {

@@ -4,7 +4,8 @@ Endpoints para Google Auth, Login Manual, Registro y gestión de sesión.
 """
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Literal
 
@@ -299,7 +300,7 @@ async def forgot_password(
     logger.info(f"[API] POST /auth/forgot-password — Correo: {body.correo}")
     await caso_uso.ejecutar(str(body.correo))
     return MensajeResponse(
-        mensaje="Si el correo existe y es local, recibirás un enlace válido por 10 minutos.",
+        mensaje="Si el correo existe, recibirás un enlace válido por 10 minutos.",
     )
 
 
@@ -316,3 +317,20 @@ def reset_password(
         return MensajeResponse(mensaje="Contraseña actualizada exitosamente.")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+# ===================== Redirect para Deep Link =====================
+
+
+@router.get("/redirect-reset")
+def redirect_reset(token: str):
+    """Redirige al deep link samm://reset-password vía HTTP 302.
+
+    El AndroidManifest.xml tiene el intent filter para scheme=samm,
+    así que Android intercepta la redirección y abre la app directamente.
+    Un redirect 302 del lado del servidor NO es bloqueado por Chrome
+    (a diferencia de window.location.href del lado del cliente).
+    """
+    logger.info("[API] GET /auth/redirect-reset — Redirigiendo 302 al deep link")
+    deep_link = f"samm://reset-password?token={token}"
+    return RedirectResponse(url=deep_link, status_code=302)

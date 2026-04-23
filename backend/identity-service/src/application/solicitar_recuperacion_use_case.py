@@ -28,7 +28,7 @@ class SolicitarRecuperacionUseCase:
     async def ejecutar(self, correo: str) -> None:
         """Solicita recuperación.
 
-        Regla de seguridad: si el usuario no existe o es Google, no se filtra información.
+        Regla de seguridad: si el usuario no existe, no se filtra información.
         """
         correo_normalizado = correo.strip().lower()
         logger.info(f"[Recuperacion] Solicitud recibida — Correo: {correo_normalizado}")
@@ -38,13 +38,9 @@ class SolicitarRecuperacionUseCase:
             logger.info("[Recuperacion] Usuario no existe — respuesta silenciosa")
             return
 
-        if usuario.Proveedor_Auth == "google":
-            logger.info(f"[Recuperacion] Cuenta Google — respuesta silenciosa (Id_Usuario: {usuario.Id_Usuario})")
-            return
-
         if not usuario.Contrasena_Hash:
             logger.warning(
-                f"[Recuperacion] Cuenta local sin Contrasena_Hash — omitiendo (Id_Usuario: {usuario.Id_Usuario})"
+                f"[Recuperacion] Usuario sin Contrasena_Hash — omitiendo (Id_Usuario: {usuario.Id_Usuario})"
             )
             return
 

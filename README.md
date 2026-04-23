@@ -191,3 +191,65 @@ npx expo install react-native-reanimated react-native-gesture-handler
 y ya no deberia de dar ningun problema
 
 # Se recomienda no cambiar de momento app.json de frontend, porque al eliminar el projectId rompe el login por el sha-1 que se genera cuando se cambia el id de proyecto, hara que ver la forma de compilar sin afectar a los demas, probablemente en gitignore
+
+
+PARA ABRIR LOS MICROSERVICIOS DE UNA SOLA DEBEN
+1. crear la carpeta .vscode en la raiz del proyecto, debe estar como "...\SAMM\.vscode" fuera de backend y frontend
+2. crear un archivo llamado "tasks.json"
+3. pegar el siguiente contenido dentro de tasks.json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "SAMM: Levantar Backend",
+            "dependsOn": [
+                "Identity Service",
+                "Medication Service",
+                "Notification Service",
+                "Appointments Service"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "icon": { "id": "rocket", "color": "terminal.ansiYellow" }
+        },
+        {
+            "label": "Identity Service",
+            "type": "shell",
+            "command": "cd backend/identity-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+            "isBackground": true,
+            "icon": { "id": "shield", "color": "terminal.ansiCyan" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Medication Service",
+            "type": "shell",
+            "command": "cd backend/medication-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8001",
+            "isBackground": true,
+            "icon": { "id": "beaker", "color": "terminal.ansiGreen" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Notification Service",
+            "type": "shell",
+            "command": "cd backend/notification-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8002",
+            "isBackground": true,
+            "icon": { "id": "bell", "color": "terminal.ansiRed" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Appointments Service",
+            "type": "shell",
+            "command": "cd backend/appointments-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8004",
+            "isBackground": true,
+            "icon": { "id": "calendar", "color": "terminal.ansiMagenta" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        }
+    ]
+}
+4. Con el atajo de ctrl + shift + p, buscar "Tasks:Run Task" darle enter y despues a SAMM: Levantar Backend
+5. se abriran las 4 terminales y para reiniciar lo mismo pero en la terminal que se quiere reiniciar
+
+# Nuevo en .env de idendity-service 
+SAMM_PUBLIC_URL=http://192.168.100.7:8000

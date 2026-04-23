@@ -27,6 +27,8 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
         .content { padding: 24px 0; color: #333; font-size: 16px; line-height: 1.5; }
         .alert-box { background-color: #fff3cd; color: #856404; padding: 12px; border-radius: 4px; margin-bottom: 24px; font-size: 14px; font-weight: bold; text-align: center; }
         .btn { background-color: #14ec5c; color: #ffffff; text-decoration: none; padding: 14px; border-radius: 6px; font-weight: bold; display: block; text-align: center; }
+        .fallback { margin-top: 16px; font-size: 13px; word-break: break-word; color: #475569; }
+        .fallback a { color: #0f766e; }
         .footer { text-align: center; color: #888; font-size: 12px; border-top: 1px solid #eee; margin-top: 10px; }
     </style>
 </head>
@@ -36,7 +38,7 @@ _HTML_TEMPLATE = """<!DOCTYPE html>
         <div class=\"content\">
             <p>Se ha solicitado el restablecimiento de tu contraseña.</p>
             <div class=\"alert-box\">Este enlace es de un solo uso y expirará en 10 minutos.</div>
-            <a href=\"{enlace}\" class=\"btn\">Restablecer Contraseña</a>
+            <a href=\"{enlace_https}\" class=\"btn\">Restablecer Contraseña</a>
             <p>Si no solicitaste este cambio, ignora este correo. Tu contraseña actual no cambiará.</p>
         </div>
         <div class=\"footer\"><p>&copy; 2026 SAMM.</p></div>
@@ -65,6 +67,14 @@ class SMTPEmailService(EmailServicePort):
 
         asunto = "Recuperación de contraseña — SAMM"
 
+        # ── Construir URL HTTPS que sobrevive filtros de Gmail ──
+        # enlace llega como: samm://reset-password?token=XXXX
+        base_url = os.getenv("SAMM_PUBLIC_URL")
+        if not base_url:
+            raise ValueError("Falta la variable de entorno SAMM_PUBLIC_URL en el archivo .env")
+        token_param = enlace.split("token=", 1)[-1] if "token=" in enlace else ""
+        enlace_https = f"{base_url}/auth/redirect-reset?token={token_param}"
+
         mensaje = MIMEMultipart("alternative")
         mensaje["From"] = self._smtp_user
         mensaje["To"] = correo
@@ -72,10 +82,10 @@ class SMTPEmailService(EmailServicePort):
 
         texto_plano = (
             "Se ha solicitado el restablecimiento de tu contraseña.\n\n"
-            f"Enlace (válido por 10 minutos, un solo uso): {enlace}\n\n"
+            f"Enlace (válido por 10 minutos, un solo uso):\n{enlace_https}\n\n"
             "Si no solicitaste este cambio, ignora este correo."
         )
-        html = _HTML_TEMPLATE.replace("{enlace}", enlace)
+        html = _HTML_TEMPLATE.replace("{enlace_https}", enlace_https)
 
         mensaje.attach(MIMEText(texto_plano, "plain", "utf-8"))
         mensaje.attach(MIMEText(html, "html", "utf-8"))
