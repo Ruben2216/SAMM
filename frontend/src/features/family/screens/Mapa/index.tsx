@@ -1,22 +1,23 @@
 // frontend/src/features/family/screens/Mapa/index.tsx
-import 'react-native-gesture-handler';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useNavigation } from '@react-navigation/native'; // 👈 Faltaba esta importación
 import CustomBottomSheet from './components/BottomSheet';
-import { PersonReport } from '../mapa.types';
+import { PersonReport } from './mapa.type';
 import { getReports } from '../../../../services/reportService';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { MAPBOX_HTML } from '../../../../components/Map/MapboxHtml';
 
 export const Mapa = () => {
+  const navigation = useNavigation<any>();
   const webViewRef = useRef<WebView>(null);
   const [reports, setReports] = useState<PersonReport[]>([]);
   const [selected, setSelected] = useState<PersonReport | null>(null);
- //el handler del Alerta (que hace al ser preionado)
+
+  // el handler del Alerta (que hace al ser presionado)
   const handleAlert = (persona: PersonReport) => {
     navigation.navigate('Alert', { persona });
-};
+  };
 
   useEffect(() => {
     getReports().then((data) => {
@@ -60,8 +61,8 @@ export const Mapa = () => {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      {/* El WebView ocupa todo pero el BottomSheet flota encima */}
+    // Cambiamos GestureHandlerRootView por un View normal
+    <View style={{ flex: 1 }}> 
       <View style={StyleSheet.absoluteFillObject}>
         <WebView
           ref={webViewRef}
@@ -80,6 +81,6 @@ export const Mapa = () => {
         onSelect={handleSelect}
         onAlert={handleAlert}
       />
-    </GestureHandlerRootView>
+    </View>
   );
 };
