@@ -20,6 +20,7 @@ class Usuario:
     Rol: Optional[str] = None              # 'familiar' | 'adulto_mayor' | None
     Codigo_Vinculacion: Optional[str] = None  # Código de 5 chars (solo familiares)
     sexo: str = "Otro"                      # 'Hombre' | 'Mujer' | 'Otro'
+    Telefono: Optional[str] = None          # Número de contacto (opcional)
     Activo: bool = True
     Fecha_Registro: date = field(default_factory=date.today)
 

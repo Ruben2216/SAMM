@@ -181,9 +181,9 @@ export default function App() {
         });
       } else if (datos.tipo === 'alerta_familiar') {
         navigationRef.current.navigate('AlertaMedicamento', {
+          idAdulto: datos.id_adulto ?? datos.idAdulto,
           nombreAdulto: datos.nombreAdulto,
           rolAdulto: datos.rolAdulto || datos.rol_adulto_mayor,
-          nombreMedicamento: datos.nombreMedicamento,
           horaToma: datos.horaToma,
           tipo: datos.tipoAlerta,
         });

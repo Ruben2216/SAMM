@@ -145,6 +145,9 @@ ON "Dispositivos" ("Id_Usuario");
 CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON "Usuarios" ("Correo");
 CREATE INDEX IF NOT EXISTS idx_usuarios_google_id ON "Usuarios" ("Google_Id");
 
+-- 6.b. Teléfono de contacto (fuera de Perfil de Salud)
+ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "Telefono" VARCHAR(30);
+
 
 -- 7. Verificar
 SELECT 'Tabla Usuarios creada exitosamente' AS resultado;
