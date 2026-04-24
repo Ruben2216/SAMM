@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { NativeModules, Platform, StatusBar } from 'react-native';
+import { NativeModules, Platform, StatusBar, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -71,6 +71,7 @@ export default function App() {
   const [bloqueoVisible, setBloqueoVisible] = useState(false);
   const [bloqueoCargando, setBloqueoCargando] = useState(false);
   const [bloqueoDescripcion, setBloqueoDescripcion] = useState('Desbloquea SAMM para continuar.');
+  const [inicializando, setInicializando] = useState(true);
   const desbloqueoEnCursoRef = useRef(false);
 
   const intentarDesbloquear = useCallback(async (): Promise<boolean> => {
@@ -144,6 +145,10 @@ export default function App() {
         await intentarDesbloquear();
       } catch (e: any) {
         console.error('[App] Error inicializando:', e?.message || e);
+      } finally {
+        if (activo) {
+          setInicializando(false);
+        }
       }
     };
 
@@ -199,6 +204,22 @@ export default function App() {
     return () => suscripcion.remove();
   }, []);
 
+  const autenticado = useAuthStore((state) => state.autenticado);
+  const usuario = useAuthStore((state) => state.usuario);
+
+  if (inicializando) {
+    return <View style={{ flex: 1, backgroundColor: theme.colors.background }} />;
+  }
+
+  let rutaInicial: keyof ReactNavigation.RootParamList | string = 'Initial';
+  if (autenticado && usuario) {
+    if (usuario.Rol === 'familiar') {
+      rutaInicial = 'FamilyTabs';
+    } else if (usuario.Rol === 'adulto_mayor') {
+      rutaInicial = 'SeniorTabs';
+    }
+  }
+
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
@@ -206,10 +227,7 @@ export default function App() {
         <MonitorActualizaciones />
         <NavigationContainer ref={navigationRef} linking={linking}>
           <Stack.Navigator
-          //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
-           // initialRouteName="MiPerfilFamiliar"
-            // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
-            initialRouteName="Initial"
+            initialRouteName={rutaInicial as any}
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },
