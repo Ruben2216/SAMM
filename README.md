@@ -193,7 +193,6 @@ y ya no deberia de dar ningun problema
 # Se recomienda no cambiar de momento app.json de frontend, porque al eliminar el projectId rompe el login por el sha-1 que se genera cuando se cambia el id de proyecto, hara que ver la forma de compilar sin afectar a los demas, probablemente en gitignore
 
 
-<<<<<<< HEAD
 PARA ABRIR LOS MICROSERVICIOS DE UNA SOLA DEBEN
 1. crear la carpeta .vscode en la raiz del proyecto, debe estar como "...\SAMM\.vscode" fuera de backend y frontend
 2. crear un archivo llamado "tasks.json"
@@ -254,8 +253,9 @@ PARA ABRIR LOS MICROSERVICIOS DE UNA SOLA DEBEN
 
 # Nuevo en .env de idendity-service 
 SAMM_PUBLIC_URL=http://192.168.100.7:8000
-=======
 ---
+
+
 
 ## Notificaciones push (FCM + Expo) — (le pedia a la IA que me hiciera una guía completa para quienes continuaran con este microservicio)
 
@@ -384,4 +384,3 @@ samm-fcm-sa.json
 (Ignorar es para mis pruebas):
     "owner": "fernandovargas15"
     "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
->>>>>>> d12143b (Se implemento la alerta de notificacion por parte del familiar cuando el adulto mayor despues de 30 minutos no ha marcado como "Tomado" su medicamento, y se añadio la opcion de poder agregar el telefono en el perfil del adulto para cuando el familiar le de "Llamar" automaticamente lo mande a llamadas con el numero ya escrito unicamente para darle llamar (Todo funcional), faltaria implementar que aparesca el mapa en esa alerta)
