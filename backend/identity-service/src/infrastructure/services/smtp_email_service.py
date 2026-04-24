@@ -99,7 +99,6 @@ class SMTPEmailService(EmailServicePort):
             await smtp.connect()
         else:
             # Para puertos tipo 587 (STARTTLS): aiosmtplib puede iniciar STARTTLS automáticamente.
-            # Forzamos STARTTLS en connect() y evitamos llamar starttls() dos veces.
             smtp = aiosmtplib.SMTP(
                 hostname=self._smtp_server,
                 port=self._smtp_port,

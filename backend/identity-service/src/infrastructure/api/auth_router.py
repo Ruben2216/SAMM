@@ -91,7 +91,7 @@ class ResetPasswordRequest(BaseModel):
     """Body para POST /auth/reset-password"""
 
     token: str
-    nueva_contrasena: str = Field(min_length=8)
+    nueva_contrasena: str = Field(min_length=6)
 
 
 class MensajeResponse(BaseModel):
@@ -319,18 +319,9 @@ def reset_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-# ===================== Redirect para Deep Link =====================
-
-
 @router.get("/redirect-reset")
 def redirect_reset(token: str):
-    """Redirige al deep link samm://reset-password vía HTTP 302.
-
-    El AndroidManifest.xml tiene el intent filter para scheme=samm,
-    así que Android intercepta la redirección y abre la app directamente.
-    Un redirect 302 del lado del servidor NO es bloqueado por Chrome
-    (a diferencia de window.location.href del lado del cliente).
-    """
+    """Redirige al deep link samm://reset-password vía HTTP 302."""
     logger.info("[API] GET /auth/redirect-reset — Redirigiendo 302 al deep link")
     deep_link = f"samm://reset-password?token={token}"
     return RedirectResponse(url=deep_link, status_code=302)

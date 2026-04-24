@@ -36,14 +36,10 @@ export const CrearCuenta: React.FC = () => {
         confirmar: ''
     });
 
-    // Auth store
     const { registrar, cargando } = useAuthStore();
-
-    // Flag para evitar múltiples envíos simultáneos
     const [enviando, setEnviando] = useState(false);
 
     const validarEmail = (email: string) => {
-        // Solo Gmail permitido
         const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
         return regex.test(email);
     };
@@ -53,7 +49,6 @@ export const CrearCuenta: React.FC = () => {
         return regex.test(pass);
     };
 
-    /** Ejecuta TODAS las validaciones y retorna true si todo está correcto. */
     const ejecutarValidaciones = (): boolean => {
         const nuevosErrores = {
             nombre: '',

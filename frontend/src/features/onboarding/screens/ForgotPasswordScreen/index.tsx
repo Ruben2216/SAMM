@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -15,30 +15,40 @@ export const ForgotPasswordScreen: React.FC = () => {
     const [cargando, setCargando] = useState(false);
     const [mensajeError, setMensajeError] = useState<string>('');
 
-    const correoNormalizado = useMemo(() => correo.trim().toLowerCase(), [correo]);
-
-    const puedeEnviar = useMemo(() => {
-        return correoNormalizado.length > 0;
-    }, [correoNormalizado]);
+    const [enviando, setEnviando] = useState(false);
+    const correoNormalizado = correo.trim().toLowerCase();
 
     const manejarEnviar = async () => {
+        if (enviando || cargando) return;
+
         setMensajeError('');
 
-        if (!puedeEnviar) {
+        if (!correoNormalizado) {
             setMensajeError('Por favor, ingresa tu correo.');
             return;
         }
 
-        setCargando(true);
-        const resultado = await solicitarRecuperacion(correoNormalizado);
-        setCargando(false);
-
-        if (!resultado.exito) {
-            setMensajeError(resultado.mensaje);
+        const regexGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+        if (!regexGmail.test(correoNormalizado)) {
+            setMensajeError('Solo se permiten correos de Gmail (@gmail.com)');
             return;
         }
 
-        (navigation as any).navigate('CheckEmail');
+        setEnviando(true);
+        setCargando(true);
+
+        try {
+            const resultado = await solicitarRecuperacion(correoNormalizado);
+
+            if (!resultado.exito) {
+                setMensajeError(resultado.mensaje);
+            } else {
+                (navigation as any).navigate('CheckEmail');
+            }
+        } finally {
+            setCargando(false);
+            setEnviando(false);
+        }
     };
 
     return (
@@ -60,11 +70,10 @@ export const ForgotPasswordScreen: React.FC = () => {
                 />
 
                 <PrimaryButton
-                    titulo="Enviar enlace"
+                    titulo={enviando ? "Enviando..." : "Enviar enlace"}
                     alPresionar={manejarEnviar}
                     cargando={cargando}
-                    deshabilitado={!puedeEnviar}
-                    nombreIcono="send"
+                    deshabilitado={enviando}
                 />
 
                 {mensajeError ? <Text style={styles.mensajeError}>{mensajeError}</Text> : null}

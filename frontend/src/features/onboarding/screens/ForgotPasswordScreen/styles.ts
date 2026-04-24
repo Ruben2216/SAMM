@@ -5,7 +5,7 @@ import { globalStyles } from '../../../../theme/globalStyles';
 export const styles = StyleSheet.create({
   pantalla: {
     ...globalStyles.contenedorPantalla,
-    paddingTop: 24,
+    paddingTop: 60,
   },
   encabezado: {
     ...globalStyles.mb16,
