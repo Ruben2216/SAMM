@@ -47,9 +47,6 @@ class RestablecerContrasenaUseCase:
         if not usuario:
             raise ValueError("Token inválido o expirado")
 
-        if usuario.Proveedor_Auth == "google":
-            raise ValueError("Token inválido o expirado")
-
         if not usuario.Contrasena_Hash:
             raise ValueError("Token inválido o expirado")
 

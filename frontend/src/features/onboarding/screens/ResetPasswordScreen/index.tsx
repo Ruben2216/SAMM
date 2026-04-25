@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-import { CustomInput } from '../../../../components/ui/customInput';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
 import { SuccessModal } from '../../../../components/ui/success-modal';
 import { restablecerContrasena } from '../../../../services/passwordRecoveryService';
@@ -21,50 +20,64 @@ export const ResetPasswordScreen: React.FC = () => {
 
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [confirmarContrasena, setConfirmarContrasena] = useState('');
-  const [cargando, setCargando] = useState(false);
-  const [mensajeError, setMensajeError] = useState('');
+  const [verNueva, setVerNueva] = useState(false);
+  const [verConfirmar, setVerConfirmar] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const [modalExito, setModalExito] = useState(false);
 
-  const contrasenasCoinciden = useMemo(() => {
-    return nuevaContrasena.length > 0 && nuevaContrasena === confirmarContrasena;
-  }, [nuevaContrasena, confirmarContrasena]);
+  const [errores, setErrores] = useState({
+    nueva: '',
+    confirmar: '',
+  });
 
-  const cumpleLongitud = useMemo(() => {
-    return nuevaContrasena.length >= 8;
-  }, [nuevaContrasena]);
+  const validarContrasena = (pass: string) => {
+    const regex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+    return regex.test(pass);
+  };
 
-  const puedeEnviar = useMemo(() => {
-    return Boolean(token) && contrasenasCoinciden && cumpleLongitud;
-  }, [token, contrasenasCoinciden, cumpleLongitud]);
+  const ejecutarValidaciones = (): boolean => {
+    const nuevosErrores = { nueva: '', confirmar: '' };
+
+    if (!nuevaContrasena) {
+      nuevosErrores.nueva = 'Ingresa una contraseña';
+    } else if (!validarContrasena(nuevaContrasena)) {
+      nuevosErrores.nueva = 'Debe tener mínimo 6 caracteres, letra y número';
+    }
+
+    if (!confirmarContrasena) {
+      nuevosErrores.confirmar = 'Confirma tu contraseña';
+    } else if (confirmarContrasena !== nuevaContrasena) {
+      nuevosErrores.confirmar = 'Las contraseñas no coinciden';
+    }
+
+    setErrores(nuevosErrores);
+    return !Object.values(nuevosErrores).some(e => e !== '');
+  };
 
   const manejarEnviar = async () => {
-    setMensajeError('');
+    if (enviando) return;
 
     if (!token) {
-      setMensajeError('Token no encontrado. Abre el enlace desde tu correo.');
+      Alert.alert('Error', 'Token no encontrado. Abre el enlace desde tu correo.');
       return;
     }
 
-    if (!cumpleLongitud) {
-      setMensajeError('La contraseña debe tener al menos 8 caracteres.');
-      return;
+    const esValido = ejecutarValidaciones();
+    if (!esValido) return;
+
+    setEnviando(true);
+
+    try {
+      const resultado = await restablecerContrasena(token, nuevaContrasena);
+
+      if (!resultado.exito) {
+        Alert.alert('Error', resultado.mensaje || 'No se pudo actualizar la contraseña.');
+      } else {
+        setModalExito(true);
+      }
+    } finally {
+      setEnviando(false);
     }
-
-    if (!contrasenasCoinciden) {
-      setMensajeError('Las contraseñas no coinciden.');
-      return;
-    }
-
-    setCargando(true);
-    const resultado = await restablecerContrasena(token, nuevaContrasena);
-    setCargando(false);
-
-    if (!resultado.exito) {
-      setMensajeError(resultado.mensaje);
-      return;
-    }
-
-    setModalExito(true);
   };
 
   const alCerrarExito = () => {
@@ -83,33 +96,57 @@ export const ResetPasswordScreen: React.FC = () => {
       </View>
 
       <View style={styles.formulario}>
-        <CustomInput
-          label="Nueva Contraseña"
-          value={nuevaContrasena}
-          onChangeText={setNuevaContrasena}
-          secureTextEntry
-          iconName="lock-outline"
-          accessibilityLabel="Campo para nueva contraseña"
-        />
+        <Text style={styles.label}>Nueva Contraseña</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Mínimo 6 caracteres"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry={!verNueva}
+            value={nuevaContrasena}
+            onChangeText={setNuevaContrasena}
+          />
+          <TouchableOpacity onPress={() => setVerNueva(!verNueva)}>
+            <Image
+              source={
+                verNueva
+                  ? require('../../../../../assets/icons/ojo-abierto.png')
+                  : require('../../../../../assets/icons/ojo-cerrado.png')
+              }
+              style={styles.iconoOjo}
+            />
+          </TouchableOpacity>
+        </View>
+        {errores.nueva ? <Text style={styles.mensajeError}>{errores.nueva}</Text> : null}
 
-        <CustomInput
-          label="Confirmar Contraseña"
-          value={confirmarContrasena}
-          onChangeText={setConfirmarContrasena}
-          secureTextEntry
-          iconName="lock-check-outline"
-          accessibilityLabel="Campo para confirmar contraseña"
-        />
+        <Text style={styles.label}>Confirmar Contraseña</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Repite la contraseña"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry={!verConfirmar}
+            value={confirmarContrasena}
+            onChangeText={setConfirmarContrasena}
+          />
+          <TouchableOpacity onPress={() => setVerConfirmar(!verConfirmar)}>
+            <Image
+              source={
+                verConfirmar
+                  ? require('../../../../../assets/icons/ojo-abierto.png')
+                  : require('../../../../../assets/icons/ojo-cerrado.png')
+              }
+              style={styles.iconoOjo}
+            />
+          </TouchableOpacity>
+        </View>
+        {errores.confirmar ? <Text style={styles.mensajeError}>{errores.confirmar}</Text> : null}
 
         <PrimaryButton
-          titulo="Actualizar contraseña"
+          titulo={enviando ? "Actualizando..." : "Actualizar contraseña"}
           alPresionar={manejarEnviar}
-          cargando={cargando}
-          deshabilitado={!puedeEnviar}
-          nombreIcono="check"
+          deshabilitado={enviando}
         />
-
-        {mensajeError ? <Text style={styles.mensajeError}>{mensajeError}</Text> : null}
       </View>
 
       <SuccessModal

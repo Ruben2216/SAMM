@@ -14,6 +14,15 @@ logger = logging.getLogger(__name__)
 TZ_MEXICO = ZoneInfo("America/Mexico_City")
 
 
+def _horario_aplica_hoy(horario, iso_hoy: int) -> bool:
+    """True si hoy (1=Lun..7=Dom) está en los Dias_Semana del horario."""
+    dias = (horario.Dias_Semana or "1,2,3,4,5,6,7").split(",")
+    try:
+        return iso_hoy in {int(d.strip()) for d in dias if d.strip()}
+    except ValueError:
+        return True
+
+
 def recordar_a_familiares():
     """
     Cada minuto: si la hora actual coincide con la Hora_Toma de algún horario activo,
@@ -23,6 +32,7 @@ def recordar_a_familiares():
     try:
         ahora = datetime.now(TZ_MEXICO)
         hoy = ahora.date()
+        iso_hoy = ahora.isoweekday()
         hora_actual = ahora.time().replace(second=0, microsecond=0)
 
         horarios = db.query(models.Horario).join(models.Medicamento).filter(
@@ -30,6 +40,9 @@ def recordar_a_familiares():
         ).all()
 
         for horario in horarios:
+            if not _horario_aplica_hoy(horario, iso_hoy):
+                continue
+
             hora_toma_min = horario.Hora_Toma.replace(second=0, microsecond=0) \
                 if isinstance(horario.Hora_Toma, dtime) else horario.Hora_Toma
 
@@ -86,6 +99,7 @@ def verificar_incumplimientos():
     try:
         ahora = datetime.now(TZ_MEXICO)
         hoy = ahora.date()
+        iso_hoy = ahora.isoweekday()
 
         # 30 minutos de tolerancia
         limite_tiempo = (ahora - timedelta(minutes=30)).time()
@@ -95,6 +109,9 @@ def verificar_incumplimientos():
         ).all()
 
         for horario in horarios:
+            if not _horario_aplica_hoy(horario, iso_hoy):
+                continue
+
             if horario.Hora_Toma > limite_tiempo:
                 continue
 

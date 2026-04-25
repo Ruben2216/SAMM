@@ -9,7 +9,7 @@ import { useAuthStore } from '../../../auth/authStore';
 export const Historial = () => {
     const navigation = useNavigation<any>();
     const usuario = useAuthStore((s) => s.usuario);
-    const [filtro, setFiltro] = useState('Todos'); // Todos, Tomada, No tomada
+    const [filtro, setFiltro] = useState('Tomada'); // Tomada | No tomada
     const [historialAgrupado, setHistorialAgrupado] = useState<any>({});
     const [cargando, setCargando] = useState(true);
 
@@ -91,14 +91,16 @@ export const Historial = () => {
 
             {/* Tabs de Filtro */}
             <View style={styles.tabsContainer}>
-                {['Todos', 'Tomada', 'No tomada'].map((tab) => (
-                    <TouchableOpacity 
-                        key={tab} 
+                {['Tomada', 'No tomada'].map((tab) => (
+                    <TouchableOpacity
+                        key={tab}
                         style={[styles.tab, filtro === tab && styles.tabActivo]}
                         onPress={() => setFiltro(tab)}
                         activeOpacity={0.8}
                     >
-                        <Text style={[styles.tabTexto, filtro === tab && styles.tabTextoActivo]}>{tab}</Text>
+                        <Text style={[styles.tabTexto, filtro === tab && styles.tabTextoActivo]} numberOfLines={1}>
+                            {tab}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -147,11 +149,11 @@ export const Historial = () => {
                     .map((fecha) => {
 
                         // Filtrar los items de esta fecha según el tab seleccionado
+                        // "Tomada" incluye tomas programadas Y "según sea necesario" (se distinguen por color)
                         const itemsFiltrados = historialAgrupado[fecha].filter((item: any) => {
-                            if (filtro === 'Todos') return true;
-                            if (filtro === 'Tomada') return item.Estado === 'tomado';
+                            if (filtro === 'Tomada') return item.Estado === 'tomado' || item.Estado === 'tomado_necesario';
                             if (filtro === 'No tomada') return item.Estado === 'incumplido';
-                            return true;
+                            return false;
                         });
 
                         if (itemsFiltrados.length === 0) return null;
@@ -161,17 +163,25 @@ export const Historial = () => {
                                 <Text style={styles.fechaSeccion}>{fecha}</Text>
                                 
                                 {itemsFiltrados.map((item: any) => {
-                                    const esTomada = item.Estado === 'tomado';
-                                    
+                                    // Una toma es "según necesidad" si lo dice el estado nuevo (tomado_necesario)
+                                    // o si la frecuencia del medicamento es 'necesario' (compatibilidad con
+                                    // registros viejos guardados como 'tomado').
+                                    const esNecesario = item.Estado === 'tomado_necesario' || item.Frecuencia === 'necesario';
+                                    const esIncumplido = item.Estado === 'incumplido';
+                                    const colorBorde = esIncumplido ? '#EF4444' : esNecesario ? '#6366F1' : '#10B981';
+                                    const iconoNombre = esIncumplido ? 'close' : esNecesario ? 'medkit' : 'checkmark';
+                                    const badgeBg = esIncumplido ? '#FEE2E2' : esNecesario ? '#E0E7FF' : '#D1FAE5';
+                                    const badgeText = esIncumplido ? '#EF4444' : esNecesario ? '#4338CA' : '#10B981';
+                                    const badgeLabel = esIncumplido ? 'NO TOMADA' : esNecesario ? 'SEGÚN NECESIDAD' : 'TOMADA';
+
                                     return (
-                                        <View key={item.Id_Historial} style={styles.tarjeta}>
+                                        <View
+                                            key={item.Id_Historial}
+                                            style={[styles.tarjeta, styles.tarjetaConBorde, { borderColor: colorBorde }]}
+                                        >
                                             {/* Icono izquierdo */}
                                             <View style={styles.iconoEstadoContainer}>
-                                                <Ionicons 
-                                                    name={esTomada ? "checkmark" : "close"} 
-                                                    size={24} 
-                                                    color={esTomada ? "#10B981" : "#EF4444"} 
-                                                />
+                                                <Ionicons name={iconoNombre as any} size={24} color={colorBorde} />
                                             </View>
 
                                             {/* Información central */}
@@ -186,9 +196,9 @@ export const Historial = () => {
                                             </View>
 
                                             {/* Badge derecho */}
-                                            <View style={[styles.badge, { backgroundColor: esTomada ? '#D1FAE5' : '#FEE2E2' }]}>
-                                                <Text style={[styles.badgeTexto, { color: esTomada ? '#10B981' : '#EF4444' }]}>
-                                                    {esTomada ? 'TOMADA' : 'NO TOMADA'}
+                                            <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+                                                <Text style={[styles.badgeTexto, { color: badgeText }]}>
+                                                    {badgeLabel}
                                                 </Text>
                                             </View>
                                         </View>

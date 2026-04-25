@@ -42,9 +42,14 @@ class UsuarioPerfilResponse(BaseModel):
     Rol: Optional[str]
     Activo: bool
     url_Avatar: Optional[str] = None
+    Telefono: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class ActualizarTelefonoRequest(BaseModel):
+    telefono: Optional[str] = None
 
 
 class ActualizarBateriaRequest(BaseModel):
@@ -154,6 +159,54 @@ def actualizar_bateria(
     )
 
 
+@router.get("/me", response_model=UsuarioPerfilResponse)
+def obtener_mi_perfil(
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+):
+    """Retorna los datos del usuario autenticado (incluye teléfono)."""
+    return UsuarioPerfilResponse(
+        Id_Usuario=usuario_actual.Id_Usuario,
+        Nombre=usuario_actual.Nombre,
+        Correo=usuario_actual.Correo,
+        Proveedor_Auth=usuario_actual.Proveedor_Auth,
+        Rol=usuario_actual.Rol,
+        Activo=usuario_actual.Activo,
+        url_Avatar=usuario_actual.url_Avatar,
+        Telefono=getattr(usuario_actual, "Telefono", None),
+    )
+
+
+@router.put("/me/telefono", response_model=UsuarioPerfilResponse)
+def actualizar_telefono(
+    body: ActualizarTelefonoRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_sesion),
+):
+    """Actualiza (o borra) el teléfono de contacto del usuario autenticado."""
+    logger.info(f"[API] PUT /users/me/telefono — Id_Usuario: {usuario_actual.Id_Usuario}")
+
+    from src.infrastructure.persistence.sqlalchemy_models import UsuarioModel
+    modelo = db.query(UsuarioModel).filter_by(Id_Usuario=usuario_actual.Id_Usuario).first()
+    if not modelo:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    tel = (body.telefono or "").strip()
+    modelo.Telefono = tel if tel else None
+    db.commit()
+    db.refresh(modelo)
+
+    return UsuarioPerfilResponse(
+        Id_Usuario=modelo.Id_Usuario,
+        Nombre=modelo.Nombre,
+        Correo=modelo.Correo,
+        Proveedor_Auth=modelo.Proveedor_Auth,
+        Rol=modelo.Rol,
+        Activo=modelo.Activo,
+        url_Avatar=modelo.url_Avatar,
+        Telefono=modelo.Telefono,
+    )
+
+
 # ===================== Internal (service-to-service) =====================
 
 
@@ -168,6 +221,19 @@ def obtener_nombre_interno(
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return {"nombre": usuario.Nombre}
+
+
+@router.get("/internal/telefono/{id_usuario}")
+def obtener_telefono_interno(
+    id_usuario: int,
+    db: Session = Depends(obtener_sesion),
+):
+    """Endpoint interno/público: teléfono de contacto del usuario (para que el familiar llame)."""
+    from src.infrastructure.persistence.sqlalchemy_models import UsuarioModel
+    usuario = db.query(UsuarioModel).filter_by(Id_Usuario=id_usuario).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return {"id_usuario": id_usuario, "telefono": usuario.Telefono}
 
 
 @router.get("/internal/vinculados/{id_usuario}")

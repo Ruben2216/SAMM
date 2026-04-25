@@ -1,13 +1,16 @@
 import 'react-native-gesture-handler';
-import React, { useEffect, useRef } from 'react';
-import { NativeModules, Platform, StatusBar } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { NativeModules, Platform, StatusBar, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { theme } from './src/theme';
 import { useFamilyPreferencesStore } from './src/store/useFamilyPreferencesStore';
+import { useAuthStore } from './src/features/auth/authStore';
+import { AppLock } from './src/components/ui/app-lock';
 import { InitialScreen } from './src/features/onboarding/screens/InitialScreen';
 import { WelcomeScreen } from './src/features/onboarding/screens/WelcomeScreen';
 import { IniciarSesion } from './src/features/onboarding/screens/IniciarSesion';
@@ -42,6 +45,7 @@ import { AlertaMedicamento } from './src/features/family/screens/AlertaMedicamen
 import { ForgotPasswordScreen } from './src/features/onboarding/screens/ForgotPasswordScreen';
 import { CheckEmailScreen } from './src/features/onboarding/screens/CheckEmailScreen';
 import { ResetPasswordScreen } from './src/features/onboarding/screens/ResetPasswordScreen';
+import { MonitorActualizaciones } from './src/components/ui/MonitorActualizaciones';
 
 
 const Stack = createStackNavigator();
@@ -64,9 +68,95 @@ const moduloDispositivo = NativeModules.SAMMDeviceToken;
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
 
-  useEffect(() => {
-    void useFamilyPreferencesStore.getState().rehidratar();
+  const [bloqueoVisible, setBloqueoVisible] = useState(false);
+  const [bloqueoCargando, setBloqueoCargando] = useState(false);
+  const [bloqueoDescripcion, setBloqueoDescripcion] = useState('Desbloquea SAMM para continuar.');
+  const [inicializando, setInicializando] = useState(true);
+  const desbloqueoEnCursoRef = useRef(false);
+
+  const intentarDesbloquear = useCallback(async (): Promise<boolean> => {
+    if (Platform.OS !== 'android') return true;
+    if (desbloqueoEnCursoRef.current) return false;
+
+    desbloqueoEnCursoRef.current = true;
+    setBloqueoCargando(true);
+    setBloqueoDescripcion('Confirma tu identidad para ingresar.');
+
+    try {
+      const tieneHardware = await LocalAuthentication.hasHardwareAsync();
+      const estaEnrolado = await LocalAuthentication.isEnrolledAsync();
+
+      // Si el dispositivo no soporta o no tiene credenciales/biometría configurada,
+      // no bloqueamos (evitamos dejar la app inaccesible).
+      if (!tieneHardware || !estaEnrolado) {
+        setBloqueoVisible(false);
+        return true;
+      }
+
+      const resultado = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Desbloquear SAMM',
+        cancelLabel: 'Cancelar',
+        disableDeviceFallback: false,
+      });
+
+      if (resultado.success) {
+        setBloqueoVisible(false);
+        return true;
+      }
+
+      setBloqueoDescripcion('Autenticación requerida para ingresar.');
+      return false;
+    } catch (e: any) {
+      console.error('[AppLock] Error autenticando:', e?.message || e);
+      setBloqueoDescripcion('No se pudo autenticar. Intenta de nuevo.');
+      return false;
+    } finally {
+      setBloqueoCargando(false);
+      desbloqueoEnCursoRef.current = false;
+    }
   }, []);
+
+  useEffect(() => {
+    let activo = true;
+
+    const inicializar = async () => {
+      try {
+        // 1) Preferencias (AsyncStorage)
+        await useFamilyPreferencesStore.getState().rehidratar();
+
+        // 2) Sesión (SecureStore)
+        await useAuthStore.getState().cargarSesionGuardada();
+        if (!activo) return;
+
+        // 3) Bloqueo de app (solo Android) si el usuario lo activó.
+        if (Platform.OS !== 'android') return;
+
+        const usuario = useAuthStore.getState().usuario;
+        if (!usuario?.Id_Usuario) return;
+
+        const preferencias = useFamilyPreferencesStore
+          .getState()
+          .obtenerConfiguracion(usuario.Id_Usuario);
+
+        if (!preferencias.biometriaFaceId) return;
+
+        setBloqueoVisible(true);
+        setBloqueoDescripcion('Desbloquea SAMM para continuar.');
+        await intentarDesbloquear();
+      } catch (e: any) {
+        console.error('[App] Error inicializando:', e?.message || e);
+      } finally {
+        if (activo) {
+          setInicializando(false);
+        }
+      }
+    };
+
+    void inicializar();
+    return () => {
+      activo = false;
+    };
+  }, [intentarDesbloquear]);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -96,9 +186,9 @@ export default function App() {
         });
       } else if (datos.tipo === 'alerta_familiar') {
         navigationRef.current.navigate('AlertaMedicamento', {
+          idAdulto: datos.id_adulto ?? datos.idAdulto,
           nombreAdulto: datos.nombreAdulto,
           rolAdulto: datos.rolAdulto || datos.rol_adulto_mayor,
-          nombreMedicamento: datos.nombreMedicamento,
           horaToma: datos.horaToma,
           tipo: datos.tipoAlerta,
         });
@@ -114,16 +204,30 @@ export default function App() {
     return () => suscripcion.remove();
   }, []);
 
+  const autenticado = useAuthStore((state) => state.autenticado);
+  const usuario = useAuthStore((state) => state.usuario);
+
+  if (inicializando) {
+    return <View style={{ flex: 1, backgroundColor: theme.colors.background }} />;
+  }
+
+  let rutaInicial: keyof ReactNavigation.RootParamList | string = 'Initial';
+  if (autenticado && usuario) {
+    if (usuario.Rol === 'familiar') {
+      rutaInicial = 'FamilyTabs';
+    } else if (usuario.Rol === 'adulto_mayor') {
+      rutaInicial = 'SeniorTabs';
+    }
+  }
+
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+        <MonitorActualizaciones />
         <NavigationContainer ref={navigationRef} linking={linking}>
           <Stack.Navigator
-          //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
-           // initialRouteName="MiPerfilFamiliar"
-            // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
-            initialRouteName="Initial"
+            initialRouteName={rutaInicial as any}
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },
@@ -174,6 +278,17 @@ export default function App() {
 
           </Stack.Navigator>
         </NavigationContainer>
+
+        <AppLock
+          esVisible={bloqueoVisible}
+          cargando={bloqueoCargando}
+          titulo="Acceso protegido"
+          descripcion={bloqueoDescripcion}
+          textoBoton="Desbloquear"
+          alReintentar={() => {
+            void intentarDesbloquear();
+          }}
+        />
       </PaperProvider>
     </SafeAreaProvider>
   );

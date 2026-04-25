@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS "Medicamentos" (
 CREATE TABLE IF NOT EXISTS "Horarios" (
     "Id_Horario" SERIAL PRIMARY KEY,
     "Id_Medicamento" INTEGER REFERENCES "Medicamentos"("Id_Medicamento") ON DELETE CASCADE,
-    "Hora_Toma" TIME NOT NULL
+    "Hora_Toma" TIME NOT NULL,
+    "Dias_Semana" VARCHAR(20) NOT NULL DEFAULT '1,2,3,4,5,6,7'
 );
 
 -- 3. Tabla de Historial y Cumplimiento (RF-09, RF-10 y RF-11)

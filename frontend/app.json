@@ -30,12 +30,21 @@
         "VIBRATE",
         "WAKE_LOCK",
         "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "USE_FULL_SCREEN_INTENT",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logoapp.png",
         "backgroundColor": "#1A1D21"
-      }
+      },
+      "runtimeVersion": "1.0.0"
     },
     "plugins": [
       [
@@ -71,6 +80,14 @@
         "projectId": "72594721-6cdd-4752-8588-98983794a5f7"
       }
     },
-    "owner": ""
+    "owner": "ruben5796",
+    "updates": {
+      "url": "https://u.expo.dev/72594721-6cdd-4752-8588-98983794a5f7"
+    },
+    "ios": {
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    }
   }
 }

@@ -4,7 +4,8 @@ Endpoints para Google Auth, Login Manual, Registro y gestión de sesión.
 """
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Literal
 
@@ -90,7 +91,7 @@ class ResetPasswordRequest(BaseModel):
     """Body para POST /auth/reset-password"""
 
     token: str
-    nueva_contrasena: str = Field(min_length=8)
+    nueva_contrasena: str = Field(min_length=6)
 
 
 class MensajeResponse(BaseModel):
@@ -299,7 +300,7 @@ async def forgot_password(
     logger.info(f"[API] POST /auth/forgot-password — Correo: {body.correo}")
     await caso_uso.ejecutar(str(body.correo))
     return MensajeResponse(
-        mensaje="Si el correo existe y es local, recibirás un enlace válido por 10 minutos.",
+        mensaje="Si el correo existe, recibirás un enlace válido por 10 minutos.",
     )
 
 
@@ -316,3 +317,11 @@ def reset_password(
         return MensajeResponse(mensaje="Contraseña actualizada exitosamente.")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/redirect-reset")
+def redirect_reset(token: str):
+    """Redirige al deep link samm://reset-password vía HTTP 302."""
+    logger.info("[API] GET /auth/redirect-reset — Redirigiendo 302 al deep link")
+    deep_link = f"samm://reset-password?token={token}"
+    return RedirectResponse(url=deep_link, status_code=302)

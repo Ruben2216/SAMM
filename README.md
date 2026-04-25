@@ -191,3 +191,196 @@ npx expo install react-native-reanimated react-native-gesture-handler
 y ya no deberia de dar ningun problema
 
 # Se recomienda no cambiar de momento app.json de frontend, porque al eliminar el projectId rompe el login por el sha-1 que se genera cuando se cambia el id de proyecto, hara que ver la forma de compilar sin afectar a los demas, probablemente en gitignore
+
+
+PARA ABRIR LOS MICROSERVICIOS DE UNA SOLA DEBEN
+1. crear la carpeta .vscode en la raiz del proyecto, debe estar como "...\SAMM\.vscode" fuera de backend y frontend
+2. crear un archivo llamado "tasks.json"
+3. pegar el siguiente contenido dentro de tasks.json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "SAMM: Levantar Backend",
+            "dependsOn": [
+                "Identity Service",
+                "Medication Service",
+                "Notification Service",
+                "Appointments Service"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "icon": { "id": "rocket", "color": "terminal.ansiYellow" }
+        },
+        {
+            "label": "Identity Service",
+            "type": "shell",
+            "command": "cd backend/identity-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+            "isBackground": true,
+            "icon": { "id": "shield", "color": "terminal.ansiCyan" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Medication Service",
+            "type": "shell",
+            "command": "cd backend/medication-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8001",
+            "isBackground": true,
+            "icon": { "id": "beaker", "color": "terminal.ansiGreen" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Notification Service",
+            "type": "shell",
+            "command": "cd backend/notification-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8002",
+            "isBackground": true,
+            "icon": { "id": "bell", "color": "terminal.ansiRed" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
+        {
+            "label": "Appointments Service",
+            "type": "shell",
+            "command": "cd backend/appointments-service; ./venv/Scripts/python.exe -m uvicorn main:app --reload --host 0.0.0.0 --port 8004",
+            "isBackground": true,
+            "icon": { "id": "calendar", "color": "terminal.ansiMagenta" },
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        }
+    ]
+}
+4. Con el atajo de ctrl + shift + p, buscar "Tasks:Run Task" darle enter y despues a SAMM: Levantar Backend
+5. se abriran las 4 terminales y para reiniciar lo mismo pero en la terminal que se quiere reiniciar
+
+# Nuevo en .env de idendity-service 
+SAMM_PUBLIC_URL=http://192.168.100.7:8000
+---
+
+
+
+## Notificaciones push (FCM + Expo) — (le pedia a la IA que me hiciera una guía completa para quienes continuaran con este microservicio)
+
+Las push notifications del familiar (recordatorio a la hora del medicamento y alerta de "medicación olvidada") viajan por **Expo Push Service → Firebase Cloud Messaging (FCM) → dispositivo**. Para que funcionen cada desarrollador del equipo debe vincular su propia cuenta de Expo a un proyecto de Firebase y subir la Service Account Key. El APK no necesita recompilarse tras configurar las credenciales: viven en los servidores de Expo.
+
+> **Importante:** los push SÓLO funcionan en el APK compilado (development build / preview / production). **En Expo Go los push notifications no funcionan en SDK 53+**. Para desarrollo local se usan notificaciones **locales** (el adulto mayor ve su alarma aunque no haya FCM). El familiar SÍ requiere FCM sí o sí.
+
+### 1. Prerrequisitos (una sola vez por desarrollador)
+
+- Cuenta en [expo.dev](https://expo.dev) (gratis).
+- Tener instalado `eas-cli`:
+  ```bash
+  npm install -g eas-cli
+  ```
+- Acceso al proyecto Firebase `samm-app` (pedir al admin que te invite como `Editor`) **o** crear tu propio proyecto Firebase de pruebas.
+
+### 2. Usar un `projectId` propio de Expo (recomendado para cada dev)
+
+El `app.json` del repo tiene `"owner": "fernandovargas15"` y un `projectId` fijo. Si no eres miembro de esa cuenta de Expo, no podrás subir credenciales (verás `Entity not authorized`). Soluciones:
+
+**Opción A (ideal):** pide al owner (`fernandovargas15`) que te invite:
+- Owner entra a [expo.dev](https://expo.dev) → **Account settings → Members → Invite** → correo → rol **Admin**.
+- Aceptas la invitación y con eso ya tienes permisos sobre el projectId existente. Salta al paso 3.
+
+**Opción B (si no puedes ser invitado):** crea tu propio projectId en tu cuenta de Expo.
+1. Haz logout del owner y entra con tu cuenta:
+   ```bash
+   cd frontend
+   npx eas logout
+   npx eas login
+   ```
+2. Edita `frontend/app.json`:
+   - Cambia `"owner": "fernandovargas15"` a tu **username de Expo**.
+   - Vacía el id del proyecto:
+     ```json
+     "extra": { "eas": {} }
+     ```
+3. Inicializa el proyecto en tu cuenta:
+   ```bash
+   npx eas init
+   ```
+   Esto rellena `extra.eas.projectId` con uno nuevo a tu nombre.
+4. ⚠️ Al cambiar el `projectId` **cambia el SHA-1 y cambian los Expo Push Tokens**. Tienes que **recompilar el APK** (`npx expo run:android`) y cada usuario debe cerrar sesión y volver a entrar para regenerar su token en el `notification-service`.
+5. **No subas estos cambios al repo** (`app.json` con tu owner). Mantén los cambios locales o agrégalos a `.gitignore`. (Esto es con la finalidad de no afectar a los demas en el caso de que hagan sus propias pruebas).
+
+### 3. Configurar Firebase (una vez por proyecto Firebase), (En mi caso se me olvido agregarlo en el .gitignore y se subio (no debe ser asi) pero ya que esta pueden utilizar ese, igual es de una cuenta que es unicamente para probar todo esto no hay problema), pero esto fue lo que hice para configurar eso.
+
+1. Entra a [Firebase Console](https://console.firebase.google.com) → selecciona tu proyecto (`samm-app` si eres miembro, o el que creaste).
+2. **Project Settings** (⚙️) → pestaña **General**:
+   - En **Your apps** debe existir una app Android con el package name **`com.samm.app`** (el que figura en `app.json`).
+   - Si no existe: **Add app → Android → Package name `com.samm.app`** → registra → descarga `google-services.json`.
+3. Copia ese `google-services.json` a `frontend/google-services.json` (ya referenciado en `app.json` como `"googleServicesFile": "./google-services.json"`).
+4. Pestaña **Service accounts**:
+   - Asegúrate de estar en **Firebase Admin SDK**.
+   - Pulsa **Generate new private key** → descarga el `.json` (lo llamaré `samm-fcm-sa.json`). **No lo subas al repo** — es una credencial secreta.
+5. Habilita la **Firebase Cloud Messaging API (V1)**:
+   - Entra a [Google Cloud Console](https://console.cloud.google.com) con la misma cuenta.
+   - Arriba a la izquierda selecciona **el mismo proyecto** de Firebase.
+   - **APIs & Services → Library** → busca **"Firebase Cloud Messaging API"** → **Enable**.
+
+### 4. Subir la Service Account Key a Expo
+
+```bash
+cd frontend
+npx eas credentials
+```
+
+Responde:
+1. **Platform:** `Android`
+2. **Build profile:** `development` (o el que uses)
+3. Elige **Google Service Account**
+4. Elige **Manage your Google Service Account Key for Push Notifications (FCM V1)**
+5. **Set up a Google Service Account Key for Push Notifications (FCM V1)**
+6. **Upload a new service account key** → selecciona el `samm-fcm-sa.json` del paso 3.4.
+
+Para verificar que quedó bien, vuelve a correr `npx eas credentials` y busca en el resumen:
+```
+Google Service Account Key For FCM V1: Configured
+```
+
+### 5. Levantar los servicios y probar
+
+Con los servicios corriendo (identity 8000, medicamentos 8001, notificaciones 8002):
+
+1. **Instala el APK en el teléfono del familiar** y haz login con un familiar vinculado al adulto. En el log de `notification-service` debe aparecer:
+   ```
+   [API] PUT /push-tokens — Id_Usuario: <id_familiar>
+   ```
+2. **En la cuenta del adulto** agrega/edita un medicamento con hora **2 minutos en el futuro**. No lo marques como tomado.
+3. Al minuto exacto, en `medication-service`:
+   ```
+   [Recordatorio] Familiares notificados: med <nombre> @ HH:MM
+   ```
+   Y en `notification-service`:
+   ```
+   [Push] Enviado a 1 token(s). HTTP 200. Respuesta: {'data': [{'status': 'ok', 'id': '...'}]}
+   ```
+   → El familiar recibe la push **"Hora del medicamento"** → `"<adulto> debe tomar <medicamento> (HH:MM)"`.
+4. **No marques** el medicamento como tomado durante 30 min. Al llegar los 30 min (tolerancia), en `medication-service`:
+   ```
+   ¡ALERTA! Se olvidó la medicina ID <X> de las HH:MM
+   ```
+   El familiar recibe push **"Medicación olvidada"**. Al tocar la push se abre `AlertaMedicamento` con alarma sonora + vibración, botón **Llamar** (marca al teléfono del adulto si lo tiene registrado en su Perfil de Salud) y **Cerrar**.
+
+### 6. Troubleshooting (estos son algunos errores que les pueden salir y sus soluciones)
+
+| Error en logs | Causa | Solución |
+|---|---|---|
+| `'details': {'error': 'InvalidCredentials'}` | No hay FCM Service Account en Expo | Repetir paso 4 |
+| `'details': {'error': 'DeviceNotRegistered'}` | El token de Expo ya expiró (reinstalación del APK, cambio de projectId, etc.) | Usuario cierra sesión y vuelve a entrar para regenerar token |
+| `[Push] Sin tokens para enviar` | El familiar aún no ha iniciado sesión en este APK, o no está vinculado al adulto | Verifica `Push_Tokens` en `samm_notifications_db` y `Vinculaciones` en `samm_db` |
+| `Entity not authorized` al correr `eas credentials` | Logueado con una cuenta Expo que no es dueña del proyecto | Pasos de sección 2 (Opción A o B) |
+| La push se ve pero no hace sonido | Canal de Android desactivado | Ajustes → Apps → SAMM → Notificaciones → **Alertas del familiar** → activar |
+| Nada aparece en logs del scheduler | Se corrió el service antes de los cambios | Reiniciar `medication-service`; verificar que el arranque diga `Cron Jobs iniciados (recordar_familiares + verificar_incumplimientos)` |
+
+### 7. Archivos sensibles — NO subir al repo (algunas cosas ya se subieron pero simplemente para recalcar que no se deben de subir)
+
+Añadir al `.gitignore` local (si no están ya):
+```
+frontend/google-services.json
+frontend/*.env
+*.fcm.json
+samm-fcm-sa.json
+```
+
+(Ignorar es para mis pruebas):
+    "owner": "fernandovargas15"
+    "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"

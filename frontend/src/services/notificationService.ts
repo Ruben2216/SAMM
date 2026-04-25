@@ -199,7 +199,11 @@ export async function guardarTokenEnBackend(idUsuario: number, pushToken: string
 }
 
 /**
- * Programar notificación local para un medicamento (se dispara en el propio dispositivo)
+ * Programar notificación local para un medicamento (se dispara en el propio dispositivo).
+ * Si diasSemana cubre los 7 días → usa un trigger DAILY (1 sola alarma).
+ * Si es un subconjunto → registra un WEEKLY por cada día seleccionado.
+ *
+ * diasSemana: CSV de isoweekday (1=Lunes...7=Domingo).
  */
 export async function programarRecordatorioMedicamento(params: {
   idMedicamento: number;
@@ -208,40 +212,69 @@ export async function programarRecordatorioMedicamento(params: {
   dosis: string;
   notas: string;
   horaToma: string; // "HH:mm:ss"
-}): Promise<string | null> {
-  const { idMedicamento, idHorario, nombreMedicamento, dosis, notas, horaToma } = params;
+  diasSemana?: string; 
+}): Promise<string | string[] | null> {
+  const { idMedicamento, idHorario, nombreMedicamento, dosis, notas, horaToma, diasSemana } = params;
 
   const [horasStr, minutosStr] = horaToma.split(':');
   const horas = parseInt(horasStr, 10);
   const minutos = parseInt(minutosStr, 10);
 
-  const identificador = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Hora de tu medicamento',
-      body: `${nombreMedicamento} - ${dosis}${notas ? `\n${notas}` : ''}`,
-      data: {
-        tipo: 'recordatorio_medicamento',
-        idMedicamento,
-        idHorario,
-        nombreMedicamento,
-        dosis,
-        notas,
-        horaToma,
-      },
-      sound: 'default',
-      priority: Notifications.AndroidNotificationPriority.MAX,
+  const contenido = {
+    title: 'Hora de tu medicamento',
+    body: `${nombreMedicamento} - ${dosis}${notas ? `\n${notas}` : ''}`,
+    data: {
+      tipo: 'recordatorio_medicamento',
+      idMedicamento,
+      idHorario,
+      nombreMedicamento,
+      dosis,
+      notas,
+      horaToma,
     },
-    // En expo-notifications el channelId va en el trigger, no en content.
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: horas,
-      minute: minutos,
-      channelId: CANAL_ALARMA_ADULTO,
-    },
-  });
+    sound: 'default',
+    priority: Notifications.AndroidNotificationPriority.MAX,
+  } as const;
 
-  console.log(`[Notificaciones] Programado: ${nombreMedicamento} a las ${horaToma} — ID: ${identificador}`);
-  return identificador;
+  const diasIso = (diasSemana || '1,2,3,4,5,6,7')
+    .split(',')
+    .map((d) => parseInt(d.trim(), 10))
+    .filter((n) => n >= 1 && n <= 7);
+  const todosLosDias = diasIso.length === 7;
+
+  if (todosLosDias) {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: contenido,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: horas,
+        minute: minutos,
+        channelId: CANAL_ALARMA_ADULTO,
+      },
+    });
+    console.log(`[Notificaciones] Programado DAILY: ${nombreMedicamento} @ ${horaToma} — ID: ${id}`);
+    return id;
+  }
+
+  // WEEKLY usa weekday 1=Domingo ... 7=Sábado (estilo iOS/cron).
+  // Nuestro isoweekday: 1=Lunes..7=Domingo. Conversión: weeklyDow = isoDow === 7 ? 1 : isoDow + 1
+  const ids: string[] = [];
+  for (const iso of diasIso) {
+    const weekday = iso === 7 ? 1 : iso + 1;
+    const id = await Notifications.scheduleNotificationAsync({
+      content: contenido,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday,
+        hour: horas,
+        minute: minutos,
+        channelId: CANAL_ALARMA_ADULTO,
+      },
+    });
+    ids.push(id);
+  }
+  console.log(`[Notificaciones] Programado WEEKLY (${diasIso.length} días): ${nombreMedicamento} @ ${horaToma}`);
+  return ids;
 }
 
 /**

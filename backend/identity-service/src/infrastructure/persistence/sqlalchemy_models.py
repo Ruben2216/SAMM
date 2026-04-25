@@ -22,6 +22,7 @@ class UsuarioModel(Base):
     Rol = Column(String(20), nullable=True)                    # 'familiar' | 'adulto_mayor' | NULL
     Codigo_Vinculacion = Column(String(5), unique=True, nullable=True)  # Solo familiares
     sexo = Column(String(10), nullable=False, default="Otro")
+    Telefono = Column(String(30), nullable=True)
     Activo = Column(Boolean, default=True)
     Fecha_Registro = Column(Date, nullable=False, server_default=func.current_date())
 
