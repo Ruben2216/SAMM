@@ -286,3 +286,28 @@ export async function cancelarTodasLasNotificaciones(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
   console.log('[Notificaciones] Recordatorios locales limpiados (se reprograman a continuación)');
 }
+
+/**
+ * Envía una alerta SOS push a todos los familiares vinculados del adulto mayor.
+ * El backend enriquece el nombre del adulto usando {nombreAdulto}.
+ */
+export async function notificarSosAFamiliares(idUsuario: number): Promise<void> {
+  const url = `${NOTIFICATION_API_URL}/notificar/familiares`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_usuario: idUsuario,
+        titulo: '🆘 {nombreAdulto} necesita ayuda',
+        cuerpo: '{nombreAdulto} ha solicitado asistencia urgente',
+        datos: {
+          tipo: 'sos_familiar',
+        },
+      }),
+    });
+    console.log(`[Notificaciones] SOS enviado a familiares del usuario ${idUsuario}`);
+  } catch (error: any) {
+    console.error('[Notificaciones] Error enviando SOS a familiares:', error?.message || error);
+  }
+}

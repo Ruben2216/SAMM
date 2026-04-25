@@ -192,6 +192,12 @@ export default function App() {
           horaToma: datos.horaToma,
           tipo: datos.tipoAlerta,
         });
+      } else if (datos.tipo === 'sos_familiar') {
+        navigationRef.current.navigate('NecesitaAyuda', {
+          nombreAdultoMayor: datos.nombreAdulto || 'Tu familiar',
+          nombreContacto: datos.nombreAdulto || 'Tu familiar',
+          telefono: datos.telefono || '',
+        });
       }
     };
 

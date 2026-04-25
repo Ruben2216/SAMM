@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Alert, Linking, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useAuthStore } from '../../../../auth/authStore';
+import { notificarSosAFamiliares } from '../../../../../services/notificationService';
 import { styles } from './styles';
 
 export const Asistencia = () => {
@@ -9,8 +11,16 @@ export const Asistencia = () => {
   const route = useRoute<any>();
   const { nombreContacto = 'Familiar Principal', telefono = '3000000000' } = route.params || {};
   const pulsosRadar = useRef([new Animated.Value(0), new Animated.Value(0), new Animated.Value(0)]).current;
-    
+
+  const idUsuario = useAuthStore((s) => s.usuario?.Id_Usuario ?? null);
   const iniciales = nombreContacto.split(' ').map((p: string) => p.charAt(0)).join('').slice(0, 2).toUpperCase();
+
+  // Enviar alerta SOS a familiares al abrir la pantalla
+  useEffect(() => {
+    if (idUsuario) {
+      notificarSosAFamiliares(idUsuario);
+    }
+  }, []);
 
   const handleCall = () => {
     Alert.alert('Llamada de asistencia', `Llamando a ${nombreContacto}...`, [
