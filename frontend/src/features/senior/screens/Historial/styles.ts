@@ -49,6 +49,7 @@ export const styles = StyleSheet.create({
     tab: {
         flex: 1,
         paddingVertical: 12,
+        paddingHorizontal: 4,
         borderRadius: 25,
         alignItems: 'center',
     },
@@ -62,7 +63,7 @@ export const styles = StyleSheet.create({
         elevation: 6,
     },
     tabTexto: {
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: '600',
         color: '#94A3B8', // Gris suave para los inactivos
     },
@@ -96,7 +97,14 @@ export const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 3,
         borderWidth: 1,
-        borderColor: '#F1F5F9', 
+        borderColor: '#F1F5F9',
+    },
+    tarjetaConBorde: {
+        borderWidth: 1.5,
+        shadowOpacity: 0,
+        shadowRadius: 0,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 0,
     },
     iconoEstadoContainer: {
         width: 40,

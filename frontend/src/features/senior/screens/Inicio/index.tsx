@@ -34,6 +34,22 @@ const DICCIONARIO_FRECUENCIA: { [key: string]: string } = {
     'necesario': 'Según sea necesario'
 };
 
+const COLORES_ESTADO: { [estado: string]: { bg: string; border: string; text: string } } = {
+    pendiente:   { bg: '#FEF3C7', border: '#F59E0B', text: '#B45309' },
+    tomado:      { bg: '#D1FAE5', border: '#10B981', text: '#047857' }, 
+    incumplido:  { bg: '#FEE2E2', border: '#EF4444', text: '#B91C1C' }, 
+    necesario:   { bg: '#E0E7FF', border: '#6366F1', text: '#4338CA' }, 
+};
+
+const etiquetaEstado = (estado: string) => {
+    switch (estado) {
+        case 'tomado': return 'Tomado';
+        case 'incumplido': return 'No tomado';
+        case 'necesario': return 'Según sea necesario';
+        default: return 'Pendiente';
+    }
+};
+
 export const Inicio = () => {
     const navigation = useNavigation<any>();
     const usuario = useAuthStore((s) => s.usuario);
@@ -75,43 +91,71 @@ export const Inicio = () => {
             if (!respuesta.ok) throw new Error("Error al cargar los datos");
             const datosDB = await respuesta.json();
 
-            const medicamentosFormateados = datosDB.flatMap((med: any) => {
-                return med.horarios.map((horario: any) => {
-                    const [horasStr, minutosStr] = horario.Hora_Toma.split(':');
-                    let horas = parseInt(horasStr, 10);
-                    const ampm = horas >= 12 ? 'PM' : 'AM';
-                    horas = horas % 12 || 12;
-                    const horaUI = `(${horas}:${minutosStr} ${ampm})`;
-                    const frecuenciaAmigable = DICCIONARIO_FRECUENCIA[med.Frecuencia] || med.Frecuencia;
+            const medicamentosFormateados: any[] = datosDB.flatMap((med: any) => {
+                const frecuenciaAmigable = DICCIONARIO_FRECUENCIA[med.Frecuencia] || med.Frecuencia;
 
-                    //Evaluamos si el backend nos dijo que ya se lo tomó
-                    const yaSeTomo = med.tomado_hoy === true;
-
-                    return {
-                        id_unico: `${med.Id_Medicamento}-${horario.Id_Horario}`,
+                // "Según sea necesario": NO tiene horarios fijos, aparece como 1 tarjeta
+                // con botón "Tomar ahora". Se registra el historial con la hora del clic.
+                if (med.Frecuencia === 'necesario' || !med.horarios || med.horarios.length === 0) {
+                    return [{
+                        id_unico: `${med.Id_Medicamento}-necesario`,
                         id_medicamento: med.Id_Medicamento,
-                        hora: horaUI,
-                        horaCruda: horario.Hora_Toma,
+                        hora: 'Cuando lo necesites',
+                        horaCruda: null,
                         nombre: med.Nombre,
                         dosisCompleta: `${med.Dosis} • ${frecuenciaAmigable}`,
-                        rawDosis: med.Dosis, 
-                        rawFrecuencia: med.Frecuencia, 
-                        notas: med.Notas, 
-                        estado: yaSeTomo ? 'tomado' : 'pendiente', //  Usa el estado real
-                        colorPunto: yaSeTomo ? '#00E676' : '#FEF08A'
-                    };
-                });
+                        rawDosis: med.Dosis,
+                        rawFrecuencia: med.Frecuencia,
+                        rawHorarios: [],
+                        notas: med.Notas,
+                        diasSemana: '1,2,3,4,5,6,7',
+                        estado: 'necesario',
+                    }];
+                }
+
+                return med.horarios
+                    .filter((h: any) => h.estado_hoy !== 'no_aplica_hoy')
+                    .map((horario: any) => {
+                        const [horasStr, minutosStr] = horario.Hora_Toma.split(':');
+                        let horas = parseInt(horasStr, 10);
+                        const ampm = horas >= 12 ? 'PM' : 'AM';
+                        horas = horas % 12 || 12;
+                        const horaUI = `(${horas}:${minutosStr} ${ampm})`;
+
+                        // Usamos el estado calculado por backend para cada horario
+                        const estado = horario.estado_hoy || 'pendiente';
+
+                        return {
+                            id_unico: `${med.Id_Medicamento}-${horario.Id_Horario}`,
+                            id_medicamento: med.Id_Medicamento,
+                            hora: horaUI,
+                            horaCruda: horario.Hora_Toma,
+                            nombre: med.Nombre,
+                            dosisCompleta: `${med.Dosis} • ${frecuenciaAmigable}`,
+                            rawDosis: med.Dosis,
+                            rawFrecuencia: med.Frecuencia,
+                            rawHorarios: med.horarios,
+                            notas: med.Notas,
+                            diasSemana: horario.Dias_Semana || '1,2,3,4,5,6,7',
+                            estado,
+                        };
+                    });
             });
 
-            medicamentosFormateados.sort((a: any, b: any) => a.horaCruda.localeCompare(b.horaCruda));
+            medicamentosFormateados.sort((a: any, b: any) => {
+                if (!a.horaCruda) return 1;
+                if (!b.horaCruda) return -1;
+                return a.horaCruda.localeCompare(b.horaCruda);
+            });
             setMedicamentos(medicamentosFormateados);
 
-            // Reprogramamos las alarmas locales de TODOS los medicamentos (tomados o no).
+            // Reprogramamos las alarmas locales de TODOS los medicamentos con hora fija
             // La notificación es diaria: aunque hoy ya se haya tomado, debe quedar
             // programada para que dispare mañana a la misma hora.
             await cancelarTodasLasNotificaciones();
-            console.log(`[Inicio] Programando ${medicamentosFormateados.length} recordatorio(s) diario(s)...`);
-            for (const med of medicamentosFormateados) {
+            const conHora = medicamentosFormateados.filter((m: any) => m.horaCruda);
+            console.log(`[Inicio] Programando ${conHora.length} recordatorio(s) diario(s)...`);
+            for (const med of conHora) {
                 await programarRecordatorioMedicamento({
                     idMedicamento: med.id_medicamento,
                     idHorario: parseInt(med.id_unico.split('-')[1], 10),
@@ -119,6 +163,7 @@ export const Inicio = () => {
                     dosis: med.rawDosis,
                     notas: med.notas || '',
                     horaToma: med.horaCruda,
+                    diasSemana: med.diasSemana || '1,2,3,4,5,6,7',
                 });
             }
         } catch (error) {
@@ -172,26 +217,41 @@ export const Inicio = () => {
     };
 
     const presionarTomarAhora = async (med: any) => {
-        if (procesandoTomaId === med.id_unico) return; 
+        if (procesandoTomaId === med.id_unico) return;
         setProcesandoTomaId(med.id_unico);
+
+        // Para "según sea necesario" el historial usa la hora del clic (HH:MM:SS).
+        let horaAsignada = med.horaCruda;
+        if (!horaAsignada) {
+            const ahora = new Date();
+            const hh = String(ahora.getHours()).padStart(2, '0');
+            const mm = String(ahora.getMinutes()).padStart(2, '0');
+            const ss = String(ahora.getSeconds()).padStart(2, '0');
+            horaAsignada = `${hh}:${mm}:${ss}`;
+        }
 
         try {
             const respuesta = await fetch(`${apiUrl}/medicamentos/${med.id_medicamento}/tomar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // Se envia al backend la hora exacta de esta pastilla
-                body: JSON.stringify({ hora_asignada: med.horaCruda }) 
+                body: JSON.stringify({ hora_asignada: horaAsignada }),
             });
 
             if (respuesta.ok) {
                 setMensajeExito(`${med.nombre} registrado como tomado`);
                 setModalExito(true);
 
-                setMedicamentos(prev => prev.map(item =>
-                    item.id_unico === med.id_unico 
-                        ? { ...item, estado: 'tomado', colorPunto: '#00E676' }
-                        : item
-                ));
+                // En "según sea necesario" se recarga para que aparezca en historial
+                // y la tarjeta vuelva a quedar como "necesario" (no se bloquea en tomado)
+                if (med.rawFrecuencia === 'necesario') {
+                    cargarMedicamentos();
+                } else {
+                    setMedicamentos(prev => prev.map(item =>
+                        item.id_unico === med.id_unico
+                            ? { ...item, estado: 'tomado' }
+                            : item
+                    ));
+                }
             } else {
                 Alert.alert("Error", "Hubo un problema registrando la toma en el servidor.");
             }
@@ -260,63 +320,75 @@ export const Inicio = () => {
                         No tienes medicamentos programados para hoy.
                     </Text>
                 ) : (
-                    medicamentos.map((med) => (
-                        <View key={med.id_unico}>
-                            <Text style={styles.horaTitulo}>{med.hora}</Text>
-                            <View style={styles.tarjetaMedicamento}>
-                                
-                                {/* NUEVO HEADER DE LA TARJETA */}
-                                <View style={styles.tarjetaHeader}>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.nombreMedicamento}>{med.nombre}</Text>
-                                        <Text style={styles.dosisMedicamento}>{med.dosisCompleta}</Text>
+                    medicamentos.map((med) => {
+                        const colores = COLORES_ESTADO[med.estado] || COLORES_ESTADO.pendiente;
+                        const puedeTomar = med.estado === 'pendiente' || med.estado === 'necesario';
+
+                        return (
+                            <View key={med.id_unico}>
+                                <Text style={styles.horaTitulo}>{med.hora}</Text>
+                                <View style={[styles.tarjetaMedicamento, styles.tarjetaConBorde, { borderColor: colores.border }]}>
+                                    <View style={styles.tarjetaHeader}>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.nombreMedicamento}>{med.nombre}</Text>
+                                            <Text style={styles.dosisMedicamento}>{med.dosisCompleta}</Text>
+                                        </View>
+
+                                        <View style={styles.accionesContenedor}>
+                                            <TouchableOpacity onPress={() => presionarEditar(med)} style={styles.botonAccionMini}>
+                                                <Ionicons name="create-outline" size={18} color="#2563EB" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity onPress={() => confirmarEliminar(med.id_medicamento, med.nombre)} style={[styles.botonAccionMini, { backgroundColor: '#FEE2E2' }]}>
+                                                <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                    
-                                    <View style={styles.accionesContenedor}>
-                                        <TouchableOpacity onPress={() => presionarEditar(med)} style={styles.botonAccionMini}>
-                                            <Ionicons name="create-outline" size={18} color="#2563EB" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={() => confirmarEliminar(med.id_medicamento, med.nombre)} style={[styles.botonAccionMini, { backgroundColor: '#FEE2E2', marginRight: 12 }]}>
-                                            <Ionicons name="trash-outline" size={18} color="#DC2626" />
-                                        </TouchableOpacity>
-                                        <View style={[styles.puntoEstado, { backgroundColor: med.colorPunto }]} />
+
+                                    {/* Badge de estado visible, con el color del borde */}
+                                    <View style={[styles.estadoBadge, { backgroundColor: colores.bg }]}>
+                                        <Ionicons
+                                            name={
+                                                med.estado === 'tomado' ? 'checkmark-circle' :
+                                                med.estado === 'incumplido' ? 'close-circle' :
+                                                med.estado === 'necesario' ? 'medkit' : 'time-outline'
+                                            }
+                                            size={14}
+                                            color={colores.border}
+                                        />
+                                        <Text style={[styles.estadoBadgeTexto, { color: colores.text }]}>
+                                            {etiquetaEstado(med.estado)}
+                                        </Text>
                                     </View>
+
+                                    {med.notas && med.notas.trim() !== '' && (
+                                        <View style={styles.notasContainer}>
+                                            <Ionicons name="document-text-outline" size={16} color="#64748B" style={{ marginTop: 2 }} />
+                                            <Text style={styles.notasTexto}>{med.notas}</Text>
+                                        </View>
+                                    )}
+
+                                    {puedeTomar && (
+                                        <View style={styles.estadoPendienteRow}>
+                                            <TouchableOpacity
+                                                style={[styles.botonTomarAhora, procesandoTomaId === med.id_unico && { opacity: 0.6 }]}
+                                                onPress={() => presionarTomarAhora(med)}
+                                                disabled={procesandoTomaId === med.id_unico}
+                                            >
+                                                {procesandoTomaId === med.id_unico ? (
+                                                    <ActivityIndicator size="small" color="#0F172A" />
+                                                ) : (
+                                                    <Ionicons name="checkmark" size={20} color="#0F172A" />
+                                                )}
+                                                <Text style={styles.textoTomarAhora}>
+                                                    {procesandoTomaId === med.id_unico ? 'Registrando...' : 'Tomar ahora'}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
                                 </View>
-
-                                {/* SECCIÓN DE NOTAS ADICIONALES */}
-                                {med.notas && med.notas.trim() !== '' && (
-                                    <View style={styles.notasContainer}>
-                                        <Ionicons name="document-text-outline" size={16} color="#64748B" style={{ marginTop: 2 }} />
-                                        <Text style={styles.notasTexto}>{med.notas}</Text>
-                                    </View>
-                                )}
-                                
-                                {/* BOTONES DE ACCIÓN (Si está pendiente) */}
-                                {med.estado === 'pendiente' && (
-                                    <View style={styles.estadoPendienteRow}>
-                                        <TouchableOpacity 
-                                            style={[styles.botonTomarAhora, procesandoTomaId === med.id_unico && { opacity: 0.6 }]} 
-                                            onPress={() => presionarTomarAhora(med)}
-                                            disabled={procesandoTomaId === med.id_unico}
-                                        >
-                                            {procesandoTomaId === med.id_unico ? (
-                                                <ActivityIndicator size="small" color="#0F172A" />
-                                            ) : (
-                                                <Ionicons name="checkmark" size={20} color="#0F172A" />
-                                            )}
-                                            <Text style={styles.textoTomarAhora}>
-                                                {procesandoTomaId === med.id_unico ? 'Registrando...' : 'Tomar ahora'}
-                                            </Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.botonPosponer}>
-                                            <Ionicons name="alarm-outline" size={22} color="#64748B" />
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
                             </View>
-                        </View>
-                    ))
+                        );
+                    })
                 )}
             </ScrollView>
 

@@ -5,11 +5,15 @@ from datetime import time, date, datetime
 # 1. Esquema para los horarios (lo que recibimos)
 class HorarioCreate(BaseModel):
     Hora_Toma: time
+    # CSV de isoweekday: "1,2,3,4,5,6,7" (Lun..Dom). Default = todos los días.
+    Dias_Semana: str = "1,2,3,4,5,6,7"
 
 # 2. Esquema para los horarios (lo que respondemos)
 class HorarioResponse(HorarioCreate):
     Id_Horario: int
-    
+    # Estado calculado para HOY: pendiente, tomado, incumplido, no_aplica_hoy
+    estado_hoy: str = "pendiente"
+
     class Config:
         from_attributes = True
 
@@ -19,6 +23,7 @@ class HistorialTomaResponse(BaseModel):
     Id_Medicamento: int
     Nombre_Medicamento: str
     Dosis: str
+    Frecuencia: str
     Fecha_Asignada: date
     Hora_Asignada: time
     Estado: str

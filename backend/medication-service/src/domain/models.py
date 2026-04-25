@@ -27,6 +27,8 @@ class Horario(Base):
     Id_Horario = Column(Integer, primary_key=True, index=True)
     Id_Medicamento = Column(Integer, ForeignKey("Medicamentos.Id_Medicamento", ondelete="CASCADE"))
     Hora_Toma = Column(Time, nullable=False)
+    # CSV de isoweekday: 1=Lunes ... 7=Domingo. Default = todos los días.
+    Dias_Semana = Column(String(20), nullable=False, default="1,2,3,4,5,6,7")
 
     medicamento = relationship("Medicamento", back_populates="horarios")
 
