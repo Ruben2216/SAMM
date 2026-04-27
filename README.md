@@ -384,3 +384,11 @@ samm-fcm-sa.json
 (Ignorar es para mis pruebas):
     "owner": "fernandovargas15"
     "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
+
+### 27/04/20206 Sobre tracking-service 
+Es un sercviocio entonces ya sabe, que hay que crear un entorno virtual, encender el entorno virtual, instalar los requeriments.txt. 
+py -m venv venv   
+venv/bin/activate
+install -r requirements.txt
+
+
