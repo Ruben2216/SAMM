@@ -247,7 +247,7 @@ export default function App() {
            // initialRouteName="Perfil"
             // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
           // initialRouteName="Initial"
-            initialRouteName={rutaInicial as any}
+            //initialRouteName={rutaInicial as any}
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },

@@ -62,7 +62,7 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
         <Image
           source={{ uri: person.foto }}
           style={styles.image}
-         // defaultSource={require('../../../../../../assets/avatar_placeholder.png')}
+          //defaultSource={require('../../../../../../assets/avatar_placeholder.png')}
         />
         <View style={styles.info}>
           <Text style={styles.name}>{person.nombre}</Text>
