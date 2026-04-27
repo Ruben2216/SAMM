@@ -13,7 +13,7 @@ export const CheckEmailScreen: React.FC = () => {
     <View style={styles.pantalla} accessibilityLabel="Pantalla de revisión de correo">
       <Text style={styles.titulo}>Revisa tu correo</Text>
       <Text style={styles.texto}>
-        Si el correo existe y es una cuenta local, te llegará un enlace para restablecer tu contraseña.
+        Si el correo existe, te llegará un enlace para restablecer tu contraseña.
         {'\n'}
         Revisa también la carpeta de <Text style={styles.textoResaltado}>spam</Text>.
       </Text>

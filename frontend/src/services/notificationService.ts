@@ -1,7 +1,7 @@
 //frontend/src/services/notificationService.ts
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import { type ConfiguracionFamiliar, useFamilyPreferencesStore } from '../store/useFamilyPreferencesStore';
 
 const NOTIFICATION_API_URL =
@@ -12,6 +12,77 @@ const NOTIFICATION_API_URL =
 // porque Android no permite modificar canales ya creados.
 const CANAL_ALARMA_ADULTO = 'medicamentos_alarma_v3';
 const CANAL_ALERTA_FAMILIAR = 'alertas_familiar';
+
+type ModuloAlarmaNativa = {
+  programarAlarmaMedicamento: (
+    idMedicamento: number,
+    idHorario: number,
+    nombreMedicamento: string,
+    dosis: string,
+    notas: string,
+    horaToma: string,
+    diasSemanaCsv: string,
+  ) => Promise<string>;
+  cancelarAlarmaMedicamento: (idMedicamento: number, idHorario: number) => Promise<boolean>;
+  descartarNotificacionAlarmaActiva: (idMedicamento: number, idHorario: number) => Promise<boolean>;
+  puedeProgramarAlarmasExactas: () => Promise<boolean>;
+  cancelarTodasLasAlarmas: () => Promise<boolean>;
+};
+
+const moduloAlarma = NativeModules.SAMMAlarm as ModuloAlarmaNativa | undefined;
+
+export async function limpiarAlarmaActivaMedicamento(
+  idMedicamento: number,
+  idHorario: number,
+): Promise<void> {
+  if (Platform.OS !== 'android' || !Number.isFinite(idMedicamento) || !Number.isFinite(idHorario)) return;
+
+  if (moduloAlarma?.descartarNotificacionAlarmaActiva) {
+    try {
+      await moduloAlarma.descartarNotificacionAlarmaActiva(idMedicamento, idHorario);
+    } catch (e) {
+      console.warn('[Notificaciones] No se pudo limpiar alarma activa del medicamento:', e);
+    }
+  }
+}
+
+const esRecordatorioMedicamentoRegular = (notificacion: Notifications.Notification): boolean => {
+  const datos = notificacion.request.content.data as any;
+  return datos?.tipo === 'recordatorio_medicamento' && datos?.esReintentoTemporal !== true;
+};
+
+const asegurarCanalesAndroid = async (): Promise<void> => {
+  if (Platform.OS !== 'android') return;
+
+  // Canal del adulto mayor: tipo alarma — máxima prioridad.
+  await Notifications.setNotificationChannelAsync(CANAL_ALARMA_ADULTO, {
+    name: 'Recordatorio de medicamentos',
+    description: 'Alarma para que el adulto mayor tome sus medicinas',
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 800, 400, 800, 400, 800, 400, 800],
+    lightColor: '#00E676',
+    sound: 'default',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    bypassDnd: true,
+    enableVibrate: true,
+    enableLights: true,
+    showBadge: true,
+  });
+
+  // Canal del familiar: push informativo estándar.
+  await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
+    name: 'Alertas del familiar',
+    description: 'Avisos sobre la medicación de tu adulto mayor',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 150, 250],
+    lightColor: '#2563EB',
+    sound: 'default',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    enableVibrate: true,
+    enableLights: true,
+    showBadge: true,
+  });
+};
 
 const resolverClavePreferenciaPorTipoAlerta = (
   tipoAlerta: string | undefined
@@ -119,36 +190,9 @@ export async function registrarParaNotificaciones(idUsuario?: number): Promise<s
 
   // Canales Android: separamos alarma del adulto vs. push informativo del familiar.
   if (Platform.OS === 'android') {
-    // Canal del adulto mayor: tipo alarma — máxima prioridad, vibración larga, bypassDnd.
-    // Sonido 'default' (del sistema) porque el sonido de alarma personalizado
-    // (SonidoAlarma.mp3) lo reproduce la pantalla RecordatorioMedicamento con expo-av.
-    await Notifications.setNotificationChannelAsync(CANAL_ALARMA_ADULTO, {
-      name: 'Recordatorio de medicamentos',
-      description: 'Alarma para que el adulto mayor tome sus medicinas',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 800, 400, 800, 400, 800, 400, 800],
-      lightColor: '#00E676',
-      sound: 'default',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      bypassDnd: true,
-      enableVibrate: true,
-      enableLights: true,
-      showBadge: true,
-    });
-
-    // Canal del familiar: push informativo estándar, vibración corta.
-    await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
-      name: 'Alertas del familiar',
-      description: 'Avisos sobre la medicación de tu adulto mayor',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 150, 250],
-      lightColor: '#2563EB',
-      sound: 'default',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      enableVibrate: true,
-      enableLights: true,
-      showBadge: true,
-    });
+    // Importante: si el canal no existe (p. ej. se programaron recordatorios antes de login),
+    // Android crea uno por defecto con baja importancia y NO mostrará heads-up.
+    await asegurarCanalesAndroid();
   }
 
   console.log('[Notificaciones] Solicitando Expo Push Token...');
@@ -200,7 +244,11 @@ export async function guardarTokenEnBackend(idUsuario: number, pushToken: string
 }
 
 /**
- * Programar notificación local para un medicamento (se dispara en el propio dispositivo)
+ * Programar notificación local para un medicamento (se dispara en el propio dispositivo).
+ * Si diasSemana cubre los 7 días → usa un trigger DAILY (1 sola alarma).
+ * Si es un subconjunto → registra un WEEKLY por cada día seleccionado.
+ *
+ * diasSemana: CSV de isoweekday (1=Lunes...7=Domingo).
  */
 export async function programarRecordatorioMedicamento(params: {
   idMedicamento: number;
@@ -209,40 +257,105 @@ export async function programarRecordatorioMedicamento(params: {
   dosis: string;
   notas: string;
   horaToma: string; // "HH:mm:ss"
-}): Promise<string | null> {
-  const { idMedicamento, idHorario, nombreMedicamento, dosis, notas, horaToma } = params;
+  diasSemana?: string; 
+}): Promise<string | string[] | null> {
+  const { idMedicamento, idHorario, nombreMedicamento, dosis, notas, horaToma, diasSemana } = params;
 
   const [horasStr, minutosStr] = horaToma.split(':');
   const horas = parseInt(horasStr, 10);
   const minutos = parseInt(minutosStr, 10);
 
-  const identificador = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: 'Hora de tu medicamento',
-      body: `${nombreMedicamento} - ${dosis}${notas ? `\n${notas}` : ''}`,
-      data: {
-        tipo: 'recordatorio_medicamento',
-        idMedicamento,
-        idHorario,
-        nombreMedicamento,
-        dosis,
-        notas,
-        horaToma,
-      },
-      sound: 'default',
-      priority: Notifications.AndroidNotificationPriority.MAX,
+  const contenido = {
+    title: 'Hora de tu medicamento',
+    body: `${nombreMedicamento} - ${dosis}${notas ? `\n${notas}` : ''}`,
+    data: {
+      tipo: 'recordatorio_medicamento',
+      idMedicamento,
+      idHorario,
+      nombreMedicamento,
+      dosis,
+      notas,
+      horaToma,
+      esReintentoTemporal: false,
     },
-    // En expo-notifications el channelId va en el trigger, no en content.
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: horas,
-      minute: minutos,
-      channelId: CANAL_ALARMA_ADULTO,
-    },
-  });
+    sound: 'default',
+    priority: Notifications.AndroidNotificationPriority.MAX,
+  } as const;
 
-  console.log(`[Notificaciones] Programado: ${nombreMedicamento} a las ${horaToma} — ID: ${identificador}`);
-  return identificador;
+  if (Platform.OS === 'android') {
+    await asegurarCanalesAndroid();
+
+    if (moduloAlarma?.puedeProgramarAlarmasExactas) {
+      try {
+        const puedeExactas = await moduloAlarma.puedeProgramarAlarmasExactas();
+        if (!puedeExactas) {
+          console.warn('[Notificaciones] Alarmas exactas deshabilitadas por el sistema; se usara modo best-effort.');
+        }
+      } catch (e) {
+        console.warn('[Notificaciones] No se pudo verificar estado de alarmas exactas:', e);
+      }
+    }
+
+    // Preferimos AlarmManager + fullScreenIntent para comportarse como alarma real.
+    if (moduloAlarma?.programarAlarmaMedicamento) {
+      try {
+        const diasSemanaCsv = diasSemana || '1,2,3,4,5,6,7';
+        const id = await moduloAlarma.programarAlarmaMedicamento(
+          idMedicamento,
+          idHorario,
+          nombreMedicamento,
+          dosis,
+          notas,
+          horaToma,
+          diasSemanaCsv,
+        );
+        console.log(`[Notificaciones] Programado (AlarmManager): ${nombreMedicamento} @ ${horaToma} — ID: ${id}`);
+        return id;
+      } catch (e) {
+        console.warn('[Notificaciones] Fallback a expo-notifications (no se pudo usar alarma nativa):', e);
+      }
+    }
+  }
+
+  const diasIso = (diasSemana || '1,2,3,4,5,6,7')
+    .split(',')
+    .map((d) => parseInt(d.trim(), 10))
+    .filter((n) => n >= 1 && n <= 7);
+  const todosLosDias = diasIso.length === 7;
+
+  if (todosLosDias) {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: contenido,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: horas,
+        minute: minutos,
+        channelId: CANAL_ALARMA_ADULTO,
+      },
+    });
+    console.log(`[Notificaciones] Programado DAILY: ${nombreMedicamento} @ ${horaToma} — ID: ${id}`);
+    return id;
+  }
+
+  // WEEKLY usa weekday 1=Domingo ... 7=Sábado (estilo iOS/cron).
+  // Nuestro isoweekday: 1=Lunes..7=Domingo. Conversión: weeklyDow = isoDow === 7 ? 1 : isoDow + 1
+  const ids: string[] = [];
+  for (const iso of diasIso) {
+    const weekday = iso === 7 ? 1 : iso + 1;
+    const id = await Notifications.scheduleNotificationAsync({
+      content: contenido,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday,
+        hour: horas,
+        minute: minutos,
+        channelId: CANAL_ALARMA_ADULTO,
+      },
+    });
+    ids.push(id);
+  }
+  console.log(`[Notificaciones] Programado WEEKLY (${diasIso.length} días): ${nombreMedicamento} @ ${horaToma}`);
+  return ids;
 }
 
 /**
@@ -251,6 +364,53 @@ export async function programarRecordatorioMedicamento(params: {
  * Se usa antes de reprogramar medicamentos para evitar duplicados con horas viejas.
  */
 export async function cancelarTodasLasNotificaciones(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  try {
+    const programadas = await Notifications.getAllScheduledNotificationsAsync();
+    const aCancelar = programadas.filter(esRecordatorioMedicamentoRegular);
+
+    for (const notificacion of aCancelar) {
+      try {
+        await Notifications.cancelScheduledNotificationAsync(notificacion.identifier);
+      } catch (error) {
+        console.warn('[Notificaciones] No se pudo cancelar un recordatorio programado:', error);
+      }
+    }
+
+    if (Platform.OS === 'android' && moduloAlarma?.cancelarTodasLasAlarmas) {
+      try {
+        await moduloAlarma.cancelarTodasLasAlarmas();
+      } catch (e) {
+        console.warn('[Notificaciones] No se pudieron cancelar alarmas nativas:', e);
+      }
+    }
+  } catch (error) {
+    console.warn('[Notificaciones] No se pudieron listar recordatorios programados, usando cancelación global:', error);
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  }
   console.log('[Notificaciones] Recordatorios locales limpiados (se reprograman a continuación)');
+}
+
+/**
+ * Envía una alerta SOS push a todos los familiares vinculados del adulto mayor.
+ * El backend enriquece el nombre del adulto usando {nombreAdulto}.
+ */
+export async function notificarSosAFamiliares(idUsuario: number): Promise<void> {
+  const url = `${NOTIFICATION_API_URL}/notificar/familiares`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_usuario: idUsuario,
+        titulo: '🆘 {nombreAdulto} necesita ayuda',
+        cuerpo: '{nombreAdulto} ha solicitado asistencia urgente',
+        datos: {
+          tipo: 'sos_familiar',
+        },
+      }),
+    });
+    console.log(`[Notificaciones] SOS enviado a familiares del usuario ${idUsuario}`);
+  } catch (error: any) {
+    console.error('[Notificaciones] Error enviando SOS a familiares:', error?.message || error);
+  }
 }

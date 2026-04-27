@@ -36,11 +36,10 @@ export const CrearCuenta: React.FC = () => {
         confirmar: ''
     });
 
-    // Auth store
     const { registrar, cargando } = useAuthStore();
+    const [enviando, setEnviando] = useState(false);
 
     const validarEmail = (email: string) => {
-        // Solo Gmail permitido
         const regex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
         return regex.test(email);
     };
@@ -50,15 +49,8 @@ export const CrearCuenta: React.FC = () => {
         return regex.test(pass);
     };
 
-    const manejarRegistro = async () => {
-        console.log('[CrearCuenta] Iniciando validación de formulario...');
-
-        if (!rol) {
-            Alert.alert('Error', 'No se pudo determinar tu perfil. Vuelve a intentarlo.');
-            return;
-        }
-
-        let nuevosErrores = {
+    const ejecutarValidaciones = (): boolean => {
+        const nuevosErrores = {
             nombre: '',
             correo: '',
             contrasena: '',
@@ -81,7 +73,9 @@ export const CrearCuenta: React.FC = () => {
             nuevosErrores.contrasena = 'Debe tener mínimo 6 caracteres, letra y número';
         }
 
-        if (confirmarContrasena !== contrasena) {
+        if (!confirmarContrasena) {
+            nuevosErrores.confirmar = 'Confirma tu contraseña';
+        } else if (confirmarContrasena !== contrasena) {
             nuevosErrores.confirmar = 'Las contraseñas no coinciden';
         }
 
@@ -89,9 +83,33 @@ export const CrearCuenta: React.FC = () => {
 
         const hayErrores = Object.values(nuevosErrores).some(e => e !== '');
 
-        if (!hayErrores) {
-            console.log(`[CrearCuenta] Validación exitosa — enviando al backend (Rol: ${rol})`);
-            
+        if (!hayErrores && !acepto) {
+            Alert.alert('Términos requeridos', 'Debes aceptar los Términos y Condiciones para continuar.');
+            return false;
+        }
+
+        return !hayErrores && acepto;
+    };
+
+    const manejarRegistro = async () => {
+        if (enviando || cargando) return;
+
+        console.log('[CrearCuenta] Iniciando validación de formulario...');
+
+        if (!rol) {
+            Alert.alert('Error', 'No se pudo determinar tu perfil. Vuelve a intentarlo.');
+            return;
+        }
+        const esFormularioValido = ejecutarValidaciones();
+        if (!esFormularioValido) {
+            console.warn('[CrearCuenta] Validación falló — NO se envía al backend');
+            return;
+        }
+
+        setEnviando(true);
+        console.log(`[CrearCuenta] Validación exitosa — enviando al backend (Rol: ${rol})`);
+
+        try {
             const resultado = await registrar({
                 nombre: nombre.trim(),
                 correo: correo.trim().toLowerCase(),
@@ -111,8 +129,8 @@ export const CrearCuenta: React.FC = () => {
                 console.error('[CrearCuenta] Error en registro:', resultado.mensaje);
                 Alert.alert('Error', resultado.mensaje || 'No se pudo crear la cuenta');
             }
-        } else {
-            console.warn('[CrearCuenta] Errores de validación:', nuevosErrores);
+        } finally {
+            setEnviando(false);
         }
     };
 
@@ -120,12 +138,7 @@ export const CrearCuenta: React.FC = () => {
         navigation.navigate("IniciarSesion" as never);
     };
 
-    const formularioValido =
-        nombre &&
-        correo &&
-        contrasena &&
-        confirmarContrasena &&
-        acepto;
+
 
     return (
         <View style={styles.contenedor}>
@@ -262,9 +275,9 @@ export const CrearCuenta: React.FC = () => {
 
                 {/* Botón */}
                 <PrimaryButton
-                    titulo="Registrarme y continuar"
+                    titulo={enviando ? "Registrando..." : "Registrarme y continuar"}
                     alPresionar={manejarRegistro}
-                    deshabilitado={!formularioValido}
+                    deshabilitado={enviando || cargando}
                 />
 
                 {/* Login */}

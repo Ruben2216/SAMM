@@ -10,11 +10,15 @@ export async function solicitarRecuperacion(correo: string): Promise<{ exito: bo
     const mensaje = (response.data?.mensaje as string) || 'Solicitud enviada.';
     return { exito: true, mensaje };
   } catch (error: any) {
-    const mensaje =
-      error?.response?.data?.detail ||
-      error?.message ||
-      'No se pudo solicitar la recuperación. Intenta de nuevo.';
-    return { exito: false, mensaje };
+    let mensaje = 'No se pudo solicitar la recuperación. Intenta de nuevo.';
+    if (error?.response?.data?.detail) {
+      mensaje = Array.isArray(error.response.data.detail) 
+        ? error.response.data.detail[0].msg 
+        : error.response.data.detail;
+    } else if (error?.message) {
+      mensaje = error.message;
+    }
+    return { exito: false, mensaje: String(mensaje) };
   }
 }
 
@@ -27,10 +31,14 @@ export async function restablecerContrasena(
     const mensaje = (response.data?.mensaje as string) || 'Contraseña actualizada.';
     return { exito: true, mensaje };
   } catch (error: any) {
-    const mensaje =
-      error?.response?.data?.detail ||
-      error?.message ||
-      'No se pudo restablecer la contraseña. Intenta de nuevo.';
-    return { exito: false, mensaje };
+    let mensaje = 'No se pudo restablecer la contraseña. Intenta de nuevo.';
+    if (error?.response?.data?.detail) {
+      mensaje = Array.isArray(error.response.data.detail) 
+        ? error.response.data.detail[0].msg 
+        : error.response.data.detail;
+    } else if (error?.message) {
+      mensaje = error.message;
+    }
+    return { exito: false, mensaje: String(mensaje) };
   }
 }

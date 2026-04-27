@@ -102,6 +102,13 @@ export const styles = StyleSheet.create({
         shadowRadius: 10,
         elevation: 3,
     },
+    tarjetaConBorde: {
+        borderWidth: 1.5,
+        shadowOpacity: 0,
+        shadowRadius: 0,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 0,
+    },
     tarjetaHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -134,6 +141,21 @@ export const styles = StyleSheet.create({
         width: 14,
         height: 14,
         borderRadius: 7,
+    },
+    estadoBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        gap: 6,
+        marginBottom: 10,
+        marginTop: 2,
+    },
+    estadoBadgeTexto: {
+        fontSize: 12,
+        fontWeight: '700',
     },
     // Sección de Notas Adicionales
     notasContainer: {

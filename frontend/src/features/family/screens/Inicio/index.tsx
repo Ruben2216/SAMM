@@ -33,11 +33,20 @@ interface VinculacionInfo {
     Rol_Familiar?: string | null;
 }
 
+interface HorarioInfo {
+    Id_Horario: number;
+    Hora_Toma: string;
+    Dias_Semana: string;
+    estado_hoy: 'pendiente' | 'tomado' | 'incumplido' | 'no_aplica_hoy';
+}
+
 interface MedicamentoInfo {
     Id_Medicamento: number;
     Nombre: string;
     Dosis: string;
+    Frecuencia: string;
     tomado_hoy: boolean;
+    horarios: HorarioInfo[];
 }
 
 const COLOR_ICONO_BATERIA = '#334155';
@@ -233,8 +242,23 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                         : 'battery';
                                 const textoBateria = porcentaje !== null ? `${porcentaje}%` : '--%';
 
-                                const totalMeds = meds.length;
-                                const tomados = meds.filter((m) => m.tomado_hoy).length;
+                                // Contamos DOSIS (horarios aplicables hoy), no medicamentos.
+                                // Para "necesario" cuenta el medicamento como 1 dosis disponible.
+                                let totalMeds = 0;
+                                let tomados = 0;
+                                let incumplidos = 0;
+                                meds.forEach((m) => {
+                                    if (m.Frecuencia === 'necesario' || !m.horarios || m.horarios.length === 0) {
+                                        return;
+                                    }
+                                    m.horarios.forEach((h) => {
+                                        if (h.estado_hoy === 'no_aplica_hoy') return;
+                                        totalMeds += 1;
+                                        if (h.estado_hoy === 'tomado') tomados += 1;
+                                        else if (h.estado_hoy === 'incumplido') incumplidos += 1;
+                                    });
+                                });
+                                const pendientes = Math.max(0, totalMeds - tomados - incumplidos);
 
                                 return (
                                     <View key={v.Id_Vinculacion} style={{ width: ANCHO_TARJETA }}>
@@ -298,11 +322,17 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                                 </TouchableOpacity>
 
                                                 <TouchableOpacity style={styles.botonInfo} activeOpacity={0.9}>
-                                                    <Ionicons name="calendar" size={20} color="#00E676" />
+                                                    <Ionicons
+                                                        name={incumplidos > 0 ? 'alert-circle' : 'calendar'}
+                                                        size={20}
+                                                        color={incumplidos > 0 ? '#EF4444' : '#00E676'}
+                                                    />
                                                     <Text style={styles.textoInfo}>
-                                                        {totalMeds > 0
-                                                            ? `${totalMeds - tomados} Pendientes`
-                                                            : 'Sin pendientes'}
+                                                        {totalMeds === 0
+                                                            ? 'Sin pendientes'
+                                                            : incumplidos > 0
+                                                                ? `${incumplidos} No tomada${incumplidos === 1 ? '' : 's'}`
+                                                                : `${pendientes} Pendientes`}
                                                     </Text>
                                                 </TouchableOpacity>
                                             </View>

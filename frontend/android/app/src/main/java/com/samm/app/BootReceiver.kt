@@ -9,6 +9,10 @@ class BootReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
 
+    // Reprogramar alarmas locales de medicamentos luego del reinicio.
+    // (El sistema limpia AlarmManager al reiniciar.)
+    MedicationAlarmScheduler.reprogramarTodas(context)
+
     val token = SammSecurePrefs.obtenerTokenDispositivo(context) ?: return
     if (token.isBlank()) return
 

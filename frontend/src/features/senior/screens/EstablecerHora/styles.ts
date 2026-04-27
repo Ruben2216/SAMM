@@ -1,13 +1,11 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  // Contenedor principal
   contenedor: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -25,116 +23,113 @@ export const styles = StyleSheet.create({
     color: '#0F172A',
   },
 
-  // Contenido
   contenido: {
-    flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
-    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 40,
   },
   tituloSecundario: {
     fontSize: 24,
     fontWeight: '800',
     color: '#0F172A',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   descripcion: {
     fontSize: 14,
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 40,
+    marginBottom: 24,
   },
 
-  // Ruleta (selector de hora)
-  selectorContainer: {
-    width: '100%',
-    height: 180,
+  // Tarjetas de hora
+  tarjetaHora: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 60,
-    position: 'relative',
-  },
-
-  pillFondo: {
-    position: 'absolute',
-    top: 60,
-    width: '100%',
-    height: 60,
-    backgroundColor: '#D1FAE5',
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-
-  textoRuleta: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#CBD5E1',
-  },
-  textoRuletaActivo: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-
-  // Separador ( :)
-  separadorContainer: {
-    width: 30,
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  separadorTexto: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#0F172A',
-    paddingBottom: 5,
-  },
-
-  // AM / PM
-  amPmSelector: {
-    position: 'absolute',
-    right: 15,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  amPmTexto: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-
-  // Switch
-  switchContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
   },
-  switchTitulo: {
-    fontSize: 15,
+  tarjetaHoraIcono: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0FDF4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  tarjetaHoraLabel: {
+    fontSize: 12,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
-  switchSub: {
+  tarjetaHoraValor: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+
+  // Sección días de la semana
+  seccionDias: {
+    marginTop: 10,
+  },
+  seccionDiasHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  seccionDiasTitulo: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  seccionDiasTodos: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  seccionDiasSub: {
     fontSize: 12,
     color: '#64748B',
+    marginBottom: 12,
+  },
+
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chipDia: {
+    minWidth: 52,
+    paddingHorizontal: 12,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  chipDiaActivo: {
+    backgroundColor: '#00E676',
+    borderColor: '#00E676',
+  },
+  chipDiaTexto: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#94A3B8',
+  },
+  chipDiaTextoActivo: {
+    color: '#0F172A',
   },
 
   // Footer

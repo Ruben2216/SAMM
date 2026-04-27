@@ -35,7 +35,6 @@ interface PerfilSaludData {
   Peso: string;
   Edad: string;
   Condicion_Medica: string;
-  Telefono: string;
 }
 
 export const Perfil = () => {
@@ -54,8 +53,8 @@ export const Perfil = () => {
     Peso: '',
     Edad: '',
     Condicion_Medica: '',
-    Telefono: '',
   });
+  const [telefonoContacto, setTelefonoContacto] = useState('');
   const [editando, setEditando] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -92,11 +91,17 @@ export const Perfil = () => {
             Peso: data.Peso || '',
             Edad: data.Edad ? String(data.Edad) : '',
             Condicion_Medica: data.Condicion_Medica || '',
-            Telefono: data.Telefono || '',
           });
         }
       } catch (err) {
         console.log('Sin perfil de salud aún');
+      }
+
+      try {
+        const resUser = await httpClient.get('/users/me');
+        setTelefonoContacto(resUser.data?.Telefono || '');
+      } catch (err) {
+        console.log('No se pudo cargar el teléfono de contacto');
       }
 
       try {
@@ -199,9 +204,16 @@ export const Perfil = () => {
           Peso: perfil.Peso || null,
           Edad: perfil.Edad ? parseInt(perfil.Edad) : null,
           Condicion_Medica: perfil.Condicion_Medica || null,
-          Telefono: perfil.Telefono || null,
         }),
       });
+
+      try {
+        await httpClient.put('/users/me/telefono', {
+          telefono: telefonoContacto.trim() || null,
+        });
+      } catch (err) {
+        console.log('No se pudo guardar el teléfono:', err);
+      }
 
       if (res.ok) {
         setEditando(false);
@@ -428,6 +440,38 @@ export const Perfil = () => {
               <View style={styles.filaFamilia__badgeColaborador}>
                 <Text style={styles.filaFamilia__badgeColaboradorTexto}>Cuidador</Text>
               </View>
+            </View>
+          )}
+        </View>
+
+        {/* --- INFORMACIÓN DE CONTACTO --- */}
+        <Text style={styles.tituloSeccion}>INFORMACIÓN DE CONTACTO</Text>
+        <View style={styles.tarjetaSeccion}>
+          {editando ? (
+            <View style={{ padding: 16 }}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Teléfono</Text>
+                <TextInput
+                  style={styles.inputStyle}
+                  value={telefonoContacto}
+                  onChangeText={setTelefonoContacto}
+                  keyboardType="phone-pad"
+                  placeholder="Ej. 5512345678"
+                />
+              </View>
+              <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>
+                Tu familiar podrá llamarte a este número desde la app.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.filaSupervision}>
+              <View style={styles.filaSupervision__texto}>
+                <Text style={styles.filaSupervision__titulo}>Teléfono</Text>
+                <Text style={styles.filaSupervision__descripcion}>
+                  {telefonoContacto || 'No registrado'}
+                </Text>
+              </View>
+              <Icon name="phone-outline" size={24} color={theme.colors.primary} />
             </View>
           )}
         </View>

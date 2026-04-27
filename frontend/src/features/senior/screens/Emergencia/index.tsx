@@ -91,17 +91,6 @@ export const Emergencia = () => {
                     <Ionicons name="call" size={28} color="#FFFFFF" />
                 </TouchableOpacity>
             </ScrollView>
-
-            <View style={styles.fabContainer}>
-                <TouchableOpacity 
-                    style={styles.botonAgregar} 
-                    onPress={() => navigation.navigate('AgregarContactos')}
-                    activeOpacity={0.8}
-                >
-                    <Ionicons name="person-add" size={24} color="#0F172A" />
-                    <Text style={styles.textoBotonAgregar}>Añadir contacto</Text>
-                </TouchableOpacity>
-            </View>
         </View>
     );
 };

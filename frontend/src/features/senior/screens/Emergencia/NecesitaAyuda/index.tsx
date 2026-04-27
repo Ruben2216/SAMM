@@ -21,7 +21,6 @@ export const NecesitaAyuda = () => {
       ]);
   };
 
-  const handleMessage = () => { Alert.alert('Mensaje', `Abrir conversación con ${nombreContacto}`); };
   const handleOnMyWay = () => { Alert.alert('Confirmado', 'Se ha notificado que vas en camino'); };
   const handleMarkAsResolved = () => { navigation.goBack(); };
 
@@ -61,10 +60,6 @@ export const NecesitaAyuda = () => {
           <TouchableOpacity style={styles.actionButton} onPress={handleCall} activeOpacity={0.8}>
             <Ionicons name="call" size={20} color="#0F172A" />
             <Text style={styles.actionButtonText}>Llamar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleMessage} activeOpacity={0.8}>
-            <Ionicons name="chatbubble" size={20} color="#0F172A" />
-            <Text style={styles.actionButtonText}>Mensaje</Text>
           </TouchableOpacity>
         </View>
 

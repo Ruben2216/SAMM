@@ -15,29 +15,40 @@ import { Audio } from 'expo-av';
 import * as Notifications from 'expo-notifications';
 import { styles } from './styles';
 import { SuccessModal } from '../../../../components/ui/success-modal';
-
-// ID del recordatorio de reintento (para cancelarlo si el usuario actúa)
-let idNotificacionReintento: string | null = null;
+import { limpiarAlarmaActivaMedicamento } from '../../../../services/notificationService';
 
 export const RecordatorioMedicamento: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const params = (route.params as {
-    idMedicamento: number;
+    idMedicamento: number | string;
+    idHorario?: number | string;
     nombreMedicamento: string;
     dosis: string;
     notas: string;
     horaToma: string;
   }) || {};
 
-  const { idMedicamento, nombreMedicamento, dosis, notas, horaToma } = params;
+  const {
+    idMedicamento: idMedicamentoRaw,
+    idHorario: idHorarioRaw,
+    nombreMedicamento,
+    dosis,
+    notas,
+    horaToma,
+  } = params;
+
+  const idMedicamento = typeof idMedicamentoRaw === 'string' ? Number(idMedicamentoRaw) : idMedicamentoRaw;
+  const idHorario = typeof idHorarioRaw === 'string' ? Number(idHorarioRaw) : idHorarioRaw;
   const [cargando, setCargando] = useState(false);
   const [modalExito, setModalExito] = useState(false);
+  const accionEnCursoRef = useRef(false);
 
   const apiUrl = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
 
   const pulso = useRef(new Animated.Value(1)).current;
   const sonidoRef = useRef<Audio.Sound | null>(null);
+  const idNotificacionReintentoRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Animación pulsante
@@ -93,13 +104,14 @@ export const RecordatorioMedicamento: React.FC = () => {
 
   const programarReintento = async () => {
     try {
-      idNotificacionReintento = await Notifications.scheduleNotificationAsync({
+      const idNotificacionReintento = await Notifications.scheduleNotificationAsync({
         content: {
           title: 'Aun no tomaste tu medicamento',
           body: `${nombreMedicamento || 'Tu medicamento'}${dosis ? ` - ${dosis}` : ''} sigue pendiente`,
           data: {
             tipo: 'recordatorio_medicamento',
             idMedicamento,
+            idHorario,
             nombreMedicamento,
             dosis,
             notas,
@@ -114,11 +126,21 @@ export const RecordatorioMedicamento: React.FC = () => {
           channelId: 'medicamentos_alarma_v3',
         },
       });
+      idNotificacionReintentoRef.current = idNotificacionReintento;
     } catch {}
   };
 
   const detenerAlarma = async () => {
     Vibration.cancel();
+
+    if (
+      typeof idMedicamento === 'number' &&
+      Number.isFinite(idMedicamento) &&
+      typeof idHorario === 'number' &&
+      Number.isFinite(idHorario)
+    ) {
+      await limpiarAlarmaActivaMedicamento(idMedicamento, idHorario);
+    }
 
     if (sonidoRef.current) {
       try {
@@ -128,12 +150,24 @@ export const RecordatorioMedicamento: React.FC = () => {
       sonidoRef.current = null;
     }
 
-    if (idNotificacionReintento) {
+    if (idNotificacionReintentoRef.current) {
       try {
-        await Notifications.cancelScheduledNotificationAsync(idNotificacionReintento);
+        await Notifications.cancelScheduledNotificationAsync(idNotificacionReintentoRef.current);
       } catch {}
-      idNotificacionReintento = null;
+      idNotificacionReintentoRef.current = null;
     }
+  };
+
+  const iniciarAccionUnaSolaVez = (): boolean => {
+    if (accionEnCursoRef.current) return false;
+    accionEnCursoRef.current = true;
+    setCargando(true);
+    return true;
+  };
+
+  const finalizarAccion = () => {
+    accionEnCursoRef.current = false;
+    setCargando(false);
   };
 
   const formatearHora = (hora: string) => {
@@ -146,8 +180,9 @@ export const RecordatorioMedicamento: React.FC = () => {
   };
 
   const manejarMarcarTomado = async () => {
+    if (!iniciarAccionUnaSolaVez()) return;
+
     await detenerAlarma();
-    setCargando(true);
     try {
       const respuesta = await fetch(`${apiUrl}/medicamentos/${idMedicamento}/tomar`, {
         method: 'POST',
@@ -157,17 +192,22 @@ export const RecordatorioMedicamento: React.FC = () => {
 
       if (respuesta.ok) {
         setModalExito(true);
+        setTimeout(() => {
+          navigation.goBack();
+        }, 250);
       } else {
         Alert.alert('Error', 'No se pudo registrar la toma.');
       }
     } catch {
       Alert.alert('Error', 'No se pudo conectar con el servidor.');
     } finally {
-      setCargando(false);
+      finalizarAccion();
     }
   };
 
   const manejarRecordar = async () => {
+    if (!iniciarAccionUnaSolaVez()) return;
+
     await detenerAlarma();
     // Reemplaza el reintento por uno en 10 minutos
     await Notifications.scheduleNotificationAsync({
@@ -177,6 +217,7 @@ export const RecordatorioMedicamento: React.FC = () => {
         data: {
           tipo: 'recordatorio_medicamento',
           idMedicamento,
+          idHorario,
           nombreMedicamento,
           dosis,
           notas,
@@ -192,11 +233,15 @@ export const RecordatorioMedicamento: React.FC = () => {
       },
     });
     navigation.goBack();
+    finalizarAccion();
   };
 
   const manejarOmitir = async () => {
+    if (!iniciarAccionUnaSolaVez()) return;
+
     await detenerAlarma();
     navigation.goBack();
+    finalizarAccion();
   };
 
   return (

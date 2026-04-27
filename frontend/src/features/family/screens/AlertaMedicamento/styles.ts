@@ -20,6 +20,12 @@ export const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
   },
+  botonCerrarEncabezado: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
   tituloEncabezado: {
     fontSize: 16,
     fontWeight: '700',
@@ -51,11 +57,11 @@ export const styles = StyleSheet.create({
   },
   tarjetaEstado: {
     width: '100%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F1F5F9',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 32,
-    minHeight: 120,
+    padding: 18,
+    marginBottom: 28,
+    minHeight: 180,
     justifyContent: 'flex-end',
     borderWidth: 1,
     borderColor: '#E2E8F0',
@@ -64,6 +70,13 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   estadoPunto: {
     width: 10,
@@ -71,9 +84,28 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
   },
   estadoTexto: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#0F172A',
+  },
+  ubicacionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  ubicacionTexto: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748B',
+  },
+  textoCerrar: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
   },
   contenedorBotones: {
     width: '100%',
@@ -98,7 +130,7 @@ export const styles = StyleSheet.create({
   botonLlamarTexto: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   botonMensaje: {
     width: '100%',
@@ -120,8 +152,7 @@ export const styles = StyleSheet.create({
   textoVerDetalles: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#3B82F6',
+    color: '#64748B',
     marginTop: 10,
-    textDecorationLine: 'underline',
   },
 });
