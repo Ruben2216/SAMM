@@ -32,16 +32,17 @@ async function obtenerPerfilAdulto(
     if (res.ok) {
       const data = await res.json();
 
-      let fotoUrl = data.url_Avatar ?? null;
-      if (fotoUrl && fotoUrl.startsWith('/media')) {
-        fotoUrl = `${IDENTITY_API_URL}${fotoUrl}`;
+      let fotoUrl: string | null = data.url_Avatar ?? null;
+      if (fotoUrl) {
+        if (!fotoUrl.startsWith('http://') && !fotoUrl.startsWith('https://')) {
+          // Relativa → prependemos IDENTITY_API_URL (igual que httpClient.baseURL en Perfil)
+          fotoUrl = `${IDENTITY_API_URL}${fotoUrl.startsWith('/') ? '' : '/'}${fotoUrl}`;
+        }
       }
 
       const perfil = {
         nombre:   data.Nombre   ?? `Usuario ${idAdultoMayor}`,
-        foto:     fotoUrl       ?? `https://i.pravatar.cc/150?u=${idAdultoMayor}`,
-        // Telefono: cuando identity-service lo exponga usar data.Telefono
-        // Por ahora queda vacio; PersonCard muestra Alert si esta vacio
+        foto:     fotoUrl ?? null,   // null en vez de pravatar
         telefono: data.Telefono ?? '',
       };
 

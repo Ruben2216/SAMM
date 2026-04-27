@@ -1,18 +1,58 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Linking,
-  Alert,
-  Platform,
+  View, Text, TouchableOpacity, Image,
+  Linking, Alert, Platform,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { styles } from './PersonCard.styles';
 
-// Mensaje predeterminado que se envía por SMS
 const SMS_MENSAJE = '¿En dónde estás? Comunícate conmigo, me tienes preocupado/a.';
+
+/** Extrae dos iniciales del nombre completo */
+const obtenerIniciales = (nombre: string): string => {
+  const partes = nombre.trim().split(/\s+/).filter(Boolean);
+  if (partes.length === 0) return '?';
+  if (partes.length === 1) return (partes[0][0] ?? '').toUpperCase();
+  return `${partes[0][0] ?? ''}${partes[partes.length - 1][0] ?? ''}`.toUpperCase();
+};
+
+interface AvatarProps {
+  foto: string | null;
+  nombre: string;
+  size?: number;
+}
+
+const Avatar: React.FC<AvatarProps> = ({ foto, nombre, size = 52 }) => {
+  const [error, setError] = useState(false);
+  const mostrarImagen = foto && !error;
+
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: '#D1FAE5',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {mostrarImagen ? (
+        <Image
+          source={{ uri: foto }}
+          style={{ width: size, height: size, borderRadius: size / 2 }}
+          onError={() => setError(true)}
+          accessibilityIgnoresInvertColors
+        />
+      ) : (
+        <Text style={{ fontSize: size * 0.33, fontWeight: '700', color: '#1D9E75' }}>
+          {obtenerIniciales(nombre)}
+        </Text>
+      )}
+    </View>
+  );
+};
 
 export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
   const [expanded, setExpanded] = useState(false);
@@ -39,13 +79,10 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
       Alert.alert('Sin teléfono', 'Este usuario no tiene número de teléfono registrado.');
       return;
     }
-
-    // Android usa ?body=  /  iOS usa &body=
     const cuerpo = encodeURIComponent(SMS_MENSAJE);
     const url = Platform.OS === 'ios'
       ? `sms:${telefono}&body=${cuerpo}`
       : `sms:${telefono}?body=${cuerpo}`;
-
     Linking.openURL(url).catch(() =>
       Alert.alert('Error', 'No se pudo abrir la app de mensajes.')
     );
@@ -57,17 +94,14 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
       onPress={handlePress}
       activeOpacity={0.85}
     >
-      {/* ── Fila principal: foto + info ── */}
       <View style={styles.row}>
-        <Image
-          source={{ uri: person.foto }}
-          style={styles.image}
-          //defaultSource={require('../../../../../../assets/avatar_placeholder.png')}
-        />
+        {/* ← Avatar con fallback a iniciales */}
+        <Avatar foto={person.foto} nombre={person.nombre} size={52} />
+
         <View style={styles.info}>
           <Text style={styles.name}>{person.nombre}</Text>
           <Text style={styles.status}>
-            {person.rastreoActivo ? 'rastreo activo' : 'esta en casa'}
+            {person.rastreoActivo ? 'rastreo activo' : 'está en casa'}
           </Text>
           <Text style={styles.time}>
             Último reporte a las {person.ultimaActualizacion}
@@ -75,11 +109,8 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
         </View>
       </View>
 
-      {/* ── Acciones expandidas ── */}
       {expanded && (
         <View style={styles.actions}>
-
-          {/* Llamar */}
           <TouchableOpacity style={styles.actionButton} onPress={handleLlamar}>
             <View style={styles.actionIconCircle}>
               <Ionicons name="call-outline" size={20} color="#1D9E75" />
@@ -87,7 +118,6 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
             <Text style={styles.actionText}>llamar</Text>
           </TouchableOpacity>
 
-          {/* Enviar SMS */}
           <TouchableOpacity style={styles.actionButton} onPress={handleSMS}>
             <View style={styles.actionIconCircle}>
               <MaterialCommunityIcons name="message-outline" size={20} color="#1D9E75" />
@@ -95,12 +125,10 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
             <Text style={styles.actionText}>enviar msm</Text>
           </TouchableOpacity>
 
-          {/* Alerta */}
           <TouchableOpacity style={styles.alertButton} onPress={onAlert}>
             <Ionicons name="warning-outline" size={16} color="#fff" />
             <Text style={styles.alertText}>Alerta</Text>
           </TouchableOpacity>
-
         </View>
       )}
     </TouchableOpacity>

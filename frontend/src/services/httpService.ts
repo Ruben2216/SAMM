@@ -1,4 +1,5 @@
 /**
+frontend/src/services/httpService.ts
  * Servicio HTTP — Cliente Axios preconfigurado
  * Base URL configurable, interceptor de Authorization, logging.
  */

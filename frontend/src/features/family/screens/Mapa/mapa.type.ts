@@ -2,7 +2,7 @@
 export interface PersonReport {
   id:                  string;
   nombre:              string;
-  foto:                string;
+  foto:                string | null;
   estado:              string;
   direccion:           string;
   telefono:            string;
