@@ -48,12 +48,10 @@
           "iosUrlScheme": "com.googleusercontent.apps.238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl"
         }
       ],
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "La aplicación necesita acceder a tu ubicación para funciones de seguimiento."
-        }
-      ],
+      ["expo-location", {
+        "locationAlwaysAndWhenInUsePermission": "SAMM necesita tu ubicación para que tu familiar pueda verte en el mapa.",
+        "isAndroidBackgroundLocationEnabled": true
+      }],
       [
         "expo-notifications",
         {

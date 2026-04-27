@@ -183,7 +183,7 @@ SMTP_USER=rubenclemente221@gmail.com
 SMTP_PASSWORD=myxz qarp fbxl qdew
 
 ### 22/04/2026 pantalla de mapa. 
-para que no te de un error las targetas 
+para que no te de un error las tarjetas 
 cd frontend -> npm install (ya lo sabes) 
 npm install @gorhom/bottom-sheet
 npm install react-native-reanimated react-native-gesture-handler

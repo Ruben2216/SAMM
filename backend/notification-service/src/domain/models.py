@@ -1,3 +1,4 @@
+
 """
 Modelo SQLAlchemy: tabla Push_Tokens del Notification Service.
 Un usuario puede tener múltiples tokens (un token por dispositivo).

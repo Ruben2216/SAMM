@@ -1,3 +1,4 @@
+//frontend/src/features/senior/screens/Perfil/index.tsx
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -25,6 +26,8 @@ import * as ImagePicker from 'expo-image-picker';
 import {
   registrarParaNotificaciones,
 } from '../../../../services/notificationService';
+
+import { manejarToggleRastreo, obtenerEstadoRastreo } from '../../../../services/locationService';
 
 interface PerfilSaludData {
   Tipo_Sangre: string;
@@ -61,6 +64,9 @@ export const Perfil = () => {
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [cargandoNotif, setCargandoNotif] = useState(false);
   const [menuSangreVisible, setMenuSangreVisible] = useState(false);
+  {/*constante de ubicacion */}
+  const [rastreoActivo, setRastreoActivo]       = useState(false);
+  const [cargandoRastreo, setCargandoRastreo]   = useState(false);
 
   const ultimaCargaMsRef = useRef<number>(0);
   const TIEMPO_CACHE_MS = 20000;
@@ -129,6 +135,14 @@ export const Perfil = () => {
     }, [])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      obtenerEstadoRastreo().then((activo) => {
+        setRastreoActivo(activo);
+      });
+    }, [])
+  );
+
   const manejarToggleNotificaciones = async (valor: boolean) => {
     setCargandoNotif(true);
     try {
@@ -157,6 +171,16 @@ export const Perfil = () => {
       }
     } finally {
       setCargandoNotif(false);
+    }
+  };
+
+  const manejarToggleRastreoLocal = async (valor: boolean) => {
+    setCargandoRastreo(true);
+    try {
+      const resultado = await manejarToggleRastreo(valor, usuario?.Id_Usuario);
+      setRastreoActivo(resultado);
+    } finally {
+      setCargandoRastreo(false);
     }
   };
 
@@ -547,6 +571,49 @@ export const Perfil = () => {
           </View>
         </View>
 
+
+
+        {/* --- Activacion de ubicacion --- */}
+        <Text style={styles.tituloSeccion}>UBICACIÓN</Text>
+        <View style={styles.tarjetaSeccion}>
+          <View style={styles.filaSwitch}>
+            <View style={styles.filaSwitch__izquierda}>
+              <Icon name="map-marker-radius-outline" size={22} color={theme.colors.primary} />
+              <View style={styles.filaSwitch__texto}>
+                <Text style={styles.filaSwitch__titulo}>Activar mi rastreo</Text>
+                <Text style={styles.filaSwitch__descripcion}>
+                  Tu familiar podrá ver tu ubicación en su mapa
+                </Text>
+              </View>
+            </View>
+
+            {cargandoRastreo ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <Switch
+                value={rastreoActivo}
+                onValueChange={manejarToggleRastreoLocal}
+                trackColor={{
+                  false: theme.colors.border,
+                  true:  theme.colors.primary,
+                }}
+                thumbColor={rastreoActivo ? '#FFFFFF' : '#F4F3F4'}
+              />
+            )}
+          </View>
+
+          {rastreoActivo && (
+            <View style={styles.filaSwitch__infoActivo}>
+              <Icon name="check-circle-outline" size={16} color={theme.colors.primary} />
+              <Text style={styles.filaSwitch__infoActivoTexto}>
+                Tu ubicación se actualiza automáticamente en segundo plano
+              </Text>
+            </View>
+          )}
+        </View>
+
+
+
         {/* --- SEGURIDAD --- */}
         <Text style={styles.tituloSeccion}>SEGURIDAD</Text>
         <View style={styles.tarjetaSeccion}>
@@ -558,6 +625,8 @@ export const Perfil = () => {
             <Icon name="logout" size={18} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
+
+
 
         <View style={styles.pie}>
           <Text style={styles.pie__version}>SAMM v1 - Adulto Mayor</Text>

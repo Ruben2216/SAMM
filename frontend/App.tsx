@@ -121,9 +121,9 @@ export default function App() {
         <NavigationContainer ref={navigationRef} linking={linking}>
           <Stack.Navigator
           //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
-           // initialRouteName="MiPerfilFamiliar"
+           // initialRouteName="Perfil"
             // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
-            initialRouteName="Initial"
+          // initialRouteName="Initial"
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },

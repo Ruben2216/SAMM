@@ -431,4 +431,17 @@ export const styles = StyleSheet.create({
     color: theme.colors.text,
     textDecorationLine: 'underline',
   },
+
+  filaSwitch__infoActivo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 4,
+  },
+  filaSwitch__infoActivoTexto: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    flex: 1,
+  },
 });

@@ -1,82 +1,103 @@
-// PersonCard.styles.ts
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 12,
+    padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#E8EDF2',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  selected: {
-    borderColor: '#E53935',
+  cardSelected: {
+    borderColor: '#1D9E75',
     borderWidth: 2,
+    backgroundColor: '#F0FDF8',
   },
+
+  // ── Fila principal ──────────────────────────────
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   image: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#E8EDF2',
   },
   info: {
     flex: 1,
   },
   name: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 2,
   },
   status: {
     fontSize: 13,
-    color: '#4CAF50',
+    color: '#1D9E75',
     fontWeight: '500',
   },
   time: {
     fontSize: 12,
-    color: '#999',
+    color: '#94A3B8',
     marginTop: 2,
   },
+
+  // ── Acciones expandidas ─────────────────────────
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#F1F5F9',
   },
   actionButton: {
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
-  actionIcon: {
-    fontSize: 20,
+  actionIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F0FDF8',
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionText: {
     fontSize: 12,
-    color: '#555',
+    color: '#475569',
+    fontWeight: '500',
   },
   alertButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E53935',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    backgroundColor: '#EF4444',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 22,
     gap: 6,
-  },
-  alertIcon: {
-    fontSize: 14,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   alertText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
     fontSize: 13,
   },
 });

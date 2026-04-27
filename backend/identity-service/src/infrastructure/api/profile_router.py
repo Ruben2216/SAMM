@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 from datetime import datetime, timezone
 
+from src.infrastructure.persistence.sqlalchemy_models import UsuarioModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -168,6 +169,35 @@ def obtener_nombre_interno(
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return {"nombre": usuario.Nombre}
+
+
+@router.get("/internal/perfil/{id_usuario}")
+def obtener_perfil_interno(
+    id_usuario: int,
+    db: Session = Depends(obtener_sesion),
+):
+    """
+    Endpoint interno (sin autenticación) para otros microservicios.
+    Retorna nombre, avatar y teléfono del usuario para enriquecer
+    la vista del mapa del familiar.
+
+    Consumido por: reportService.ts → GET /users/internal/perfil/{id}
+    """
+    from src.infrastructure.persistence.sqlalchemy_models import UsuarioModel
+
+    usuario = db.query(UsuarioModel).filter_by(Id_Usuario=id_usuario).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    return {
+        "Id_Usuario": usuario.Id_Usuario,
+        "Nombre":     usuario.Nombre,
+        "url_Avatar": usuario.url_Avatar,
+        # Correo como contacto de respaldo (el familiar puede llamar/SMS)
+        "Correo":     usuario.Correo,
+    }
+
+
 
 
 @router.get("/internal/vinculados/{id_usuario}")
