@@ -182,6 +182,16 @@ def marcar_como_tomado(id_medicamento: int, toma: schemas.TomaConfirmar, db: Ses
     es_necesario = medicamento.Frecuencia == "necesario"
 
     if es_necesario:
+        registro_existente = db.query(models.HistorialToma).filter(
+            models.HistorialToma.Id_Medicamento == id_medicamento,
+            models.HistorialToma.Fecha_Asignada == hoy,
+            models.HistorialToma.Hora_Asignada == toma.hora_asignada,
+            models.HistorialToma.Estado == "tomado_necesario",
+        ).first()
+
+        if registro_existente:
+            return {"mensaje": "La toma ya fue registrada anteriormente."}
+
         # Se crea una fila nueva por cada toma "según sea necesario".
         registro = models.HistorialToma(
             Id_Medicamento=id_medicamento,
@@ -202,6 +212,9 @@ def marcar_como_tomado(id_medicamento: int, toma: schemas.TomaConfirmar, db: Ses
         ).first()
 
         if registro:
+            if registro.Estado in ["tomado", "tomado_necesario"]:
+                return {"mensaje": "La toma ya fue registrada anteriormente."}
+
             registro.Estado = "tomado"
             registro.Fecha_Hora_Real_Toma = ahora
         else:

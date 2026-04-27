@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { NativeModules, Platform, StatusBar, View } from 'react-native';
+import { Linking, NativeModules, Platform, StatusBar, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -55,6 +55,7 @@ const linking = {
   config: {
     screens: {
       ResetPassword: 'reset-password',
+      RecordatorioMedicamento: 'recordatorio-medicamento',
     },
   },
 };
@@ -121,6 +122,9 @@ export default function App() {
 
     const inicializar = async () => {
       try {
+        const urlInicial = await Linking.getInitialURL();
+        const esIngresoPorAlarma = Boolean(urlInicial?.includes('recordatorio-medicamento'));
+
         // 1) Preferencias (AsyncStorage)
         await useFamilyPreferencesStore.getState().rehidratar();
 
@@ -130,6 +134,10 @@ export default function App() {
 
         // 3) Bloqueo de app (solo Android) si el usuario lo activó.
         if (Platform.OS !== 'android') return;
+
+        // Si entramos por alarma, NO bloqueamos: la pantalla RecordatorioMedicamento
+        // debe mostrarse inmediatamente como una alarma real.
+        if (esIngresoPorAlarma) return;
 
         const usuario = useAuthStore.getState().usuario;
         if (!usuario?.Id_Usuario) return;
@@ -179,6 +187,7 @@ export default function App() {
       if (datos.tipo === 'recordatorio_medicamento') {
         navigationRef.current.navigate('RecordatorioMedicamento', {
           idMedicamento: datos.idMedicamento,
+          idHorario: datos.idHorario,
           nombreMedicamento: datos.nombreMedicamento,
           dosis: datos.dosis,
           notas: datos.notas,

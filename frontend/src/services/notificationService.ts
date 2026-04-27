@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import { type ConfiguracionFamiliar, useFamilyPreferencesStore } from '../store/useFamilyPreferencesStore';
 
 const NOTIFICATION_API_URL =
@@ -11,6 +11,77 @@ const NOTIFICATION_API_URL =
 // porque Android no permite modificar canales ya creados.
 const CANAL_ALARMA_ADULTO = 'medicamentos_alarma_v3';
 const CANAL_ALERTA_FAMILIAR = 'alertas_familiar';
+
+type ModuloAlarmaNativa = {
+  programarAlarmaMedicamento: (
+    idMedicamento: number,
+    idHorario: number,
+    nombreMedicamento: string,
+    dosis: string,
+    notas: string,
+    horaToma: string,
+    diasSemanaCsv: string,
+  ) => Promise<string>;
+  cancelarAlarmaMedicamento: (idMedicamento: number, idHorario: number) => Promise<boolean>;
+  descartarNotificacionAlarmaActiva: (idMedicamento: number, idHorario: number) => Promise<boolean>;
+  puedeProgramarAlarmasExactas: () => Promise<boolean>;
+  cancelarTodasLasAlarmas: () => Promise<boolean>;
+};
+
+const moduloAlarma = NativeModules.SAMMAlarm as ModuloAlarmaNativa | undefined;
+
+export async function limpiarAlarmaActivaMedicamento(
+  idMedicamento: number,
+  idHorario: number,
+): Promise<void> {
+  if (Platform.OS !== 'android' || !Number.isFinite(idMedicamento) || !Number.isFinite(idHorario)) return;
+
+  if (moduloAlarma?.descartarNotificacionAlarmaActiva) {
+    try {
+      await moduloAlarma.descartarNotificacionAlarmaActiva(idMedicamento, idHorario);
+    } catch (e) {
+      console.warn('[Notificaciones] No se pudo limpiar alarma activa del medicamento:', e);
+    }
+  }
+}
+
+const esRecordatorioMedicamentoRegular = (notificacion: Notifications.Notification): boolean => {
+  const datos = notificacion.request.content.data as any;
+  return datos?.tipo === 'recordatorio_medicamento' && datos?.esReintentoTemporal !== true;
+};
+
+const asegurarCanalesAndroid = async (): Promise<void> => {
+  if (Platform.OS !== 'android') return;
+
+  // Canal del adulto mayor: tipo alarma — máxima prioridad.
+  await Notifications.setNotificationChannelAsync(CANAL_ALARMA_ADULTO, {
+    name: 'Recordatorio de medicamentos',
+    description: 'Alarma para que el adulto mayor tome sus medicinas',
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 800, 400, 800, 400, 800, 400, 800],
+    lightColor: '#00E676',
+    sound: 'default',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    bypassDnd: true,
+    enableVibrate: true,
+    enableLights: true,
+    showBadge: true,
+  });
+
+  // Canal del familiar: push informativo estándar.
+  await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
+    name: 'Alertas del familiar',
+    description: 'Avisos sobre la medicación de tu adulto mayor',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 150, 250],
+    lightColor: '#2563EB',
+    sound: 'default',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    enableVibrate: true,
+    enableLights: true,
+    showBadge: true,
+  });
+};
 
 const resolverClavePreferenciaPorTipoAlerta = (
   tipoAlerta: string | undefined
@@ -118,36 +189,9 @@ export async function registrarParaNotificaciones(idUsuario?: number): Promise<s
 
   // Canales Android: separamos alarma del adulto vs. push informativo del familiar.
   if (Platform.OS === 'android') {
-    // Canal del adulto mayor: tipo alarma — máxima prioridad, vibración larga, bypassDnd.
-    // Sonido 'default' (del sistema) porque el sonido de alarma personalizado
-    // (SonidoAlarma.mp3) lo reproduce la pantalla RecordatorioMedicamento con expo-av.
-    await Notifications.setNotificationChannelAsync(CANAL_ALARMA_ADULTO, {
-      name: 'Recordatorio de medicamentos',
-      description: 'Alarma para que el adulto mayor tome sus medicinas',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 800, 400, 800, 400, 800, 400, 800],
-      lightColor: '#00E676',
-      sound: 'default',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      bypassDnd: true,
-      enableVibrate: true,
-      enableLights: true,
-      showBadge: true,
-    });
-
-    // Canal del familiar: push informativo estándar, vibración corta.
-    await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
-      name: 'Alertas del familiar',
-      description: 'Avisos sobre la medicación de tu adulto mayor',
-      importance: Notifications.AndroidImportance.HIGH,
-      vibrationPattern: [0, 250, 150, 250],
-      lightColor: '#2563EB',
-      sound: 'default',
-      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-      enableVibrate: true,
-      enableLights: true,
-      showBadge: true,
-    });
+    // Importante: si el canal no existe (p. ej. se programaron recordatorios antes de login),
+    // Android crea uno por defecto con baja importancia y NO mostrará heads-up.
+    await asegurarCanalesAndroid();
   }
 
   console.log('[Notificaciones] Solicitando Expo Push Token...');
@@ -231,10 +275,46 @@ export async function programarRecordatorioMedicamento(params: {
       dosis,
       notas,
       horaToma,
+      esReintentoTemporal: false,
     },
     sound: 'default',
     priority: Notifications.AndroidNotificationPriority.MAX,
   } as const;
+
+  if (Platform.OS === 'android') {
+    await asegurarCanalesAndroid();
+
+    if (moduloAlarma?.puedeProgramarAlarmasExactas) {
+      try {
+        const puedeExactas = await moduloAlarma.puedeProgramarAlarmasExactas();
+        if (!puedeExactas) {
+          console.warn('[Notificaciones] Alarmas exactas deshabilitadas por el sistema; se usara modo best-effort.');
+        }
+      } catch (e) {
+        console.warn('[Notificaciones] No se pudo verificar estado de alarmas exactas:', e);
+      }
+    }
+
+    // Preferimos AlarmManager + fullScreenIntent para comportarse como alarma real.
+    if (moduloAlarma?.programarAlarmaMedicamento) {
+      try {
+        const diasSemanaCsv = diasSemana || '1,2,3,4,5,6,7';
+        const id = await moduloAlarma.programarAlarmaMedicamento(
+          idMedicamento,
+          idHorario,
+          nombreMedicamento,
+          dosis,
+          notas,
+          horaToma,
+          diasSemanaCsv,
+        );
+        console.log(`[Notificaciones] Programado (AlarmManager): ${nombreMedicamento} @ ${horaToma} — ID: ${id}`);
+        return id;
+      } catch (e) {
+        console.warn('[Notificaciones] Fallback a expo-notifications (no se pudo usar alarma nativa):', e);
+      }
+    }
+  }
 
   const diasIso = (diasSemana || '1,2,3,4,5,6,7')
     .split(',')
@@ -283,7 +363,29 @@ export async function programarRecordatorioMedicamento(params: {
  * Se usa antes de reprogramar medicamentos para evitar duplicados con horas viejas.
  */
 export async function cancelarTodasLasNotificaciones(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  try {
+    const programadas = await Notifications.getAllScheduledNotificationsAsync();
+    const aCancelar = programadas.filter(esRecordatorioMedicamentoRegular);
+
+    for (const notificacion of aCancelar) {
+      try {
+        await Notifications.cancelScheduledNotificationAsync(notificacion.identifier);
+      } catch (error) {
+        console.warn('[Notificaciones] No se pudo cancelar un recordatorio programado:', error);
+      }
+    }
+
+    if (Platform.OS === 'android' && moduloAlarma?.cancelarTodasLasAlarmas) {
+      try {
+        await moduloAlarma.cancelarTodasLasAlarmas();
+      } catch (e) {
+        console.warn('[Notificaciones] No se pudieron cancelar alarmas nativas:', e);
+      }
+    }
+  } catch (error) {
+    console.warn('[Notificaciones] No se pudieron listar recordatorios programados, usando cancelación global:', error);
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  }
   console.log('[Notificaciones] Recordatorios locales limpiados (se reprograman a continuación)');
 }
 

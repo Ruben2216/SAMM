@@ -27,18 +27,9 @@
         "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS",
         "USE_FULL_SCREEN_INTENT",
+        "SCHEDULE_EXACT_ALARM",
         "VIBRATE",
-        "WAKE_LOCK",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "POST_NOTIFICATIONS",
-        "USE_FULL_SCREEN_INTENT",
-        "VIBRATE",
-        "WAKE_LOCK",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "WAKE_LOCK"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/logoapp.png",
