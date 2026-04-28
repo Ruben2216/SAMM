@@ -43,7 +43,55 @@ export const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 2,
     },
-    // Selector de Fechas 
+    // Tarjeta "Vincula a tu familiar"
+    tarjetaVincular: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 18,
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        marginBottom: 24,
+        borderWidth: 1.5,
+        borderColor: '#A7F3D0',
+        shadowColor: '#10B981',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    tarjetaVincularIconoCirculo: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#D1FAE5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    tarjetaVincularTexto: {
+        flex: 1,
+        marginLeft: 14,
+    },
+    tarjetaVincularTitulo: {
+        color: '#0F172A',
+        fontSize: 15,
+        fontWeight: '800',
+        marginBottom: 2,
+    },
+    tarjetaVincularSubtitulo: {
+        color: '#64748B',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    tarjetaVincularChevron: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: '#ECFDF5',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // Selector de Fechas
     fechasContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',

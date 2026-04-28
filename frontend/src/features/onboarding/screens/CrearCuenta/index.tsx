@@ -274,11 +274,13 @@ export const CrearCuenta: React.FC = () => {
                 </TouchableOpacity>
 
                 {/* Botón */}
-                <PrimaryButton
-                    titulo={enviando ? "Registrando..." : "Registrarme y continuar"}
-                    alPresionar={manejarRegistro}
-                    deshabilitado={enviando || cargando}
-                />
+                <View style={{ opacity: acepto ? 1 : 0.5 }}>
+                    <PrimaryButton
+                        titulo={enviando ? "Registrando..." : "Registrarme y continuar"}
+                        alPresionar={manejarRegistro}
+                        deshabilitado={enviando || cargando || !acepto} 
+                    />
+                </View>
 
                 {/* Login */}
                 <TouchableOpacity onPress={manejarLogin}>

@@ -34,6 +34,7 @@ import { Emergencia } from './src/features/senior/screens/Emergencia';
 import { AgregarContactos } from './src/features/senior/screens/Emergencia/AgregarContactos';
 import { Asistencia } from './src/features/senior/screens/Emergencia/Asistencia';
 import { NecesitaAyuda } from './src/features/senior/screens/Emergencia/NecesitaAyuda';
+import { VincularFamiliar } from './src/features/senior/screens/VincularFamiliar';
 
 import { FamilyTabs } from './src/features/family/navigation/FamilyTabs';
 import { CodigoVinculacion } from './src/features/family/screens/CodigoVinculacion';
@@ -280,6 +281,7 @@ export default function App() {
             <Stack.Screen name="AgregarContactos" component={AgregarContactos} />
             <Stack.Screen name="Asistencia" component={Asistencia} />
             <Stack.Screen name="NecesitaAyuda" component={NecesitaAyuda} />
+            <Stack.Screen name="VincularFamiliar" component={VincularFamiliar} />
             <Stack.Screen name="Mapa" component={Mapa} />
 
 

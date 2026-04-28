@@ -42,18 +42,6 @@ npx expo start --tunnel
 Escanear el QR en Expo Go
 ```
 
-### Entrar como familiar
-```bash
-familiar@gmail.com
-123456
-```
-
-### Entrar como adulto mayor
-```bash
-adulto@gmail.com
-123456
-```
-
 ### Iconos de la barra de navegacion
 npm install @react-navigation/bottom-tabs@^6
 
@@ -64,22 +52,6 @@ npm install @react-navigation/bottom-tabs@^6
     python3 -m venv venv
 2. Activarlo: source venv/bin/activate
 3. Correrlo: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-### Actualizacion para acceder como familiar
-1. Activar el entorno virtual de identity-service
-2. Instalar lo siguiente para la contraseña: pip install "bcrypt<4.0.0"
-3. colocar lo siguiente para el hash de la contraseña: python -c "from passlib.hash import bcrypt; print(bcrypt.hash('123456'))"
-4. Copiar el codifo que te de y crearlo en la base de datos:
-```bash
-INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth") VALUES ('Pedro Familiar', 'familiar@gmail.com', '$2b$12$U1XGXQ.dtUf5CsQoLWCm2uVWY/.T8/VGaBKH5ZJ/WypgHduV6EA8W', 'familiar', 'local');
-```
-5. Inicia sesion como familiar
-
-### Actualizacion para acceder como adulto (lo mismo que familiar pero al final):
-```bash
-INSERT INTO "Usuarios" ("Nombre", "Correo", "Contrasena_Hash", "Rol", "Proveedor_Auth") VALUES ('Abuelo Roberto', 'adulto@gmail.com', '$2b$12$U1XGXQ.dtUf5CsQoLWCm2uVWY/.T8/VGaBKH5ZJ/WypgHduV6EA8W', 'adulto_mayor', 'local');
-```
-                                        
 
 
 ### Medicamentos (8001)
@@ -114,9 +86,7 @@ CREATE TABLE "Vinculaciones" (
 ALTER TABLE "Vinculaciones" ADD COLUMN "Nombre_Circulo" VARCHAR(100);
 ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" VARCHAR(50);
 
-
  
-
 ```
 ### citas 
 1. crear:
@@ -129,7 +99,6 @@ ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" VARCHAR(50);
    pip install -r requirements.txt
 5. correr el microservicio
  uvicorn main:app --host 0.0.0.0 --port 8004 --reload
-
 
  ### Instalar libreria de calendario y reloj (momentaria)
  1. Ingresar a:
@@ -385,10 +354,16 @@ samm-fcm-sa.json
     "owner": "fernandovargas15"
     "projectId": "4485bdc1-955f-4d0a-b42e-6d52bda26196"
 
-### 27/04/20206 Sobre tracking-service 
+### 27/04/20206 Sobre tracking-service (8006)
 Es un sercviocio entonces ya sabe, que hay que crear un entorno virtual, encender el entorno virtual, instalar los requeriments.txt. 
 py -m venv venv   
 venv/bin/activate
 install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8006 --reload
+
+Agregar esto en el .env de trackin (lo paso en whats)
+
+agregar esto en el .env de frontend
+EXPO_PUBLIC_API_URL_TRACKING=http://TU_IP_LAPTOP:8006
 
 

@@ -278,29 +278,24 @@ export const Inicio = () => {
 
                 {tieneVinculacion === false && (
                     <TouchableOpacity
-                        style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            backgroundColor: '#0F172A',
-                            borderRadius: 12,
-                            padding: 14,
-                            marginBottom: 16,
-                            borderWidth: 1,
-                            borderColor: '#1E293B',
-                        }}
-                        activeOpacity={0.8}
-                        onPress={() => navigation.navigate('VinculacionSenior')}
+                        style={styles.tarjetaVincular}
+                        activeOpacity={0.85}
+                        onPress={() => navigation.navigate('VincularFamiliar')}
                     >
-                        <Ionicons name="link-outline" size={22} color="#00E676" />
-                        <View style={{ flex: 1, marginLeft: 12 }}>
-                            <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '600' }}>
+                        <View style={styles.tarjetaVincularIconoCirculo}>
+                            <Ionicons name="link" size={22} color="#10B981" />
+                        </View>
+                        <View style={styles.tarjetaVincularTexto}>
+                            <Text style={styles.tarjetaVincularTitulo}>
                                 Vincula a tu familiar
                             </Text>
-                            <Text style={{ color: '#94A3B8', fontSize: 12, marginTop: 2 }}>
-                                Ingresa el código para conectar con tu cuidador
+                            <Text style={styles.tarjetaVincularSubtitulo}>
+                                Conecta con tu cuidador con un código
                             </Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={20} color="#64748B" />
+                        <View style={styles.tarjetaVincularChevron}>
+                            <Ionicons name="chevron-forward" size={18} color="#10B981" />
+                        </View>
                     </TouchableOpacity>
                 )}
 
