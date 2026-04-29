@@ -106,6 +106,23 @@ export const styles = StyleSheet.create({
         color: '#64748B',
         fontWeight: '500',
     },
+    estadoContactos: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        marginBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    estadoContactosTexto: {
+        fontSize: 13,
+        color: '#64748B',
+        fontWeight: '600',
+    },
     // Botón 911
     boton911: {
         flexDirection: 'row',

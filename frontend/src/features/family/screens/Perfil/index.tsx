@@ -7,6 +7,7 @@ import {
   Image,
   Linking,
   ScrollView,
+  TextInput,
   View,
   Text,
   TouchableOpacity,
@@ -108,6 +109,9 @@ export const MiPerfilFamiliar: React.FC = () => {
 
   const [modalCerrarSesionVisible, setModalCerrarSesionVisible] = useState(false);
   const [vinculaciones, setVinculaciones] = useState<VinculacionInfo[]>([]);
+  const [telefonoContacto, setTelefonoContacto] = useState('');
+  const [editandoTelefono, setEditandoTelefono] = useState(false);
+  const [guardandoTelefono, setGuardandoTelefono] = useState(false);
   const [notificacionesActivas, setNotificacionesActivas] = useState(false);
   const [cargandoNotif, setCargandoNotif] = useState(false);
 
@@ -172,6 +176,33 @@ export const MiPerfilFamiliar: React.FC = () => {
         abortController.abort();
       };
     }, [usuarioAutenticado?.Id_Usuario, usuarioAutenticado?.Nombre, usuarioAutenticado?.url_Avatar, vinculaciones.length])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!usuarioAutenticado?.Id_Usuario) {
+        return;
+      }
+
+      const abortController = new AbortController();
+
+      const cargarTelefono = async () => {
+        try {
+          const respuesta = await httpClient.get('/users/me', {
+            signal: abortController.signal,
+          });
+          setTelefonoContacto((respuesta.data?.Telefono ?? '').trim());
+        } catch (error) {
+          console.log('[PerfilFamiliar] No se pudo cargar teléfono de contacto:', error);
+        }
+      };
+
+      cargarTelefono();
+
+      return () => {
+        abortController.abort();
+      };
+    }, [usuarioAutenticado?.Id_Usuario])
   );
 
   // Sincroniza el Switch con el permiso real del SO al entrar y al volver de Ajustes.
@@ -339,6 +370,25 @@ export const MiPerfilFamiliar: React.FC = () => {
 
   const manejarAyudaSoporte = () => {
     console.log('[PerfilFamiliar] Ayuda y soporte');
+  };
+
+  const manejarGuardarTelefono = async () => {
+    try {
+      setGuardandoTelefono(true);
+      await httpClient.put('/users/me/telefono', {
+        telefono: telefonoContacto.trim() || null,
+      });
+      setEditandoTelefono(false);
+    } catch (error: any) {
+      console.error('[PerfilFamiliar] Error guardando teléfono:', error?.message ?? error);
+      Alert.alert('No se pudo guardar', 'Verifica el número e intenta de nuevo.');
+    } finally {
+      setGuardandoTelefono(false);
+    }
+  };
+
+  const manejarCancelarTelefono = () => {
+    setEditandoTelefono(false);
   };
 
   const obtenerOpcionSupervision = (valor: string) =>
@@ -571,6 +621,80 @@ export const MiPerfilFamiliar: React.FC = () => {
           >
             <Text style={styles.filaAccion__texto}>+ Agregar Familiar</Text>
           </TouchableOpacity>
+        </View>
+
+        <Text style={styles.tituloSeccion}>INFORMACIÓN DE CONTACTO</Text>
+        <View style={styles.tarjetaSeccion} accessibilityLabel="Información de contacto del familiar">
+          {editandoTelefono ? (
+            <View style={styles.contacto__contenedorEdicion}>
+              <View style={styles.contacto__inputContenedor}>
+                <Text style={styles.contacto__inputEtiqueta}>Teléfono</Text>
+                <TextInput
+                  style={styles.contacto__input}
+                  value={telefonoContacto}
+                  onChangeText={setTelefonoContacto}
+                  keyboardType="phone-pad"
+                  placeholder="Ej. 5512345678"
+                  accessibilityLabel="Campo teléfono de contacto"
+                />
+              </View>
+
+              <Text style={styles.contacto__ayudaTexto}>
+                Este número aparecerá en el Centro de Ayuda del adulto mayor vinculado.
+              </Text>
+
+              <View style={styles.contacto__acciones}>
+                <TouchableOpacity
+                  onPress={manejarCancelarTelefono}
+                  style={styles.contacto__botonSecundario}
+                  accessibilityLabel="Cancelar edición de teléfono"
+                  accessibilityRole="button"
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.contacto__botonSecundarioTexto}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => void manejarGuardarTelefono()}
+                  style={styles.contacto__botonPrimario}
+                  accessibilityLabel="Guardar teléfono de contacto"
+                  accessibilityRole="button"
+                  activeOpacity={0.7}
+                  disabled={guardandoTelefono}
+                >
+                  {guardandoTelefono ? (
+                    <ActivityIndicator size="small" color={theme.colors.text} />
+                  ) : (
+                    <Text style={styles.contacto__botonPrimarioTexto}>Guardar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.filaSupervision}>
+              <View style={styles.filaSupervision__texto}>
+                <Text style={styles.filaSupervision__titulo}>Teléfono</Text>
+                <Text style={styles.filaSupervision__descripcion}>
+                  {telefonoContacto || 'No registrado'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setEditandoTelefono(true)}
+                style={styles.contacto__botonEditarInline}
+                accessibilityLabel="Editar teléfono de contacto"
+                accessibilityRole="button"
+                activeOpacity={0.7}
+              >
+                <Icon
+                  name="pencil-outline"
+                  size={20}
+                  color={theme.colors.primary}
+                  accessibilityElementsHidden
+                />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         <Text style={styles.tituloSeccion}>ALERTAS Y NOTIFICACIONES</Text>

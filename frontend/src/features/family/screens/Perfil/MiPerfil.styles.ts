@@ -280,6 +280,87 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  contacto__contenedorEdicion: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+
+  contacto__inputContenedor: {
+    gap: 8,
+  },
+
+  contacto__inputEtiqueta: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+
+  contacto__input: {
+    height: 48,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: 12,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.text,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  contacto__ayudaTexto: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '400',
+    color: theme.colors.textSecondary,
+  },
+
+  contacto__acciones: {
+    marginTop: 14,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  contacto__botonSecundario: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  contacto__botonSecundarioTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+
+  contacto__botonPrimario: {
+    minHeight: 44,
+    minWidth: 92,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  contacto__botonPrimarioTexto: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+
+  contacto__botonEditarInline: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   filaNotificacion: {
     flexDirection: 'row',
     alignItems: 'center',
