@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { PrimaryButton } from '../../../../components/ui/primary-button';
 import { ModalAyudaCodigo } from '../../../../components/ui/modal-ayuda-codigo';
-import { SuccessModal } from '../../../../components/ui/success-modal';
 import { styles } from './styles';
 import { theme } from '../../../../theme';
 import httpClient from '../../../../services/httpService';
@@ -18,7 +17,6 @@ export const VincularFamiliar: React.FC = () => {
   const [esVisibleModalAyuda, setEsVisibleModalAyuda] = useState<boolean>(false);
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [modalExito, setModalExito] = useState<boolean>(false);
 
   const enfocarIndice = (nuevoIndice: number) => {
     setIndiceFocus(nuevoIndice);
@@ -92,19 +90,15 @@ export const VincularFamiliar: React.FC = () => {
     setCargando(true);
     setError(null);
     try {
-      await httpClient.post('/vinculacion/validar', { codigo: codigoCompleto });
-      setModalExito(true);
+      const response = await httpClient.post('/vinculacion/validar', { codigo: codigoCompleto });
+      const { Id_Vinculacion } = response.data;
+      navegacion.navigate('CreateCircleScreen', { idVinculacion: Id_Vinculacion });
     } catch (err: any) {
       const mensaje = err.response?.data?.detail || 'Error al vincular';
       setError(mensaje);
     } finally {
       setCargando(false);
     }
-  };
-
-  const manejarCierreExito = () => {
-    setModalExito(false);
-    navegacion.goBack();
   };
 
   const manejarAbrirAyudaCodigo = () => {
@@ -127,12 +121,6 @@ export const VincularFamiliar: React.FC = () => {
       <ModalAyudaCodigo
         esVisible={esVisibleModalAyuda}
         alCerrar={manejarCerrarAyudaCodigo}
-      />
-
-      <SuccessModal
-        esVisible={modalExito}
-        mensaje="¡Vinculación exitosa!"
-        alTerminar={manejarCierreExito}
       />
 
       <View style={styles.encabezado}>
