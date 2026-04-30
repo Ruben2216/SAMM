@@ -632,12 +632,12 @@ export const Perfil = () => {
         {/* --- Activacion de ubicacion --- */}
         <Text style={styles.tituloSeccion}>UBICACIÓN</Text>
         <View style={styles.tarjetaSeccion}>
-          <View style={styles.filaSwitch}>
+          <View style={[styles.filaSupervision, { paddingVertical: 14 }]}>
             <View style={styles.filaSwitch__izquierda}>
               <Icon name="map-marker-radius-outline" size={22} color={theme.colors.primary} />
               <View style={styles.filaSwitch__texto}>
-                <Text style={styles.filaSwitch__titulo}>Activar mi rastreo</Text>
-                <Text style={styles.filaSwitch__descripcion}>
+                <Text style={styles.filaSupervision__titulo}>Activar mi rastreo</Text>
+                <Text style={styles.filaSupervision__descripcion}>
                   Tu familiar podrá ver tu ubicación en su mapa
                 </Text>
               </View>
@@ -659,7 +659,7 @@ export const Perfil = () => {
           </View>
 
           {rastreoActivo && (
-            <View style={styles.filaSwitch__infoActivo}>
+            <View style={styles.filaSupervision}>
               <Icon name="check-circle-outline" size={16} color={theme.colors.primary} />
               <Text style={styles.filaSwitch__infoActivoTexto}>
                 Tu ubicación se actualiza automáticamente en segundo plano

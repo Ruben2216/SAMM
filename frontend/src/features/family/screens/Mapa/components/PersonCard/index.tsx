@@ -101,7 +101,7 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
         <View style={styles.info}>
           <Text style={styles.name}>{person.nombre}</Text>
           <Text style={styles.status}>
-            {person.rastreoActivo ? 'rastreo activo' : 'está en casa'}
+            {person.rastreoActivo ? 'rastreo activo' : 'Rastreo Inactivo'}
           </Text>
           <Text style={styles.time}>
             Último reporte a las {person.ultimaActualizacion}

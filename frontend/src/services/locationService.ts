@@ -136,7 +136,7 @@ export async function activarRastreo(idAdultoMayor: number): Promise<boolean> {
       Alert.alert(
         'Rastreo limitado',
         'Tu familiar podrá verte mientras tengas la app abierta. ' +
-        'Para que funcione con la app cerrada, ve a Ajustes > SAMM > Ubicación > Siempre.',
+        'Para que funcione con la app cerrada, ve a Ajustes > SAMM> permisos> bateria> Sin restricciones. Tambien: Permisos> Ubicacion> Ubicacion Precisa',
         [
           { text: 'Ir a Ajustes', onPress: () => Linking.openSettings() },
           { text: 'Continuar así', style: 'cancel' },
