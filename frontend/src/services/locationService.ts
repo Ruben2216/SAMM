@@ -75,19 +75,24 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
 
 // ─── Funciones públicas ──────────────────────────────────────────────────────
 
-export async function obtenerEstadoRastreo(): Promise<boolean> {
+export async function obtenerEstadoRastreo(idAdultoMayor?: number): Promise<boolean> {
   try {
     const guardado = await AsyncStorage.getItem(STORAGE_KEY_RASTREO_ACTIVO);
     if (guardado !== 'true') return false;
 
-    // Verificamos que el permiso siga concedido
+    // Verificar que el rastreo activo pertenece a ESTE usuario, no a otro
+    if (idAdultoMayor) {
+      const idGuardado = await AsyncStorage.getItem(STORAGE_KEY_ID_USUARIO);
+      if (idGuardado !== String(idAdultoMayor)) return false;
+    }
+
     const { status } = await Location.getForegroundPermissionsAsync();
     return status === 'granted';
   } catch {
     return false;
   }
 }
-
+//-------------------------------------------------------
 async function obtenerFrecuenciaMinutos(idAdultoMayor: number): Promise<number> {
   try {
     const res = await fetch(

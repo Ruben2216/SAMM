@@ -142,10 +142,10 @@ export const Perfil = () => {
 
   useFocusEffect(
     useCallback(() => {
-      obtenerEstadoRastreo().then((activo) => {
+      obtenerEstadoRastreo(usuario?.Id_Usuario).then((activo) => {
         setRastreoActivo(activo);
       });
-    }, [])
+    }, [usuario?.Id_Usuario])
   );
 
   const manejarToggleNotificaciones = async (valor: boolean) => {
