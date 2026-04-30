@@ -8,6 +8,11 @@
 -- 1. Tabla de Configuración de Rastreo por Familiar
 --    Un familiar puede configurar la frecuencia con la que
 --    quiere recibir la ubicación de sus adultos mayores.
+
+create database samm_tracking_db;
+\c samm_tracking_db;
+
+
 CREATE TABLE IF NOT EXISTS "Configuracion_Rastreo" ("Id_Config" SERIAL PRIMARY KEY, "Id_Familiar" INTEGER NOT NULL, "Id_Adulto_Mayor" INTEGER NOT NULL,  "Frecuencia_Minutos"  INTEGER NOT NULL DEFAULT 10, "Activo" BOOLEAN DEFAULT FALSE, "Fecha_Actualizacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE ("Id_Familiar", "Id_Adulto_Mayor")  );
 
 -- 2. Tabla de Ubicaciones

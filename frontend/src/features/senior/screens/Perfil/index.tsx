@@ -398,8 +398,20 @@ export const Perfil = () => {
           {/* Fila: YO */}
           <View style={[styles.filaFamilia, styles.fila__separador]}>
             <View style={styles.filaFamilia__izquierda}>
-              <View style={styles.filaFamilia__avatarYo}>
-                <Text style={styles.filaFamilia__textoAvatarYo}>YO</Text>
+              <View
+                style={styles.filaFamilia__avatarYo}
+                accessibilityRole="image"
+                accessibilityLabel={`Avatar de ${nombreUsuario}`}
+              >
+                {tieneAvatar ? (
+                  <Image
+                    source={{ uri: uriAvatar }}
+                    style={styles.filaFamilia__imagenAvatar}
+                    accessibilityIgnoresInvertColors
+                  />
+                ) : (
+                  <Text style={styles.filaFamilia__textoAvatarYo}>YO</Text>
+                )}
               </View>
               <View style={styles.filaFamilia__texto}>
                 <Text style={styles.filaFamilia__nombre}>{nombreUsuario}</Text>
