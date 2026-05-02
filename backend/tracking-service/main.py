@@ -3,8 +3,12 @@ from fastapi import FastAPI
 from dotenv import load_dotenv
 
 from src.infrastructure.api.tracking_router import router as tracking_router
+from src.infrastructure.persistence.database import engine, Base
+from src.domain.models import tracking_models  # noqa: F401 — registra los modelos en Base
 
 load_dotenv()
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title       = "SAMM - Tracking Service",
