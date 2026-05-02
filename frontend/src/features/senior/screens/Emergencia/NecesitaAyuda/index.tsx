@@ -1,14 +1,74 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, Linking } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location';
+import { useAuthStore } from '../../../../auth/authStore';
+import { getReports } from '../../../../../services/reportService';
 import { styles } from './styles';
+
+const INTERVALO_REFRESCO_MS = 15_000;
 
 export const NecesitaAyuda = () => {
   const route = useRoute<any>();
   const navigation = useNavigation();
-  const { nombreAdultoMayor = 'Papá', nombreContacto = 'Roberto', telefono = '3000000000' } = route.params || {};
+  const {
+    idAdulto: idAdultoRaw,
+    nombreAdultoMayor = 'Papá',
+    nombreContacto = 'Roberto',
+    telefono = '3000000000',
+  } = route.params || {};
+
+  const idAdulto = typeof idAdultoRaw === 'string' ? Number(idAdultoRaw) : idAdultoRaw;
+  const idFamiliar = useAuthStore((s) => s.usuario?.Id_Usuario ?? null);
+
+  const [ubicacionFamiliar, setUbicacionFamiliar] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [ubicacionAdulto, setUbicacionAdulto] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  const cargarUbicaciones = useCallback(async () => {
+    if (!idFamiliar) return;
+
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const posicion = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        setUbicacionFamiliar({
+          latitude: posicion.coords.latitude,
+          longitude: posicion.coords.longitude,
+        });
+      }
+    } catch (error) {
+      console.warn('[NecesitaAyuda] No se pudo obtener ubicación del familiar:', error);
+    }
+
+    try {
+      const reportes = await getReports(idFamiliar);
+      if (!Array.isArray(reportes) || reportes.length === 0) return;
+
+      const adultoObjetivo = Number.isFinite(idAdulto)
+        ? reportes.find((r) => Number(r.id) === Number(idAdulto))
+        : reportes[0];
+
+      if (adultoObjetivo && Number.isFinite(adultoObjetivo.lat) && Number.isFinite(adultoObjetivo.lng)) {
+        setUbicacionAdulto({
+          latitude: adultoObjetivo.lat,
+          longitude: adultoObjetivo.lng,
+        });
+      }
+    } catch (error) {
+      console.warn('[NecesitaAyuda] No se pudo obtener ubicación del adulto mayor:', error);
+    }
+  }, [idAdulto, idFamiliar]);
+
+  useEffect(() => {
+    cargarUbicaciones();
+    const intervalo = setInterval(cargarUbicaciones, INTERVALO_REFRESCO_MS);
+    return () => clearInterval(intervalo);
+  }, [cargarUbicaciones]);
 
   const handleCall = () => {
     Alert.alert('Llamada', `Llamando a ${nombreContacto}...`, [
@@ -45,12 +105,28 @@ export const NecesitaAyuda = () => {
       <View style={styles.mapaContenedor}>
         <MapView
           style={styles.mapa}
-          initialRegion={{ latitude: 4.6482, longitude: -74.0628, latitudeDelta: 0.03, longitudeDelta: 0.03 }}
+          region={{
+            latitude: ubicacionAdulto?.latitude ?? ubicacionFamiliar?.latitude ?? 4.6482,
+            longitude: ubicacionAdulto?.longitude ?? ubicacionFamiliar?.longitude ?? -74.0628,
+            latitudeDelta: 0.03,
+            longitudeDelta: 0.03,
+          }}
           rotateEnabled={false} pitchEnabled={false}
         >
-          <Marker coordinate={{ latitude: 4.6406, longitude: -74.0738 }} title="Tú" pinColor="#3B82F6" />
-          <Marker coordinate={{ latitude: 4.6622, longitude: -74.0588 }} title={nombreAdultoMayor} pinColor="#EF4444" />
-          <Polyline coordinates={[{ latitude: 4.6406, longitude: -74.0738 }, { latitude: 4.6622, longitude: -74.0588 }]} strokeColor="#EF4444" strokeWidth={5} lineDashPattern={[0]} />
+          {ubicacionFamiliar ? (
+            <Marker coordinate={ubicacionFamiliar} title="Tu ubicación" pinColor="#3B82F6" />
+          ) : null}
+          {ubicacionAdulto ? (
+            <Marker coordinate={ubicacionAdulto} title={nombreAdultoMayor} pinColor="#EF4444" />
+          ) : null}
+          {ubicacionFamiliar && ubicacionAdulto ? (
+            <Polyline
+              coordinates={[ubicacionFamiliar, ubicacionAdulto]}
+              strokeColor="#EF4444"
+              strokeWidth={5}
+              lineDashPattern={[0]}
+            />
+          ) : null}
         </MapView>
       </View>
 

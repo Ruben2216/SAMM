@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "855666048215",
-    "project_id": "samm-app-2054a",
-    "storage_bucket": "samm-app-2054a.firebasestorage.app"
+    "project_number": "95505774283",
+    "project_id": "samm-c96e0",
+    "storage_bucket": "samm-c96e0.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:855666048215:android:e58ffa251e784adcb48492",
+        "mobilesdk_app_id": "1:95505774283:android:6fb97e80d6895f16744d4e",
         "android_client_info": {
           "package_name": "com.samm.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDTKk-USLOqOFlTxT-fj5DW528b9Vz-qLE"
+          "current_key": "AIzaSyAUupXIERFFAPaW1KA0H0ii3GmXOHXMwwU"
         }
       ],
       "services": {
