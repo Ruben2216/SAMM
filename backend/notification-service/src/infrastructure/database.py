@@ -88,6 +88,23 @@ def aplicar_migraciones() -> None:
     except Exception as exc:
         logger.warning(f"[Migraciones] No se pudo migrar Push_Tokens: {exc}")
 
+    sql_supervision = """
+    CREATE TABLE IF NOT EXISTS "Supervision_Config" (
+        "Id_Config" SERIAL PRIMARY KEY,
+        "Id_Familiar" INTEGER NOT NULL UNIQUE,
+        "Frecuencia_Minutos" INTEGER NOT NULL DEFAULT 15,
+        "Tiempo_Max_Sin_Reporte_Minutos" INTEGER NOT NULL DEFAULT 60,
+        "Fecha_Actualizacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """
+    try:
+        with engine.connect() as conn:
+            with conn.begin():
+                conn.exec_driver_sql(sql_supervision)
+        logger.info("[Migraciones] Tabla Supervision_Config verificada")
+    except Exception as exc:
+        logger.warning(f"[Migraciones] No se pudo crear Supervision_Config: {exc}")
+
 
 def obtener_sesion():
     db = SessionLocal()

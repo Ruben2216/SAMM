@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.infrastructure.database import engine, Base, aplicar_migraciones
 from src.api.notification_router import router as notification_router
+from src.application.supervision_monitor import iniciar_monitor_supervision
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,6 +43,7 @@ def startup():
     aplicar_migraciones()
     logger.info("[Startup] Creando tablas si no existen...")
     Base.metadata.create_all(bind=engine)
+    iniciar_monitor_supervision()
     logger.info("[Startup] SAMM Notification Service listo en puerto 8002")
 
 

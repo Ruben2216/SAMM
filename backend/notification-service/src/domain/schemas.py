@@ -2,7 +2,7 @@
 Esquemas Pydantic del Notification Service.
 """
 from typing import Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class GuardarTokenRequest(BaseModel):
@@ -34,3 +34,15 @@ class NotificarVinculadosRequest(BaseModel):
     titulo: str
     cuerpo: str
     datos: Optional[dict[str, Any]] = None
+
+
+class SupervisionConfigUpsertRequest(BaseModel):
+    id_familiar: int
+    frecuencia_minutos: int = Field(ge=1, le=1440)
+    tiempo_max_sin_reporte_minutos: int = Field(ge=1, le=1440)
+
+
+class SupervisionConfigResponse(BaseModel):
+    id_familiar: int
+    frecuencia_minutos: int
+    tiempo_max_sin_reporte_minutos: int
