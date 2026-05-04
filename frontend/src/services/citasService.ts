@@ -1,11 +1,8 @@
 import api from './httpService';
 
-// Leemos la IP y el puerto de tu archivo .env del frontend
-// Si por alguna razón no lo encuentra, usa localhost:8004 por defecto
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL_CITAS || 'http://127.0.0.1:8004';
 const API_CITAS = `${BASE_URL}/api/citas`;
 
-// 1. CREAR una cita (POST)
 export const agendarCita = async (datosCita: any) => {
   try {
     const response = await api.post(`${API_CITAS}/`, datosCita);
@@ -16,7 +13,6 @@ export const agendarCita = async (datosCita: any) => {
   }
 };
 
-// 2. OBTENER todas las citas de un usuario (GET)
 export const obtenerCitasUsuario = async (idUsuario: number) => {
   try {
     const response = await api.get(`${API_CITAS}/usuario/${idUsuario}`);
@@ -27,7 +23,6 @@ export const obtenerCitasUsuario = async (idUsuario: number) => {
   }
 };
 
-// 3. ACTUALIZAR una cita (PUT)
 export const actualizarCita = async (idCita: number, datosActualizados: any) => {
   try {
     const response = await api.put(`${API_CITAS}/${idCita}`, datosActualizados);
@@ -38,13 +33,22 @@ export const actualizarCita = async (idCita: number, datosActualizados: any) => 
   }
 };
 
-// 4. ELIMINAR una cita (DELETE)
 export const eliminarCita = async (idCita: number) => {
   try {
     const response = await api.delete(`${API_CITAS}/${idCita}`);
     return response.data;
   } catch (error) {
     console.error('[citasService] Error eliminando cita:', error);
+    throw error;
+  }
+};
+
+export const cancelarCita =  async (idCita: number) => {
+  try {
+    const response = await api.put(`${API_CITAS}/${idCita}/cancelar`,{});
+    return response.data;
+  } catch (error) {
+    console.error('[citaService] Error cancelando cita:', error);
     throw error;
   }
 };

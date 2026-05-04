@@ -5,7 +5,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { themeColors } from '../styles';
 import { ConfirmationModal } from '../../../../../components/ui/confirmation-modal';
 import { SuccessModal } from '../../../../../components/ui/success-modal';
-import { eliminarCita } from '../../../../../services/citasService';
+import { eliminarCita, cancelarCita } from '../../../../../services/citasService';
+import { Badge } from 'react-native-paper';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -49,6 +50,25 @@ const formatearFechaHora = (iso: string) => {
   return { fecha, hora };
 };
 
+const obtenerEstadoDinamico = (estadoDB: string, fechaHoraIso: string) => {
+  const estadoNormalizado = estadoDB?.toLowerCase() || 'programada';
+
+  if (estadoNormalizado === 'cancelada') {
+    return { texto: 'Cancelada', color: themeColors.error || '#EF4444', bg: '#FEF2F2', esHistorial: true };
+  }
+  if (estadoNormalizado === 'completada') {
+    return { texto: 'Completada', color: '#3B82F6', bg: '#EFF6FF', esHistorial: true };
+  }
+
+  const fechaCita = new Date(fechaHoraIso);
+  const ahora = new Date();
+
+  if (estadoNormalizado === 'programada' && fechaCita < ahora) {
+    return { texto: 'Pasada', color: '#F59E0B', bg: '#FFFBEB', esHistorial: true };
+  }
+  return { texto: 'Programada', color: themeColors.primary || '#10B981', bg: '#F0FDF4', esHistorial: false };
+}
+
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   appointment,
   refreshData,
@@ -62,7 +82,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const [eliminando, setEliminando] = useState(false);
   const navigation = useNavigation<any>();
 
-  const esHistorico = appointment.estado !== 'programada';
+  const [modalCancelarVisible, setModalCancelarVisible] = useState(false);
+  const [modalCanceladaVisible, setModalCanceladaVisible] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
+
+  const estadoVisual = obtenerEstadoDinamico(appointment.estado, appointment.fecha_hora)
+
+  const esHistorico = estadoVisual.esHistorial;
   const { fecha, hora } = formatearFechaHora(appointment.fecha_hora);
 
   const alternarExpansion = () => {
@@ -84,6 +110,20 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
       setEliminando(false);
     }
   };
+
+  const confirmarCancelacion = async () => {
+    try {
+      setCancelando(true);
+      await cancelarCita(appointment.id);
+      setModalCancelarVisible(false);
+      setModalCanceladaVisible(true);
+    } catch (err) {
+      console.log('Error cancelandoi cita:', err);
+      setModalCancelarVisible(false);
+    } finally {
+      setCancelando(false);
+    }
+  }
 
   const colorAccent = esHistorico ? themeColors.textMuted : themeColors.primary;
   const iconoEspecialidad = obtenerIconoEspecialidad(appointment.especialidad);
@@ -165,6 +205,15 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </TouchableOpacity>
 
             <TouchableOpacity
+            style={[estilos.botonAccion, estilos.botonCancelar]}
+            onPress={() => setModalCancelarVisible(true)}
+            activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="cancel" size={16} color={themeColors.error} />
+              <Text style={estilos.botonCancelar__texto}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={[estilos.botonAccion, estilos.botonEliminar]}
               onPress={() => setModalConfirmarVisible(true)}
               activeOpacity={0.8}
@@ -178,18 +227,36 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
       <ConfirmationModal
         esVisible={modalConfirmarVisible}
-        textoPregunta="¿Cancelar esta cita médica?"
+        textoPregunta="¿Eliminar esta cita por completo?"
         textoCancelar="No"
-        textoConfirmar={eliminando ? 'Cancelando...' : 'Sí, cancelar'}
+        textoConfirmar={eliminando ? 'Eliminando...' : 'Sí, eliminar'}
         alCancelar={() => !eliminando && setModalConfirmarVisible(false)}
         alConfirmar={() => !eliminando && void confirmarEliminacion()}
       />
 
+      <ConfirmationModal
+        esVisible={modalCancelarVisible}
+        textoPregunta="¿Cancelar esta cita médica? (Se mostrara en el historial)"
+        textoCancelar="No"
+        textoConfirmar={cancelando ? 'Cancelando...' : 'Si, cancelar'}
+        alCancelar={() => !cancelando && setModalCancelarVisible(false)}
+        alConfirmar={() => !cancelando && void confirmarCancelacion()}
+      />
+
       <SuccessModal
         esVisible={modalEliminadaVisible}
-        mensaje="La cita fue cancelada."
+        mensaje="La cita fue eliminada permanentemente."
         alTerminar={() => {
           setModalEliminadaVisible(false);
+          refreshData();
+        }}
+      />
+
+      <SuccessModal
+        esVisible={modalCanceladaVisible}
+        mensaje="La cita fue cancelada."
+        alTerminar={() => {
+          setModalCanceladaVisible(false);
           refreshData();
         }}
       />
@@ -243,6 +310,11 @@ const estilos = StyleSheet.create({
   textoTenue: {
     color: themeColors.textMuted,
   },
+  Badge:{
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
   filaFecha: {
     flexDirection: 'row',
     gap: 18,
@@ -283,7 +355,7 @@ const estilos = StyleSheet.create({
   },
   accionesRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 6,
     marginTop: 14,
     paddingTop: 14,
     borderTopWidth: 1,
@@ -296,13 +368,23 @@ const estilos = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   botonEditar: {
     backgroundColor: '#F1F5F9',
   },
   botonEditar__texto: {
     color: themeColors.text,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  botonCancelar:{
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: themeColors.error,
+  },
+  botonCancelar__texto:{
+    color: themeColors.error,
     fontWeight: '700',
     fontSize: 13,
   },

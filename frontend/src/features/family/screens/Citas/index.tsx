@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
@@ -28,6 +28,7 @@ export default function CitasScreen() {
   const [citasProximas, setCitasProximas] = useState<CitaDB[]>([]);
   const [citasHistorial, setCitasHistorial] = useState<CitaDB[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [filtroHistorial, setFiltroHistorial] = useState('Todas');
 
   useEffect(() => {
     if (nombreAdulto || !idAdultoMayor || esAdultoMismo) return;
@@ -82,11 +83,22 @@ export default function CitasScreen() {
     }, [cargarCitas]),
   );
 
-  const datos = tabActivo === 'proximas' ? citasProximas : citasHistorial;
+  const historialFiltrado = citasHistorial.filter((cita) => {
+    if (filtroHistorial === 'Todas') return true;
+    const estadoDB = (cita.estado || '').toLowerCase();
+    if (filtroHistorial === 'Completadas' && estadoDB === 'completada') return true;
+    if (filtroHistorial === 'Canceladas' && estadoDB === 'cancelada') return true;
+    return false;
+  });
+
+  const datos = tabActivo === 'proximas' ? citasProximas : historialFiltrado;
+  
   const mensajeVacio =
     tabActivo === 'proximas'
       ? 'No hay citas médicas programadas.'
-      : 'Aún no hay citas en el historial.';
+      : filtroHistorial === 'Todas'
+      ? 'Aún no hay citas en el historial.'
+      : `No hay citas ${filtroHistorial.toLowerCase()} en este momento`;
 
   return (
     <View style={citasStyles.contenedor}>
@@ -129,6 +141,40 @@ export default function CitasScreen() {
         </TouchableOpacity>
       </View>
 
+      {tabActivo === 'historial' && !cargando && (
+        <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 15 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {['Todas', 'Completadas', 'Canceladas'].map((filtro) => {
+              const activo = filtroHistorial === filtro;
+              return (
+                <TouchableOpacity
+                  key={filtro}
+                  style={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 18,
+                    borderRadius: 25,
+                    backgroundColor: activo ? '#ECFDF5' : '#FFFFFF',
+                    marginRight: 10,
+                    borderWidth: 1,
+                    borderColor: activo ? '#00E676' : '#E2E8F0',
+                  }}
+                  onPress={() => setFiltroHistorial(filtro)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ 
+                    fontWeight: activo ? '700' : '600', 
+                    color: activo ? '#0F172A' : '#64748B',
+                    fontSize: 14 
+                  }}>
+                    {filtro}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       <View style={{ flex: 1 }}>
         {cargando ? (
           <ActivityIndicator size="large" color="#00E676" style={{ marginTop: 60 }} />
@@ -142,6 +188,7 @@ export default function CitasScreen() {
                 refreshData={cargarCitas}
                 idAdultoMayor={idAdultoMayor}
                 nombreAdulto={nombreAdulto}
+                readOnly={tabActivo === 'historial'}
               />
             )}
             contentContainerStyle={citasStyles.listContainer}
