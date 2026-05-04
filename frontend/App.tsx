@@ -69,6 +69,7 @@ const moduloDispositivo = NativeModules.SAMMDeviceToken;
  */
 export default function App() {
   const navigationRef = useRef<NavigationContainerRef<any> | null>(null);
+  const notificacionSosPendienteRef = useRef<any | null>(null);
 
   const [bloqueoVisible, setBloqueoVisible] = useState(false);
   const [bloqueoCargando, setBloqueoCargando] = useState(false);
@@ -117,6 +118,52 @@ export default function App() {
       desbloqueoEnCursoRef.current = false;
     }
   }, []);
+
+  const extraerDatosNotificacion = useCallback((data: any) => {
+    if (!data) return {};
+    const datosBase =
+      data && typeof data === 'object' && data.datos && typeof data.datos === 'object'
+        ? data.datos
+        : data;
+
+    if (typeof datosBase === 'string') {
+      try {
+        return JSON.parse(datosBase);
+      } catch {
+        return {};
+      }
+    }
+
+    return datosBase;
+  }, []);
+
+  const navegarASos = useCallback((datosEntrada: any) => {
+    const datos = extraerDatosNotificacion(datosEntrada);
+    const navigation = navigationRef.current;
+
+    if (!navigation?.isReady()) {
+      notificacionSosPendienteRef.current = datos;
+      return;
+    }
+
+    const idAdultoRaw = datos.id_adulto ?? datos.idAdulto ?? null;
+    const idAdulto = typeof idAdultoRaw === 'string' ? Number(idAdultoRaw) : idAdultoRaw;
+
+    navigation.navigate('NecesitaAyuda', {
+      idAdulto: Number.isFinite(idAdulto) ? idAdulto : undefined,
+      nombreAdultoMayor: datos.nombreAdulto || 'Tu familiar',
+      nombreContacto: datos.nombreAdulto || 'Tu familiar',
+      telefono: datos.telefono || '',
+    });
+  }, [extraerDatosNotificacion]);
+
+  const procesarSosPendiente = useCallback(() => {
+    const datosPendientes = notificacionSosPendienteRef.current;
+    if (!datosPendientes) return;
+
+    notificacionSosPendienteRef.current = null;
+    navegarASos(datosPendientes);
+  }, [navegarASos]);
 
   useEffect(() => {
     let activo = true;
@@ -181,20 +228,15 @@ export default function App() {
   // El registro del token de notificaciones se hace en authStore (login/register/asignarRol).
   // Al tocar la notificación, abrir la pantalla correspondiente.
   useEffect(() => {
-    const manejarRespuesta = (response: Notifications.NotificationResponse) => {
-      const datos = response.notification.request.content.data as any;
-      if (!datos?.tipo || !navigationRef.current) return;
+    const manejarNotificacionRecibida = (notificacion: Notifications.Notification) => {
+      const datos = extraerDatosNotificacion(notificacion.request.content.data as any);
+      const tipo = String(datos?.tipo || '').trim().toLowerCase();
+      if (!tipo || !navigationRef.current) return;
 
-      if (datos.tipo === 'recordatorio_medicamento') {
-        navigationRef.current.navigate('RecordatorioMedicamento', {
-          idMedicamento: datos.idMedicamento,
-          idHorario: datos.idHorario,
-          nombreMedicamento: datos.nombreMedicamento,
-          dosis: datos.dosis,
-          notas: datos.notas,
-          horaToma: datos.horaToma,
-        });
-      } else if (datos.tipo === 'alerta_familiar') {
+      // Para SOS, si el familiar tiene la app abierta, redirigimos de inmediato.
+      if (tipo === 'sos_familiar') {
+        navegarASos(datos);
+      } else if (tipo === 'alerta_familiar') {
         navigationRef.current.navigate('AlertaMedicamento', {
           idAdulto: datos.id_adulto ?? datos.idAdulto,
           nombreAdulto: datos.nombreAdulto,
@@ -203,23 +245,49 @@ export default function App() {
           horaToma: datos.horaToma,
           tipo: datos.tipoAlerta,
         });
-      } else if (datos.tipo === 'sos_familiar') {
-        navigationRef.current.navigate('NecesitaAyuda', {
-          nombreAdultoMayor: datos.nombreAdulto || 'Tu familiar',
-          nombreContacto: datos.nombreAdulto || 'Tu familiar',
-          telefono: datos.telefono || '',
-        });
       }
     };
 
+    const manejarRespuesta = (response: Notifications.NotificationResponse) => {
+      const datos = extraerDatosNotificacion(response.notification.request.content.data as any);
+      const tipo = String(datos?.tipo || '').trim().toLowerCase();
+      if (!tipo || !navigationRef.current) return;
+
+      if (tipo === 'recordatorio_medicamento') {
+        navigationRef.current.navigate('RecordatorioMedicamento', {
+          idMedicamento: datos.idMedicamento,
+          idHorario: datos.idHorario,
+          nombreMedicamento: datos.nombreMedicamento,
+          dosis: datos.dosis,
+          notas: datos.notas,
+          horaToma: datos.horaToma,
+        });
+      } else if (tipo === 'alerta_familiar') {
+        navigationRef.current.navigate('AlertaMedicamento', {
+          idAdulto: datos.id_adulto ?? datos.idAdulto,
+          nombreAdulto: datos.nombreAdulto,
+          rolAdulto: datos.rolAdulto || datos.rol_adulto_mayor,
+          nombreMedicamento: datos.nombreMedicamento,
+          horaToma: datos.horaToma,
+          tipo: datos.tipoAlerta,
+        });
+      } else if (tipo === 'sos_familiar') {
+        navegarASos(datos);
+      }
+    };
+
+    const suscripcionRecibida = Notifications.addNotificationReceivedListener(manejarNotificacionRecibida);
     const suscripcion = Notifications.addNotificationResponseReceivedListener(manejarRespuesta);
 
     Notifications.getLastNotificationResponseAsync().then((ultima) => {
       if (ultima) manejarRespuesta(ultima);
     });
 
-    return () => suscripcion.remove();
-  }, []);
+    return () => {
+      suscripcionRecibida.remove();
+      suscripcion.remove();
+    };
+  }, [extraerDatosNotificacion, navegarASos]);
 
   const autenticado = useAuthStore((state) => state.autenticado);
   const usuario = useAuthStore((state) => state.usuario);
@@ -242,13 +310,13 @@ export default function App() {
       <PaperProvider theme={theme}>
         <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
         <MonitorActualizaciones />
-        <NavigationContainer ref={navigationRef} linking={linking}>
+        <NavigationContainer ref={navigationRef} linking={linking} onReady={procesarSosPendiente}>
           <Stack.Navigator
           //Esta linea de abajo es para cargar una pantalla en especifico no deberia de afectar en nada amenos de que lo activen
            // initialRouteName="Perfil"
             // Configuracion original: sin initialRouteName (comienza en la primera pantalla registrada)
           // initialRouteName="Initial"
-            //initialRouteName={rutaInicial as any}
+            initialRouteName={rutaInicial as any}
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: theme.colors.background },

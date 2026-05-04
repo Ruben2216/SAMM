@@ -32,6 +32,7 @@ import {
 import {
   registrarParaNotificaciones,
 } from '../../../../services/notificationService';
+import { sincronizarConfiguracionSupervision } from '../../../../services/supervisionService';
 
 interface VinculacionInfo {
   Id_Vinculacion: number;
@@ -442,16 +443,45 @@ export const MiPerfilFamiliar: React.FC = () => {
     });
   };
 
-  const manejarSeleccionSupervision = (tipo: TipoSelectorSupervision, valor: string) => {
+  const manejarSeleccionSupervision = async (tipo: TipoSelectorSupervision, valor: string) => {
     if (!idUsuarioAutenticado) {
       setSelectorAbierto(null);
       return;
     }
 
-    if (tipo === 'frecuencia') {
-      actualizarPreferencia(idUsuarioAutenticado, 'frecuenciaRastreo', valor);
-    } else {
-      actualizarPreferencia(idUsuarioAutenticado, 'tiempoMaxSinReporte', valor);
+    const frecuenciaRastreoSeleccionada =
+      tipo === 'frecuencia' ? valor : preferencias.frecuenciaRastreo;
+    const tiempoMaxSinReporteSeleccionado =
+      tipo === 'tiempo' ? valor : preferencias.tiempoMaxSinReporte;
+
+    const idsAdultosMayores = vinculaciones.map(
+      (vinculacion) => vinculacion.Id_Adulto_Mayor,
+    );
+
+    try {
+      await sincronizarConfiguracionSupervision({
+        idFamiliar: idUsuarioAutenticado,
+        idsAdultosMayores,
+        frecuenciaEtiqueta: frecuenciaRastreoSeleccionada,
+        tiempoMaxEtiqueta: tiempoMaxSinReporteSeleccionado,
+      });
+
+      actualizarPreferencia(
+        idUsuarioAutenticado,
+        'frecuenciaRastreo',
+        frecuenciaRastreoSeleccionada,
+      );
+      actualizarPreferencia(
+        idUsuarioAutenticado,
+        'tiempoMaxSinReporte',
+        tiempoMaxSinReporteSeleccionado,
+      );
+    } catch (error: any) {
+      console.error('[PerfilFamiliar] Error guardando configuración de supervisión:', error);
+      Alert.alert(
+        'No se pudo actualizar supervisión',
+        'Intenta de nuevo. Verifica que los microservicios estén encendidos.',
+      );
     }
 
     setSelectorAbierto(null);

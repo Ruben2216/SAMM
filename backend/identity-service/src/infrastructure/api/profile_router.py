@@ -261,6 +261,7 @@ def obtener_perfil_interno(
         "url_Avatar": usuario.url_Avatar,
         # Correo como contacto de respaldo (el familiar puede llamar/SMS)
         "Correo":     usuario.Correo,
+        "Telefono":   usuario.Telefono,
     }
 
 

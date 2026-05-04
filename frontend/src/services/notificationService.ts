@@ -73,8 +73,8 @@ const asegurarCanalesAndroid = async (): Promise<void> => {
   await Notifications.setNotificationChannelAsync(CANAL_ALERTA_FAMILIAR, {
     name: 'Alertas del familiar',
     description: 'Avisos sobre la medicación de tu adulto mayor',
-    importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 150, 250],
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 500, 250, 500, 250, 500],
     lightColor: '#2563EB',
     sound: 'default',
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
@@ -406,6 +406,8 @@ export async function notificarSosAFamiliares(idUsuario: number): Promise<void> 
         cuerpo: '{nombreAdulto} ha solicitado asistencia urgente',
         datos: {
           tipo: 'sos_familiar',
+          id_adulto: idUsuario,
+          ts: Date.now(),
         },
       }),
     });

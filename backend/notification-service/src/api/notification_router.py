@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 
 from src.infrastructure.database import obtener_sesion
-from src.domain.models import PushTokenModel
+from src.domain.models import PushTokenModel, SupervisionConfigModel
 from src.domain import schemas
 from src.application.push_service import (
     enviar_push_a_tokens,
@@ -20,6 +20,54 @@ from src.application.push_service import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Notifications"])
+
+
+@router.put("/supervision/configuracion", response_model=schemas.SupervisionConfigResponse)
+def guardar_config_supervision(
+    body: schemas.SupervisionConfigUpsertRequest,
+    db: Session = Depends(obtener_sesion),
+):
+    config = db.query(SupervisionConfigModel).filter_by(Id_Familiar=body.id_familiar).first()
+
+    if config is None:
+        config = SupervisionConfigModel(
+            Id_Familiar=body.id_familiar,
+            Frecuencia_Minutos=body.frecuencia_minutos,
+            Tiempo_Max_Sin_Reporte_Minutos=body.tiempo_max_sin_reporte_minutos,
+        )
+        db.add(config)
+    else:
+        config.Frecuencia_Minutos = body.frecuencia_minutos
+        config.Tiempo_Max_Sin_Reporte_Minutos = body.tiempo_max_sin_reporte_minutos
+
+    db.commit()
+
+    return schemas.SupervisionConfigResponse(
+        id_familiar=config.Id_Familiar,
+        frecuencia_minutos=config.Frecuencia_Minutos,
+        tiempo_max_sin_reporte_minutos=config.Tiempo_Max_Sin_Reporte_Minutos,
+    )
+
+
+@router.get("/supervision/configuracion/{id_familiar}", response_model=schemas.SupervisionConfigResponse)
+def obtener_config_supervision(
+    id_familiar: int,
+    db: Session = Depends(obtener_sesion),
+):
+    config = db.query(SupervisionConfigModel).filter_by(Id_Familiar=id_familiar).first()
+
+    if config is None:
+        return schemas.SupervisionConfigResponse(
+            id_familiar=id_familiar,
+            frecuencia_minutos=15,
+            tiempo_max_sin_reporte_minutos=60,
+        )
+
+    return schemas.SupervisionConfigResponse(
+        id_familiar=config.Id_Familiar,
+        frecuencia_minutos=config.Frecuencia_Minutos,
+        tiempo_max_sin_reporte_minutos=config.Tiempo_Max_Sin_Reporte_Minutos,
+    )
 
 
 # --------- Gestión de tokens ---------
