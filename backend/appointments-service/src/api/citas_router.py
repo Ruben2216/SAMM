@@ -29,6 +29,18 @@ def actualizar_cita(cita_id: int, cita_actualizada: schemas.CitaUpdate, db: Sess
     db.refresh(cita_db)
     return cita_db
 
+@router.put("/{cita_id}/cancelar", response_model=schemas.CitaResponse)
+def cancelar_cita(cita_id: int, db: Session = Depends(get_db)):
+    cita_db = db.query(models.Cita).filter(models.Cita.id == cita_id).first()
+    if not cita_db:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")   
+    if cita_db.estado != 'programada':
+        raise HTTPException(status_code=400, detail=f"No se puede cancelar una cita ya {cita_db.estado}")
+    cita_db.estado = 'cancelada'
+    db.commit()
+    db.refresh(cita_db)
+    return cita_db
+
 @router.delete("/{cita_id}")
 def eliminar_cita(cita_id: int, db: Session = Depends(get_db)):
     cita_db = db.query(models.Cita).filter(models.Cita.id == cita_id).first()

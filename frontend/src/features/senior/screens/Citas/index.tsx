@@ -4,11 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 
-// Importamos el componente reciclado
 import { AppointmentCard } from '../../../family/screens/Citas/components/AppointmentCard';
 import { citasStyles, themeColors } from './styles';
 
-// Conexión al backend y autenticación
 import { obtenerCitasUsuario } from '../../../../services/citasService';
 import { useAuthStore } from '../../../auth/authStore';
 
@@ -26,14 +24,11 @@ export default function ProximasCitasSenior() {
   const cargarCitas = async () => {
     try {
       setCargando(true);
-      // Usamos el ID del adulto mayor logueado. Si no hay, intentamos con el ID temporal (2)
       const idUsuario = usuario?.Id_Usuario || 2; 
       const data = await obtenerCitasUsuario(idUsuario);
       
-      // Solo mostramos las citas "programadas"
       const citasProgramadas = data.filter((cita: any) => cita.estado === 'programada');
       
-      // Ordenamos por fecha
       citasProgramadas.sort((a: any, b: any) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
       
       setCitas(citasProgramadas);
@@ -78,7 +73,6 @@ export default function ProximasCitasSenior() {
             <AppointmentCard 
               appointment={item} 
               refreshData={cargarCitas} 
-              // ¡Este es el secreto! Le decimos a la tarjeta que sea de solo lectura
               readOnly={true} 
             />
           )}
