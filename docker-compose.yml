@@ -5,13 +5,14 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_DB: samm_db
-      POSTGRES_USER: SAMM
-      POSTGRES_PASSWORD: samm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/appointments-service/init_db.sql:/docker-entrypoint-initdb.d/02-appointments-init.sql
+      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/01-init-dbs.sql
+    restart: always
 
   redis:
     image: redis:7-alpine
@@ -19,27 +20,35 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: samm
-      RABBITMQ_DEFAULT_PASS: samm_password
-    ports:
-      - "5672:5672"  
-      - "15672:15672"  
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+    restart: always
 
   identity-service:
     build: ./backend/identity-service
     ports:
       - "8000:8000"
+    env_file: ./backend/identity-service/.env
     environment:
-      - DATABASE_URL=postgresql://SAMM:samm@postgres:5432/samm_db
-      - GOOGLE_WEB_CLIENT_ID=238255168182-2k6sgdo7moek39stcpdm4jo4otbpmovl.apps.googleusercontent.com
-      - JWT_SECRET_KEY=samm-secret-key-cambiar-en-produccion
-      - JWT_EXPIRATION_HOURS=24
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/samm_db
+    depends_on:
+      - postgres
+
+  medication-service:
+    build: ./backend/medication-service
+    ports:
+      - "8001:8001"
+    env_file: ./backend/medication-service/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/samm_medicamentos_db
+    depends_on:
+      - postgres
+
+  notification-service:
+    build: ./backend/notification-service
+    ports:
+      - "8002:8002"
+    env_file: ./backend/notification-service/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/samm_notificaciones_db
     depends_on:
       - postgres
 
@@ -47,12 +56,24 @@ services:
     build: ./backend/appointments-service
     ports:
       - "8004:8004"
+    env_file: ./backend/appointments-service/.env
     environment:
-      - DATABASE_URL=postgresql://SAMM:samm@postgres:5432/samm_citas_db
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/samm_citas_db
     depends_on:
       - postgres
+
+  tracking-service:
+    build: ./backend/tracking-service
+    ports:
+      - "8006:8006"
+    env_file: ./backend/tracking-service/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:1234@postgres:5432/samm_tracking_db
+      - TRACKING_SERVICE_URL=http://tracking-service:8006
+    depends_on:
+      - postgres
+      - redis
 
 volumes:
   postgres_data:
   redis_data:
-  rabbitmq_data:
