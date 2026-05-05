@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
 import { SuccessModal } from '../../../../components/ui/success-modal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Lun=1 ... Dom=7 (isoweekday). Chip visible en la UI.
 const DIAS = [
@@ -52,6 +53,7 @@ export const EstablecerHora = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const usuario = useAuthStore((s) => s.usuario);
+    const insets = useSafeAreaInsets();
     const datos = route.params?.medicamento || {};
     const esModoEditar = !!datos.id_medicamento;
 
@@ -240,7 +242,7 @@ export const EstablecerHora = () => {
                 )}
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
                 <TouchableOpacity
                     style={[styles.botonConfirmar, guardando && { opacity: 0.7 }]}
                     onPress={manejarConfirmacion}

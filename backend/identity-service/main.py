@@ -56,7 +56,7 @@ def _configurar_static_media() -> None:
 def startup():
     """Al iniciar el servidor, crea las tablas en PostgreSQL si no existen."""
     logger.info("[Startup] Aplicando migraciones SQL desde init_db.sql...")
-    aplicar_migraciones_desde_init_db()
+    #aplicar_migraciones_desde_init_db()
     logger.info("[Startup] Creando tablas en PostgreSQL si no existen...")
     Base.metadata.create_all(bind=engine)
     logger.info("[Startup] Tablas verificadas/creadas exitosamente")
