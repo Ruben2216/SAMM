@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 
@@ -29,6 +30,7 @@ export default function CitasScreen() {
   const [citasHistorial, setCitasHistorial] = useState<CitaDB[]>([]);
   const [cargando, setCargando] = useState(true);
   const [filtroHistorial, setFiltroHistorial] = useState('Todas');
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (nombreAdulto || !idAdultoMayor || esAdultoMismo) return;
@@ -204,7 +206,7 @@ export default function CitasScreen() {
       </View>
 
       {tabActivo === 'proximas' && idAdultoMayor > 0 && (
-        <View style={citasStyles.footer}>
+        <View style={[citasStyles.footer, {paddingBottom: insets.bottom > 0 ? insets.bottom + 10 : 25}]}>
           <TouchableOpacity
             style={citasStyles.botonGuardar}
             onPress={() => navigation.navigate('AgendarCita', { idAdultoMayor, nombreAdulto })}
