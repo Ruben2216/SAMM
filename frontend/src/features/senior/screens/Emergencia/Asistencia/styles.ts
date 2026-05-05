@@ -98,7 +98,7 @@ export const styles = StyleSheet.create({
   pieAcciones: {
     width: '100%',
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingBottom: Platform.OS === 'ios' ? 48 : 56,
   },
   seccionTitulo: {
     fontSize: 14,
