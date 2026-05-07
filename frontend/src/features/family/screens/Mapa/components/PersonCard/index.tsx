@@ -8,7 +8,6 @@ import { styles } from './PersonCard.styles';
 
 const SMS_MENSAJE = '¿En dónde estás? Comunícate conmigo, me tienes preocupado/a.';
 
-/** Extrae dos iniciales del nombre completo */
 const obtenerIniciales = (nombre: string): string => {
   const partes = nombre.trim().split(/\s+/).filter(Boolean);
   if (partes.length === 0) return '?';
@@ -88,6 +87,28 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
     );
   };
 
+  // ── NUEVO ──────────────────────────────────────────
+  const handleAlerta = () => {
+    Alert.alert(
+      '¿Llamar al 911?',
+      `¿Deseas reportar una emergencia por ${person.nombre}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Llamar al 911',
+          style: 'destructive',
+          onPress: () => {
+            Linking.openURL('tel:911').catch(() =>
+              Alert.alert('Error', 'No se pudo abrir la app de teléfono.')
+            );
+          },
+        },
+      ]
+    );
+    onAlert?.(); // sigue notificando al padre si lo necesita
+  };
+  // ───────────────────────────────────────────────────
+
   return (
     <TouchableOpacity
       style={[styles.card, isSelected && styles.cardSelected]}
@@ -95,7 +116,6 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
       activeOpacity={0.85}
     >
       <View style={styles.row}>
-        {/* ← Avatar con fallback a iniciales */}
         <Avatar foto={person.foto} nombre={person.nombre} size={52} />
 
         <View style={styles.info}>
@@ -125,7 +145,8 @@ export const PersonCard = ({ person, isSelected, onPress, onAlert }) => {
             <Text style={styles.actionText}>enviar msm</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.alertButton} onPress={onAlert}>
+          {/* ── CAMBIO: onAlert → handleAlerta ── */}
+          <TouchableOpacity style={styles.alertButton} onPress={handleAlerta}>
             <Ionicons name="warning-outline" size={16} color="#fff" />
             <Text style={styles.alertText}>Alerta</Text>
           </TouchableOpacity>
