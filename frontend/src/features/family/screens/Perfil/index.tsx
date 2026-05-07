@@ -25,6 +25,7 @@ import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { ConfirmationModal } from '../../../../components/ui/confirmation-modal';
 import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
+import { construirUrlAvatar } from '../../../../utils/avatarUrl';
 import {
   type ConfiguracionFamiliar,
   useFamilyPreferencesStore,
@@ -272,17 +273,6 @@ export const MiPerfilFamiliar: React.FC = () => {
     return `${partes[0]?.[0] ?? ''}${partes[2]?.[0] ?? ''}`.toUpperCase();
   };
 
-  const construirUriAvatar = (urlAvatar: string) => {
-    const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
-    const ruta = urlAvatar.trim();
-
-    if (!ruta) return '';
-    if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
-    if (!baseUrl) return ruta;
-
-    return `${baseUrl}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
-  };
-
   const seleccionarImagenDeGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -519,9 +509,7 @@ export const MiPerfilFamiliar: React.FC = () => {
 
   const nombrePerfil = (usuarioAutenticado?.Nombre ?? state.nombre).trim();
   const correoPerfil = (usuarioAutenticado?.Correo ?? state.correo).trim();
-  const uriAvatar = usuarioAutenticado?.url_Avatar
-    ? construirUriAvatar(usuarioAutenticado.url_Avatar)
-    : '';
+  const uriAvatar = construirUrlAvatar(usuarioAutenticado?.url_Avatar, httpClient.defaults.baseURL ?? undefined);
   const tieneAvatar = Boolean(uriAvatar);
 
   return (
@@ -593,9 +581,7 @@ export const MiPerfilFamiliar: React.FC = () => {
               ? styles.filaFamilia__textoAvatarYo
               : styles.filaFamilia__textoAvatar;
 
-            const uriAvatarMiembro = familiar.urlAvatar
-              ? construirUriAvatar(familiar.urlAvatar)
-              : '';
+            const uriAvatarMiembro = construirUrlAvatar(familiar.urlAvatar, httpClient.defaults.baseURL ?? undefined);
             const tieneAvatarMiembro = Boolean(uriAvatarMiembro);
 
             return (

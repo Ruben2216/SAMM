@@ -8,17 +8,30 @@
  * que leerlo aqui: data.Telefono ?? ''
  */
 
-import { PersonReport } from '../features/family/screens/Mapa/mapa.types';
 import { API_URLS } from '../config/api';
+import { construirUrlAvatar } from '../utils/avatarUrl';
+
+interface PersonReport {
+  id: string;
+  nombre: string;
+  foto: string | null;
+  telefono: string;
+  estado: string;
+  direccion: string;
+  lat: number;
+  lng: number;
+  ultimaActualizacion: string;
+  rastreoActivo: boolean;
+}
 
 const TRACKING_API_URL = API_URLS.tracking;
 const IDENTITY_API_URL = API_URLS.identity;
 
-const _perfilCache: Record<number, { nombre: string; foto: string; telefono: string }> = {};
+const _perfilCache: Record<number, { nombre: string; foto: string | null; telefono: string }> = {};
 
 async function obtenerPerfilAdulto(
   idAdultoMayor: number
-): Promise<{ nombre: string; foto: string; telefono: string }> {
+): Promise<{ nombre: string; foto: string | null; telefono: string }> {
 
   if (_perfilCache[idAdultoMayor]) {
     return _perfilCache[idAdultoMayor];
@@ -32,17 +45,11 @@ async function obtenerPerfilAdulto(
     if (res.ok) {
       const data = await res.json();
 
-      let fotoUrl: string | null = data.url_Avatar ?? null;
-      if (fotoUrl) {
-        if (!fotoUrl.startsWith('http://') && !fotoUrl.startsWith('https://')) {
-          // Relativa → prependemos IDENTITY_API_URL (igual que httpClient.baseURL en Perfil)
-          fotoUrl = `${IDENTITY_API_URL}${fotoUrl.startsWith('/') ? '' : '/'}${fotoUrl}`;
-        }
-      }
+      const fotoUrl = construirUrlAvatar(data.url_Avatar, IDENTITY_API_URL);
 
-      const perfil = {
+      const perfil: { nombre: string; foto: string | null; telefono: string } = {
         nombre:   data.Nombre   ?? `Usuario ${idAdultoMayor}`,
-        foto:     fotoUrl ?? null,   // null en vez de pravatar
+        foto:     fotoUrl || null,
         telefono: data.Telefono ?? '',
       };
 
@@ -55,7 +62,7 @@ async function obtenerPerfilAdulto(
 
   return {
     nombre:   `Usuario ${idAdultoMayor}`,
-    foto:     `https://i.pravatar.cc/150?u=${idAdultoMayor}`,
+    foto:     null,
     telefono: '',
   };
 }

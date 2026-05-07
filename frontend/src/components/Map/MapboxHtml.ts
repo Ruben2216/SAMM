@@ -4,10 +4,23 @@ export const MAPBOX_HTML = `
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
   <style>
-    body, html, #mapa { width: 100%; height: 100%; margin: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #f8f9fa;
+      touch-action: none;
+    }
+    #mapa {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
@@ -19,22 +32,46 @@ export const MAPBOX_HTML = `
       container: 'mapa',
       style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [-77.09, 38.98],
-      zoom: 14
+      zoom: 14,
+      dragRotate: false,
+      pitchWithRotate: false
     });
 
+    mapa.doubleClickZoom.disable();
+
     window.__samm_mapa = mapa;
-    window.sammMarkers = [];
+    window.sammMarkers = {};
 
     window.sammSetPersons = function(personas) {
-      window.sammMarkers.forEach(m => m.remove());
-      window.sammMarkers = [];
+      const idsRecibidos = new Set();
 
       personas.forEach(p => {
-        const marker = new mapboxgl.Marker()
-          .setLngLat([p.lng, p.lat])
+        const lat = Number(p.lat);
+        const lng = Number(p.lng);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return;
+        }
+
+        idsRecibidos.add(String(p.id));
+
+        if (window.sammMarkers[p.id]) {
+          window.sammMarkers[p.id].setLngLat([lng, lat]);
+          return;
+        }
+
+        const marker = new mapboxgl.Marker({ color: '#1D9E75' })
+          .setLngLat([lng, lat])
           .addTo(mapa);
 
-        window.sammMarkers.push(marker);
+        window.sammMarkers[p.id] = marker;
+      });
+
+      Object.keys(window.sammMarkers).forEach(id => {
+        if (!idsRecibidos.has(String(id))) {
+          window.sammMarkers[id].remove();
+          delete window.sammMarkers[id];
+        }
       });
     };
   </script>

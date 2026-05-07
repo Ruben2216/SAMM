@@ -17,6 +17,7 @@ import { styles } from './styles';
 import { useAuthStore } from '../../../auth/authStore';
 import httpClient from '../../../../services/httpService';
 import { obtenerParentescoDelAdultoParaFamiliar } from '../../../../utils/parentescoFormatter';
+import { construirUrlAvatar } from '../../../../utils/avatarUrl';
 
 interface VinculacionInfo {
     Id_Vinculacion: number;
@@ -68,17 +69,6 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
     const scrollTarjetasRef = useRef<ScrollView>(null);
 
     const apiMedicamentos = process.env.EXPO_PUBLIC_API_URL_MEDICAMENTOS || 'http://192.168.0.17:8001';
-
-    const construirUriAvatar = (urlAvatar: string) => {
-        const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
-        const ruta = urlAvatar.trim();
-
-        if (!ruta) return '';
-        if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
-        if (!baseUrl) return ruta;
-
-        return `${baseUrl}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
-    };
 
     const obtenerInicialesNombre = (nombreCompleto: string) => {
         const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
@@ -226,7 +216,7 @@ export const Inicio = ({ navigation }: { navigation: any }) => {
                                     'Adulto Mayor';
                                 const iniciales = obtenerInicialesNombre(nombre);
                                 const uriAvatar = v.url_Avatar_Adulto_Mayor
-                                    ? construirUriAvatar(v.url_Avatar_Adulto_Mayor)
+                                    ? construirUrlAvatar(v.url_Avatar_Adulto_Mayor, httpClient.defaults.baseURL ?? undefined)
                                     : '';
                                 const tieneAvatar = Boolean(uriAvatar);
 

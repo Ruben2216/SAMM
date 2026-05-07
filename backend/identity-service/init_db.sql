@@ -1,85 +1,153 @@
-CREATE TABLE public."Usuarios" (
-    "Id_Usuario" integer NOT NULL,
-    "Nombre" character varying(150) NOT NULL,
-    "Correo" character varying(255) NOT NULL,
-    "Contrasena_Hash" character varying(255),
-    "Proveedor_Auth" character varying(20) NOT NULL,
-    "Google_Id" character varying(255),
-    "url_Avatar" character varying(2048),
-    "Rol" character varying(20),
-    "Activo" boolean,
-    "Fecha_Registro" date DEFAULT CURRENT_DATE NOT NULL,
-    "Codigo_Vinculacion" character varying(5),
-    sexo character varying(10) DEFAULT 'Otro'::character varying NOT NULL,
-    "Telefono" character varying(30),
-    CONSTRAINT ck_usuarios_sexo CHECK (((sexo)::text = ANY ((ARRAY['Hombre'::character varying, 'Mujer'::character varying, 'Otro'::character varying])::text[])))
+-- ============================================================
+-- SAMM — Script de inicialización de Base de Datos
+-- PostgreSQL
+-- ============================================================
+
+-- 2. Crear la base de datos
+CREATE DATABASE samm_db;
+
+-- 3. Conectarse a la base de datos
+\c samm_db
+
+-- 5. Crear la tabla Usuarios
+CREATE TABLE IF NOT EXISTS "Usuarios" (
+    "Id_Usuario"        SERIAL PRIMARY KEY,
+    "Nombre"            VARCHAR(150) NOT NULL,
+    "Correo"            VARCHAR(255) UNIQUE NOT NULL,
+    "Contrasena_Hash"   VARCHAR(255),
+    "Proveedor_Auth"    VARCHAR(20) NOT NULL DEFAULT 'local',
+    "Google_Id"         VARCHAR(255) UNIQUE,
+    "url_Avatar"        VARCHAR(2048),
+    "Rol"               VARCHAR(20),
+    "Activo"            BOOLEAN DEFAULT TRUE,
+    "Fecha_Registro"    DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
-CREATE SEQUENCE public."Usuarios_Id_Usuario_seq"
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-ALTER SEQUENCE public."Usuarios_Id_Usuario_seq" OWNED BY public."Usuarios"."Id_Usuario";
-ALTER TABLE ONLY public."Usuarios" ALTER COLUMN "Id_Usuario" SET DEFAULT nextval('public."Usuarios_Id_Usuario_seq"'::regclass);
-ALTER TABLE ONLY public."Usuarios" ADD CONSTRAINT "Usuarios_pkey" PRIMARY KEY ("Id_Usuario");
-ALTER TABLE ONLY public."Usuarios" ADD CONSTRAINT "Usuarios_Codigo_Vinculacion_key" UNIQUE ("Codigo_Vinculacion");
+-- Campo sexo (para parentescos recíprocos).
+ALTER TABLE "Usuarios"
+ADD COLUMN IF NOT EXISTS "sexo" VARCHAR(10) NOT NULL DEFAULT 'Otro';
 
-CREATE TABLE public."Dispositivos" (
-    "Id_Dispositivo" integer NOT NULL,
-    "Id_Usuario" integer NOT NULL,
-    "Token_Hash" character varying(64) NOT NULL,
-    "Activo" boolean NOT NULL,
-    "Creado_En" timestamp with time zone DEFAULT now() NOT NULL,
-    "Ultimo_Uso_En" timestamp with time zone DEFAULT now() NOT NULL
+-- Constraint (idempotente)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_usuarios_sexo') THEN
+        ALTER TABLE "Usuarios"
+        ADD CONSTRAINT ck_usuarios_sexo
+            CHECK ("sexo" IN ('Hombre', 'Mujer', 'Otro'));
+    END IF;
+END $$;
+
+-- === README (líneas 96-119): Código de vinculación + tabla Vinculaciones ===
+
+-- ALTER TABLE "Usuarios" ADD Codigo_Vinculacion VARCHAR(5) UNIQUE;
+ALTER TABLE "Usuarios"
+ADD COLUMN IF NOT EXISTS "Codigo_Vinculacion" VARCHAR(5);
+
+-- Unicidad (permite múltiples NULL)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_codigo_vinculacion
+ON "Usuarios" ("Codigo_Vinculacion")
+WHERE "Codigo_Vinculacion" IS NOT NULL;
+
+-- CREATE TABLE "Vinculaciones" (...)
+CREATE TABLE IF NOT EXISTS "Vinculaciones" (
+    "Id_Vinculacion" SERIAL PRIMARY KEY,
+    "Id_Familiar" INT NOT NULL,
+    "Id_Adulto_Mayor" INT NOT NULL,
+    "Fecha_Vinculacion" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "Nombre_Circulo" VARCHAR(100),
+    "Rol_Adulto_Mayor" VARCHAR(50),
+    "Rol_Familiar" VARCHAR(50)
 );
 
-CREATE SEQUENCE public."Dispositivos_Id_Dispositivo_seq"
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-ALTER SEQUENCE public."Dispositivos_Id_Dispositivo_seq" OWNED BY public."Dispositivos"."Id_Dispositivo";
-ALTER TABLE ONLY public."Dispositivos" ALTER COLUMN "Id_Dispositivo" SET DEFAULT nextval('public."Dispositivos_Id_Dispositivo_seq"'::regclass);
-ALTER TABLE ONLY public."Dispositivos" ADD CONSTRAINT "Dispositivos_pkey" PRIMARY KEY ("Id_Dispositivo");
+-- ALTER TABLE "Vinculaciones" ADD COLUMN "Nombre_Circulo" ...;
+ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Nombre_Circulo" VARCHAR(100);
 
-CREATE TABLE public."Estados_Dispositivo" (
-    "Id_Usuario" integer NOT NULL,
-    "Bateria_Porcentaje" integer NOT NULL,
-    "Bateria_Cargando" boolean DEFAULT false NOT NULL,
-    "Actualizado_En" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT ck_estado_dispositivo_bateria CHECK ((("Bateria_Porcentaje" >= 0) AND ("Bateria_Porcentaje" <= 100)))
+-- ALTER TABLE "Vinculaciones" ADD COLUMN "Rol_Adulto_Mayor" ...;
+ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Rol_Adulto_Mayor" VARCHAR(50);
+
+-- Rol recíproco (lo que verá el Familiar respecto al Adulto Mayor)
+ALTER TABLE "Vinculaciones" ADD COLUMN IF NOT EXISTS "Rol_Familiar" VARCHAR(50);
+
+-- Constraints fk_familiar / fk_adulto (idempotente)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_familiar') THEN
+        ALTER TABLE "Vinculaciones"
+        ADD CONSTRAINT fk_familiar
+            FOREIGN KEY ("Id_Familiar") REFERENCES "Usuarios"("Id_Usuario");
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_adulto') THEN
+        ALTER TABLE "Vinculaciones"
+        ADD CONSTRAINT fk_adulto
+            FOREIGN KEY ("Id_Adulto_Mayor") REFERENCES "Usuarios"("Id_Usuario");
+    END IF;
+END $$;
+
+-- === Estado del dispositivo (batería) — Normalización (3FN)
+-- Tabla 1:1 con Usuarios para guardar el último estado reportado del dispositivo.
+CREATE TABLE IF NOT EXISTS "Estados_Dispositivo" (
+    "Id_Usuario" INT PRIMARY KEY,
+    "Bateria_Porcentaje" INT NOT NULL,
+    "Bateria_Cargando" BOOLEAN NOT NULL DEFAULT FALSE,
+    "Actualizado_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE ONLY public."Estados_Dispositivo" ADD CONSTRAINT "Estados_Dispositivo_pkey" PRIMARY KEY ("Id_Usuario");
+-- Constraints (idempotentes)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_estado_dispositivo_usuario') THEN
+        ALTER TABLE "Estados_Dispositivo"
+        ADD CONSTRAINT fk_estado_dispositivo_usuario
+            FOREIGN KEY ("Id_Usuario") REFERENCES "Usuarios"("Id_Usuario")
+            ON DELETE CASCADE;
+    END IF;
 
-CREATE TABLE public."Vinculaciones" (
-    "Id_Vinculacion" integer NOT NULL,
-    "Id_Familiar" integer NOT NULL,
-    "Id_Adulto_Mayor" integer NOT NULL,
-    "Fecha_Vinculacion" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    "Nombre_Circulo" character varying(100),
-    "Rol_Adulto_Mayor" character varying(50),
-    "Rol_Familiar" character varying(50)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_estado_dispositivo_bateria') THEN
+        ALTER TABLE "Estados_Dispositivo"
+        ADD CONSTRAINT ck_estado_dispositivo_bateria
+            CHECK ("Bateria_Porcentaje" >= 0 AND "Bateria_Porcentaje" <= 100);
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_estados_dispositivo_actualizado_en
+ON "Estados_Dispositivo" ("Actualizado_En");
+
+-- === Dispositivos (token de dispositivo para reportes en background) — Normalización / seguridad
+-- Guardamos el token en el cliente, en BD solo se persiste el hash.
+CREATE TABLE IF NOT EXISTS "Dispositivos" (
+    "Id_Dispositivo" SERIAL PRIMARY KEY,
+    "Id_Usuario" INT NOT NULL,
+    "Token_Hash" CHAR(64) NOT NULL,
+    "Activo" BOOLEAN NOT NULL DEFAULT TRUE,
+    "Creado_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "Ultimo_Uso_En" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE SEQUENCE public."Vinculaciones_Id_Vinculacion_seq"
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
-ALTER SEQUENCE public."Vinculaciones_Id_Vinculacion_seq" OWNED BY public."Vinculaciones"."Id_Vinculacion";
-ALTER TABLE ONLY public."Vinculaciones" ALTER COLUMN "Id_Vinculacion" SET DEFAULT nextval('public."Vinculaciones_Id_Vinculacion_seq"'::regclass);
-ALTER TABLE ONLY public."Vinculaciones" ADD CONSTRAINT "Vinculaciones_pkey" PRIMARY KEY ("Id_Vinculacion");
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_dispositivos_usuario') THEN
+        ALTER TABLE "Dispositivos"
+        ADD CONSTRAINT fk_dispositivos_usuario
+            FOREIGN KEY ("Id_Usuario") REFERENCES "Usuarios"("Id_Usuario")
+            ON DELETE CASCADE;
+    END IF;
+END $$;
 
-CREATE UNIQUE INDEX idx_dispositivos_token_hash ON public."Dispositivos" USING btree ("Token_Hash");
-CREATE INDEX idx_dispositivos_usuario ON public."Dispositivos" USING btree ("Id_Usuario");
-CREATE INDEX ix_Dispositivos_Id_Usuario ON public."Dispositivos" USING btree ("Id_Usuario");
-CREATE UNIQUE INDEX ix_Dispositivos_Token_Hash ON public."Dispositivos" USING btree ("Token_Hash");
+-- Unicidad del hash (idempotente)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dispositivos_token_hash
+ON "Dispositivos" ("Token_Hash");
 
-CREATE INDEX idx_estados_dispositivo_actualizado_en ON public."Estados_Dispositivo" USING btree ("Actualizado_En");
+CREATE INDEX IF NOT EXISTS idx_dispositivos_usuario
+ON "Dispositivos" ("Id_Usuario");
 
-CREATE UNIQUE INDEX idx_usuarios_codigo_vinculacion ON public."Usuarios" USING btree ("Codigo_Vinculacion") WHERE ("Codigo_Vinculacion" IS NOT NULL);
-CREATE INDEX idx_usuarios_correo ON public."Usuarios" USING btree ("Correo");
-CREATE INDEX idx_usuarios_google_id ON public."Usuarios" USING btree ("Google_Id");
-CREATE UNIQUE INDEX ix_Usuarios_Correo ON public."Usuarios" USING btree ("Correo");
-CREATE UNIQUE INDEX ix_Usuarios_Google_Id ON public."Usuarios" USING btree ("Google_Id");
+-- 6. Crear índices para búsquedas frecuentes
+CREATE INDEX IF NOT EXISTS idx_usuarios_correo ON "Usuarios" ("Correo");
+CREATE INDEX IF NOT EXISTS idx_usuarios_google_id ON "Usuarios" ("Google_Id");
 
-ALTER TABLE ONLY public."Dispositivos" ADD CONSTRAINT "Dispositivos_Id_Usuario_fkey" FOREIGN KEY ("Id_Usuario") REFERENCES public."Usuarios"("Id_Usuario") ON DELETE CASCADE;
-ALTER TABLE ONLY public."Dispositivos" ADD CONSTRAINT fk_dispositivos_usuario FOREIGN KEY ("Id_Usuario") REFERENCES public."Usuarios"("Id_Usuario") ON DELETE CASCADE;
+-- 6.b. Teléfono de contacto (fuera de Perfil de Salud)
+ALTER TABLE "Usuarios" ADD COLUMN IF NOT EXISTS "Telefono" VARCHAR(30);
 
-ALTER TABLE ONLY public."Estados_Dispositivo" ADD CONSTRAINT fk_estado_dispositivo_usuario FOREIGN KEY ("Id_Usuario") REFERENCES public."Usuarios"("Id_Usuario") ON DELETE CASCADE;
 
-ALTER TABLE ONLY public."Vinculaciones" ADD CONSTRAINT fk_adulto FOREIGN KEY ("Id_Adulto_Mayor") REFERENCES public."Usuarios"("Id_Usuario");
-ALTER TABLE ONLY public."Vinculaciones" ADD CONSTRAINT fk_familiar FOREIGN KEY ("Id_Familiar") REFERENCES public."Usuarios"("Id_Usuario");
+-- 7. Verificar
+SELECT 'Tabla Usuarios creada exitosamente' AS resultado;
