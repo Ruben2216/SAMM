@@ -26,6 +26,7 @@ import * as ImagePicker from 'expo-image-picker';
 import {
   registrarParaNotificaciones,
 } from '../../../../services/notificationService';
+import { construirUrlAvatar } from '../../../../utils/avatarUrl';
 
 import { manejarToggleRastreo, obtenerEstadoRastreo } from '../../../../services/locationService';
 
@@ -228,17 +229,6 @@ export const Perfil = () => {
     }
   };
 
-  const construirUriAvatar = (urlAvatar: string) => {
-    const baseUrl = (httpClient.defaults.baseURL ?? '').replace(/\/$/, '');
-    const ruta = urlAvatar.trim();
-
-    if (!ruta) return '';
-    if (ruta.startsWith('http://') || ruta.startsWith('https://')) return ruta;
-    if (!baseUrl) return ruta;
-
-    return `${baseUrl}${ruta.startsWith('/') ? '' : '/'}${ruta}`;
-  };
-
   const seleccionarImagenDeGaleria = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -318,11 +308,11 @@ export const Perfil = () => {
 
   const nombreUsuario = usuario?.Nombre || 'Usuario';
   const iniciales = nombreUsuario.split(' ').map((p) => p[0]).join('').toUpperCase().substring(0, 2);
-  const uriAvatar = usuario?.url_Avatar ? construirUriAvatar(usuario.url_Avatar) : '';
+  const uriAvatar = construirUrlAvatar(usuario?.url_Avatar, httpClient.defaults.baseURL ?? undefined);
   const tieneAvatar = Boolean(uriAvatar);
 
   const uriAvatarCuidador = vinculacion?.url_Avatar_Familiar
-    ? construirUriAvatar(vinculacion.url_Avatar_Familiar)
+    ? construirUrlAvatar(vinculacion.url_Avatar_Familiar, httpClient.defaults.baseURL ?? undefined)
     : '';
   const tieneAvatarCuidador = Boolean(uriAvatarCuidador);
 
@@ -633,9 +623,9 @@ export const Perfil = () => {
         <Text style={styles.tituloSeccion}>UBICACIÓN</Text>
         <View style={styles.tarjetaSeccion}>
           <View style={[styles.filaSupervision, { paddingVertical: 14 }]}>
-            <View style={styles.filaSwitch__izquierda}>
+            <View style={styles.filaFamilia__izquierda}>
               <Icon name="map-marker-radius-outline" size={22} color={theme.colors.primary} />
-              <View style={styles.filaSwitch__texto}>
+              <View style={styles.filaFamilia__texto}>
                 <Text style={styles.filaSupervision__titulo}>Activar mi rastreo</Text>
                 <Text style={styles.filaSupervision__descripcion}>
                   Tu familiar podrá ver tu ubicación en su mapa
@@ -661,7 +651,7 @@ export const Perfil = () => {
           {rastreoActivo && (
             <View style={styles.filaSupervision}>
               <Icon name="check-circle-outline" size={16} color={theme.colors.primary} />
-              <Text style={styles.filaSwitch__infoActivoTexto}>
+              <Text style={styles.filaSupervision__descripcion}>
                 Tu ubicación se actualiza automáticamente en segundo plano
               </Text>
             </View>

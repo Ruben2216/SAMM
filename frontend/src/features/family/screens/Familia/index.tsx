@@ -25,6 +25,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useFocusEffect } from "@react-navigation/native";
 import httpClient from "../../../../services/httpService";
 import { obtenerParentescoDelAdultoParaFamiliar } from "../../../../utils/parentescoFormatter";
+import { construirUrlAvatar } from "../../../../utils/avatarUrl";
 
 if (
   Platform.OS === "android" &&
@@ -63,17 +64,6 @@ interface PerfilSalud {
   Condicion_Medica?: string | null;
   Telefono?: string | null;
 }
-
-const construirUriAvatar = (urlAvatar: string) => {
-  const baseUrl = (httpClient.defaults.baseURL ?? "").replace(/\/$/, "");
-  const ruta = urlAvatar.trim();
-
-  if (!ruta) return "";
-  if (ruta.startsWith("http://") || ruta.startsWith("https://")) return ruta;
-  if (!baseUrl) return ruta;
-
-  return `${baseUrl}${ruta.startsWith("/") ? "" : "/"}${ruta}`;
-};
 
 const generarIniciales = (nombreCompleto: string): string => {
   const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
@@ -114,7 +104,7 @@ const ItemPerfil = ({
   onVerAgenda: () => void;
   onVerInfoMedica: () => void;
 }) => {
-  const uriAvatar = perfil.urlAvatar ? construirUriAvatar(perfil.urlAvatar) : "";
+  const uriAvatar = construirUrlAvatar(perfil.urlAvatar, httpClient.defaults.baseURL ?? undefined);
   const tieneAvatar = Boolean(uriAvatar);
 
   const tipoSangre = perfilSalud?.Tipo_Sangre?.trim() || "—";
