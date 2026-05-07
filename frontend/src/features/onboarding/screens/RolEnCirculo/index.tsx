@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // <-- Para evitar el Notch
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './RolEnCirculo.styles';
 import { ProgressBar } from '../../../../components/ui/progress-bar';
 import { theme } from '../../../../theme';
@@ -22,7 +22,7 @@ export const RolEnCirculo: React.FC = () => {
   const navegacion = useNavigation();
   const route = useRoute();
   const { idVinculacion } = (route.params as { idVinculacion: number }) || {};
-  
+
   const insets = useSafeAreaInsets();
 
   const [rolSeleccionado, setRolSeleccionado] = useState<string | null>(null);
@@ -33,10 +33,26 @@ export const RolEnCirculo: React.FC = () => {
 
     setCargando(true);
     try {
-      await httpClient.put(`/vinculacion/circulo/${idVinculacion}`, {
+      const response = await httpClient.put(`/vinculacion/circulo/${idVinculacion}`, {
         rol_adulto_mayor: rolSeleccionado,
       });
+
       console.log('[RolEnCirculo] Rol guardado:', rolSeleccionado);
+      console.log('[RolEnCirculo] response.data:', response.data);
+
+      const { Id_Familiar, Id_Adulto_Mayor } = response.data;
+
+      try {
+        await httpClient.post('/rastreo/configuracion', {
+          Id_Familiar,
+          Id_Adulto_Mayor,
+          Frecuencia_Minutos: 10,
+        });
+        console.log('[RolEnCirculo] Configuración de tracking creada correctamente.');
+      } catch (trackingErr) {
+        console.warn('[RolEnCirculo] No se pudo crear config de tracking:', trackingErr);
+      }
+
       (navegacion as any).reset({
         index: 0,
         routes: [{ name: 'SeniorTabs' }],
@@ -61,7 +77,7 @@ export const RolEnCirculo: React.FC = () => {
         contentContainerStyle={[
           styles.contenidoScroll,
           {
-            paddingTop: Math.max(insets.top, 20) + 10, 
+            paddingTop: Math.max(insets.top, 20) + 10,
             paddingBottom: Math.max(insets.bottom, 20) + 20,
           }
         ]}
@@ -73,11 +89,7 @@ export const RolEnCirculo: React.FC = () => {
             onPress={manejarRetroceder}
             style={styles.botonRetroceder}
           >
-            <Icon
-              name="arrow-left"
-              size={24}
-              color="#14EC5C"
-            />
+            <Icon name="arrow-left" size={24} color="#14EC5C" />
           </TouchableOpacity>
 
           <View style={{ flex: 1, marginLeft: 12 }}>
@@ -95,7 +107,6 @@ export const RolEnCirculo: React.FC = () => {
             Selecciona la relación que tiene contigo la persona que te cuida.
           </Text>
 
-          {/* Lista de opciones unificada con el diseño de inputs */}
           <View style={styles.listaOpciones}>
             {roles.map((rol) => {
               const seleccionado = rolSeleccionado === rol;
@@ -117,7 +128,6 @@ export const RolEnCirculo: React.FC = () => {
                       seleccionado && styles.radioSeleccionado,
                     ]}
                   />
-
                   <Text style={styles.textoOpcion}>{rol}</Text>
                 </TouchableOpacity>
               );

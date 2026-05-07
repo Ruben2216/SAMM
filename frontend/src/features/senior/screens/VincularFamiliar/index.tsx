@@ -1,3 +1,4 @@
+//frontend/src/features/family/screens/VincularFamiliar/index.tsx
 import React, { useRef, useState } from 'react';
 import { ScrollView, View, TouchableOpacity, Text, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
